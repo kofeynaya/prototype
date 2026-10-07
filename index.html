@@ -174,7 +174,8 @@ p{margin:0}
 .sheet{width:100%;max-width:440px;max-height:88%;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
-.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);align-self:center}
+.sheet-x{position:sticky;top:0;align-self:flex-end;z-index:5;width:44px;height:44px;margin:-6px -4px -50px 0;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.sheet-x svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2.4;fill:none}
 .menu{display:flex;flex-direction:column}
 .mi{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .mi .nm{font-size:16px}
@@ -271,6 +272,7 @@ p{margin:0}
 .rec{width:136px;border-radius:16px;background:var(--surface);border:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:6px;text-align:left}
 .rec .ph{width:100%;aspect-ratio:1;border-radius:10px}
 .rec .nm{font-size:14px;line-height:1.2;height:2.4em;overflow:hidden}
+.rec .pill{margin-top:auto}
 .ph{display:block;object-fit:cover;background:var(--line)}
 .ph.empty{display:grid;place-items:center}
 .ph.empty svg{width:42%;height:42%;opacity:.5}
@@ -287,17 +289,19 @@ p{margin:0}
 .section-h h2{font-size:24px}
 .hours{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--cream);color:var(--on-color);font-size:13px;font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 10px}
-.card{display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left}
+.card{display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left;height:100%}
+.card .pill{margin-top:auto}
+.card .cp{margin-bottom:8px}
 .card .ph{width:100%;aspect-ratio:1;border-radius:14px}
 .card .wrap{position:relative}
 .card .ltag{position:absolute;right:6px;bottom:6px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--blue);color:#f9f9f9;white-space:nowrap}
 .card .ltag.six{background:var(--teal)}
-.card .ltag.offer{background:var(--sage);color:var(--on-color)}
+.card .ltag.lo{background:var(--sage);color:var(--on-color)}
 .card .ltag.bd{background:var(--pink);color:var(--on-color)}
 .card .nm{font-size:15px;line-height:1.2;margin-top:4px}
 .card .wt{font-size:13px;color:var(--muted)}
 .card .cp{font-size:12px;color:var(--muted);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pill{align-self:flex-start;margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--surface);border:1.5px solid var(--ink);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--surface);border:1.5px solid var(--ink);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill s{color:var(--muted);font-weight:400;font-size:13px}
 .pill.in{background:var(--ink);color:var(--bg);padding:4px}
 .pill.in button{width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;display:grid;place-items:center;color:inherit}
@@ -339,7 +343,7 @@ p{margin:0}
 .li .chev{color:var(--muted)}
 .li svg.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
 
-.pd .ph{width:100%;aspect-ratio:1;border-radius:18px}
+.pd .ph{width:100%;aspect-ratio:1;border-radius:18px;margin-top:48px}
 .optgroup{display:flex;flex-direction:column;gap:8px}
 .optrow{display:flex;flex-wrap:wrap;gap:8px}
 .optbtn{padding:9px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;background:var(--surface)}
@@ -407,7 +411,7 @@ const KASSA = [ID.cap, ID.latte, ID.flat, findN('Американо'), findN('Э
 /* Опции — настоящие: размер (варианты блюда) + группы добавок Starter (зерно, молоко, сиропы, посуда…).
    opts = {v: индекс варианта, s: {индекс группы: [индексы добавок]}} */
 const hasOpts = m => m.vars.length>1 || m.vars[0].g.length>0;
-const wt = (m,v=0) => { const x=m.vars[v]; return x.w ? `${x.w} г` : x.vol ? `${x.vol} мл` : ''; };
+const wt = (m,v=0) => { const x=m.vars[v]; return x.vol ? `${x.vol} мл` : x.w ? `${x.w} г` : ''; };
 function defOpts(m,v=0){ const s={}; m.vars[v].g.forEach((g,i)=>{ s[i] = g.req && g.min>=1 ? [0] : [] }); return {v,s}; }
 function unitPrice(m,o){ const x=m.vars[o?.v||0]; let p=x.p; for(const [gi,arr] of Object.entries(o?.s||{})) arr.forEach(t=>p+=x.g[gi]?.v[t]?.[1]||0); return p; }
 const optSur = (m,o) => unitPrice(m,o)-m.p;
@@ -722,7 +726,7 @@ const back = (to='home', t='Назад') => `<button class="back" onclick="go('$
 const minPrice = m => { const pp=myPrice(m.id); return pp!=null && pp<m.p ? pp : m.p; };
 function loyalTag(m){
   const o=S.offer, bd=bdInfo();
-  if(o && o.status!=='used' && (o.item===m.id || o.combo?.includes(m.id))) return `<span class="ltag offer">Предложение дня</span>`;
+  if(o && o.status!=='used' && (o.item===m.id || o.combo?.includes(m.id))) return `<span class="ltag lo">Предложение дня</span>`;
   if(SIXTH.includes(m.id) && S.stamps[m.id]>=5) return `<span class="ltag six">6-й −30%</span>`;
   const pp=myPrice(m.id); if(pp!=null) return `<span class="ltag">★ ${rub(pp)}</span>`;
   if(bd.active && S.plus) return '';
@@ -905,7 +909,7 @@ function drawProduct(){
     ${sizes}${groups}
     <div class="qtyrow" style="position:sticky;bottom:0;background:var(--bg);padding-top:8px"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
       <button class="btn" style="flex:1" onclick="addFromPd()">${rub(unit*pd.qty)} +</button></div></div>`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=s; } else sheet(html);
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=s; } else sheet(html);
 }
 function pickOpt(gi,i){
   const g=byId(pd.id).vars[pd.opts.v].g[gi], a=pd.opts.s[gi]||[];
@@ -946,7 +950,7 @@ function drawMode(){
       <div class="stack" style="gap:2px"><h3>или выберите кофейню</h3><span class="muted small">Номер столика укажете после выбора.</span></div>${shopList('pickShop')}`;
   }
   const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" onclick="modeTab='${k}';addrInput=null;drawMode()">${v}</button>`).join('')}</div>${mapHtml()}${body}`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.seg')){ ex.innerHTML='<span class="grab"></span>'+html; } else sheet(html);
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.seg')){ ex.innerHTML=SHX+html; } else sheet(html);
 }
 function shopList(fn){ const need=modeTab==='table'?'table':'pickup';
   return `<div class="list">${SHOPS.map((s,i)=>s.t.includes(need)?`<button class="li" onclick="${fn}(${i})"><img class="th" src="${s.img}" alt=""><span class="tx"><strong>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</strong><small>${s.d}</small><small>Будни ${s.wd} · сб–вс ${s.we}</small>${s.closed?`<small style="color:var(--warn)">${s.closed}</small>`:''}</span><span class="chev">›</span></button>`:'').join('')}</div>`; }
@@ -962,7 +966,7 @@ function pickShop(i){ shopView=i; const s=SHOPS[i], tbl=modeTab==='table';
     ${s.closed?`<div class="notice" style="background:var(--warn)">${IC.info}<span>${s.closed}</span></div>`:''}
     <button class="btn block" ${s.closed?'disabled':''} onclick="confirmShop(${i})">${tbl?'Я за столиком здесь':'Заберу здесь'}</button>
     <button class="link" style="align-self:center" onclick="shopView=null;drawMode()">← Все кофейни</button>`;
-  ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=0; }
+  ex.innerHTML=SHX+html; ex.scrollTop=0; }
 function confirmShop(i){
   if(modeTab==='pickup'){ S.mode='pickup'; S.shop=i; save(); closeSheet(); render(); toast(`Самовывоз: ${SHOPS[i].n}, ${SHOPS[i].a}. Приготовим за ${SHOPS[i].eta}.`); return; }
   S.mode='table'; S.table={shop:i,n:7}; save(); closeSheet(); render(); toast(`${SHOPS[i].n}: заказ к столику 7. В жизни номер подставится из QR на столе.`);
@@ -972,7 +976,7 @@ function saveAddr(){
   const v=($('#addr')?.value||'').trim(), d=($('#addr2')?.value||'').trim();
   if(!v){ toast('Введите улицу и дом.'); return; }
   if(/(петербург|москва|казань|спб)/i.test(v)){
-    const ex=document.querySelector('.sheet'); ex.innerHTML=`<span class="grab"></span><h3>Укажите адрес доставки</h3><div class="field"><label class="label">Адрес</label><input value="${v}" readonly style="font-size:17px"></div>
+    const ex=document.querySelector('.sheet'); ex.innerHTML=`${SHX}<h3>Укажите адрес доставки</h3><div class="field"><label class="label">Адрес</label><input value="${v}" readonly style="font-size:17px"></div>
       <p>Мы пока не доставляем на этот адрес, давайте пришлём СМС, когда начнём!</p>
       <button class="btn block" onclick="S.notify.push('${v.replace(/'/g,'')}');save();closeSheet();toast('Готово: напишем по СМС, когда начнём доставлять на этот адрес.')">Да, сообщите мне</button>
       <button class="btn ghost block" onclick="addrInput='';drawMode()">Другой адрес</button>`; return; }
@@ -1228,8 +1232,9 @@ function logout(){ S.authed=false; authStep='phone'; save(); render(false); }
 function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); tab='home'; render(false); toast('Демо-данные сброшены.'); }
 
 /* ===================== Шторки: QR и касса ===================== */
+const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
 function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><span class="grab"></span>${html}</div>`; document.body.appendChild(bg); document.addEventListener('keydown',escClose); }
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); document.addEventListener('keydown',escClose); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
 function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
@@ -1275,7 +1280,7 @@ function drawKassa(){
       <div class="r"><span>Бонусы за покупку (${effLevel().p}%)</span><span class="money">+${qt.bonus}</span></div>
       <div class="r tot"><span>К оплате картой</span><span class="money">${rub(qt.card)}</span></div></div>
     <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=st; } else sheet(html);
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=st; } else sheet(html);
 }
 function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); }
 
