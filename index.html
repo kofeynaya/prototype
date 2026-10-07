@@ -1,0 +1,646 @@
+<meta charset="utf-8">
+<title>Кофейная лояльность</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;500;600;700&family=Dela+Gothic+One&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+/* Макет: одна колонка-телефон (до 440px), сверху демо-полоса, снизу таб-бар.
+   Функциональное — чёрно-белое и спокойное; цвет только в «имиджевых» карточках (предложение, цены, награды). */
+:root{
+  --bg:#f9f9f9; --surface:#ffffff; --ink:#212221; --muted:#6a6e6b; --line:#e2e4e1;
+  --green:#172f28; --sage:#a7d2b9; --pink:#ecccce; --cream:#fef2e9; --aqua:#9bd9d9; --teal:#00657f; --blue:#2b2b93;
+  --on-color:#212221; --ok:#0d553f; --warn:#a24a1d;
+  --tile:#212221; --tile-ink:#f9f9f9;
+  --f-body:"Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-num:"Dela Gothic One","Arial Black",system-ui,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#191a19; --surface:#232523; --ink:#f3f4f2; --muted:#a3a7a3; --line:#363936;
+  --ok:#7fc8a0; --warn:#f0a07a; --tile:#f3f4f2; --tile-ink:#191a19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#191a19; --surface:#232523; --ink:#f3f4f2; --muted:#a3a7a3; --line:#363936;
+  --ok:#7fc8a0; --warn:#f0a07a; --tile:#f3f4f2; --tile-ink:#191a19; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 var(--f-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative}
+
+/* логотип: маска из PNG, окрашивается currentColor */
+.logo{display:inline-block;background:currentColor;-webkit-mask:url(assets/wordmark.png) center/contain no-repeat;mask:url(assets/wordmark.png) center/contain no-repeat;aspect-ratio:1000/121}
+.mark{display:inline-block;background:currentColor;-webkit-mask:url(assets/mark.png) center/contain no-repeat;mask:url(assets/mark.png) center/contain no-repeat;aspect-ratio:360/262}
+
+/* демо-полоса */
+.demo{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--green);color:#f9f9f9;font-size:13px}
+.demo b{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px;background:#f9f9f9;color:var(--green);padding:2px 6px;border-radius:4px}
+.demo .date{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.demo button{padding:6px 10px;border-radius:999px;border:1px solid rgba(249,249,249,.4);font-size:13px;white-space:nowrap}
+.demo button.primary{background:var(--sage);color:var(--on-color);border-color:var(--sage);font-weight:600}
+
+main{flex:1;padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:20px}
+.screen{display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{margin:0;font-weight:600;text-wrap:balance}
+h1{font-size:28px;line-height:1.1}
+h2{font-size:20px}
+h3{font-size:17px}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:8px}
+.money{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;font-size:16px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.4;cursor:default}
+.link{color:var(--teal);text-decoration:underline;text-underline-offset:3px;font-size:14px}
+
+/* акцидентные цифры: белое на чёрном квадрате */
+.tile{display:inline-grid;place-items:center;min-width:1.25em;height:1.25em;padding:0 .12em;background:var(--tile);color:var(--tile-ink);font-family:var(--f-num);line-height:1;font-variant-numeric:tabular-nums}
+.tiles{display:inline-flex;gap:3px}
+
+/* шапка главной */
+.hello{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.hello .logo{width:150px;color:var(--ink)}
+
+/* QR-карта */
+.qrcard{display:flex;align-items:center;gap:16px;background:var(--ink);color:var(--bg);border-radius:var(--r);padding:16px}
+.qrcard .mini{width:64px;height:64px;background:#f9f9f9;border-radius:8px;padding:6px;flex:none}
+.qrcard .mini svg{width:100%;height:100%;display:block}
+.qrcard .t{flex:1;min-width:0}
+.qrcard .bal{font-size:13px;opacity:.75}
+
+/* карточка предложения — «имиджевый» носитель: цвет + пятно */
+.offer{position:relative;overflow:hidden;border-radius:var(--r);padding:20px;color:var(--on-color);display:flex;flex-direction:column;gap:12px;min-height:220px}
+.offer .blob{position:absolute;right:-40px;bottom:-50px;width:190px;height:190px;pointer-events:none}
+.offer .kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;opacity:.8}
+.offer .title{font-size:26px;line-height:1.05;font-weight:700;max-width:75%;text-wrap:balance}
+.offer .val{font-family:var(--f-num);font-size:40px;line-height:1}
+.offer .meta{font-size:14px;max-width:70%}
+.offer .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;position:relative}
+.offer .btn{background:var(--on-color);color:#f9f9f9}
+.offer .btn.ghost{background:transparent;color:var(--on-color);border-color:var(--on-color)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(33,34,33,.1)}
+.chip.on{background:var(--on-color);color:#f9f9f9}
+.why{font-size:13px;opacity:.85;position:relative}
+
+/* неделя */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.day .dot{width:100%;aspect-ratio:1;max-width:44px;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--f-num);font-size:14px;color:var(--muted)}
+.day.done .dot{background:var(--sage);border:0;color:var(--on-color)}
+.day.today .dot{border:2px solid var(--ink);color:var(--ink)}
+.day.today.done .dot{border:2px solid var(--ink)}
+.day.future .dot{opacity:.45}
+.goalbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.goalbar i{display:block;height:100%;background:var(--green);border-radius:4px;transition:width .4s}
+:root[data-theme="dark"] .goalbar i{background:var(--sage)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .goalbar i{background:var(--sage)}}
+
+/* огоньки по неделям */
+.flames{display:flex;gap:6px;flex-wrap:wrap}
+.flame{width:30px;height:38px}
+.flame path{fill:var(--line)}
+.flame.lit path{fill:var(--warn)}
+
+/* лестница наград */
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.step .p{font-family:var(--f-num);font-size:18px}
+.step .w{font-size:12px;color:var(--muted)}
+.step.cur{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.step.cur .w{color:inherit;opacity:.7}
+
+/* персональные цены */
+.prices{display:flex;flex-direction:column;gap:10px}
+.price{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.price .sw{width:56px;height:56px;border-radius:12px;display:grid;place-items:center}
+.price .sw svg{width:40px;height:40px}
+.price .old{text-decoration:line-through;color:var(--muted);font-size:14px}
+.price .new{font-family:var(--f-num);font-size:20px}
+
+/* статистика */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{padding:14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
+.stat .v{font-family:var(--f-num);font-size:26px;line-height:1.1}
+.funnel{display:flex;flex-direction:column;gap:8px}
+.funnel .f{display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;font-size:14px}
+.funnel .bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.funnel .bar i{display:block;height:100%;background:var(--teal)}
+.funnel .n{text-align:right;font-variant-numeric:tabular-nums}
+.hist{display:flex;flex-direction:column}
+.hist .h{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.hist .h:last-child{border-bottom:0}
+.hist .h .d{font-size:13px;color:var(--muted);grid-column:1/-1}
+.save{color:var(--ok)}
+
+/* достижения */
+.ach{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.badge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:14px 6px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);font-size:13px;line-height:1.2}
+.badge .b{width:52px;height:52px;display:grid;place-items:center;font-family:var(--f-num);font-size:20px;border-radius:50%}
+.badge.off{opacity:.45}
+.badge.off .b{background:var(--line)!important;color:var(--muted)!important}
+
+/* «что я о вас знаю» */
+.learn{display:flex;flex-direction:column;gap:8px}
+.learn .l{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;font-size:14px}
+.learn .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.learn .bar i{display:block;height:100%;background:var(--green)}
+:root[data-theme="dark"] .learn .bar i{background:var(--sage)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .learn .bar i{background:var(--sage)}}
+
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.toggle:last-child{border-bottom:0}
+.toggle input{width:44px;height:26px;accent-color:var(--green)}
+
+/* таб-бар */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--bg);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:12px;color:var(--muted)}
+.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tabs button[aria-current="page"]{color:var(--ink);font-weight:600}
+
+/* шторка */
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,12,11,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:440px;max-height:88%;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);align-self:center}
+.menu{display:flex;flex-direction:column}
+.mi{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.mi .nm{font-size:16px}
+.mi .pr{font-size:14px;color:var(--muted)}
+.mi .pr .pp{color:var(--ok);font-weight:600}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);font-size:18px;line-height:1}
+.qty span{min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+.sum .r{display:flex;justify-content:space-between;gap:12px;font-size:15px;padding:3px 0}
+.sum .r.tot{font-size:20px;font-weight:700;border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+.bigqr{align-self:center;width:min(78vw,280px);aspect-ratio:1;background:#f9f9f9;border-radius:16px;padding:14px;position:relative}
+.bigqr svg{width:100%;height:100%;display:block}
+.bigqr .c{position:absolute;inset:0;margin:auto;width:22%;height:22%;background:#212221;border-radius:6px;display:grid;place-items:center}
+.bigqr .c .mark{width:70%;color:#f9f9f9}
+.timer{text-align:center;font-variant-numeric:tabular-nums}
+
+/* тост */
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:min(408px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-size:15px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.toast b{font-weight:700}
+
+/* вход */
+.auth{flex:1;display:flex;flex-direction:column;gap:24px;padding:40px 16px 24px}
+.auth .hero{background:var(--green);color:#f9f9f9;border-radius:20px;padding:28px 20px;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden;min-height:250px}
+.auth .hero .logo{width:200px;color:#f9f9f9}
+.auth .hero p{font-size:19px;line-height:1.3;max-width:80%;position:relative}
+.auth .hero .blob{position:absolute;right:-50px;bottom:-60px;width:220px;height:220px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input{font:inherit;font-size:22px;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:100%;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.code input{text-align:center;font-family:var(--f-num);font-size:28px;letter-spacing:.5em;padding:12px 0 12px .5em}
+.hint{font-size:14px;color:var(--muted)}
+.rules{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px;padding-left:18px;margin:0}
+</style>
+
+<div class="app" id="app"></div>
+
+<script>
+/* ===================== Данные прототипа (вымышленные) ===================== */
+const MENU = [
+  {id:'cap',   name:'Капучино',            cat:'coffee', price:300},
+  {id:'flat',  name:'Флэт уайт',           cat:'coffee', price:320},
+  {id:'raf',   name:'Раф',                 cat:'coffee', price:340},
+  {id:'filt',  name:'Фильтр-кофе',         cat:'coffee', price:220},
+  {id:'matcha',name:'Матча латте',         cat:'tea',    price:360},
+  {id:'crois', name:'Круассан',            cat:'pastry', price:190},
+  {id:'cake',  name:'Чизкейк',             cat:'pastry', price:290},
+  {id:'cookie',name:'Печенье с солью',     cat:'pastry', price:150},
+  {id:'salad', name:'Салат с креветками',  cat:'food',   price:540},
+  {id:'sand',  name:'Сэндвич с индейкой',  cat:'food',   price:390},
+];
+const CAT = {coffee:'кофе', tea:'чай и матча', pastry:'выпечка и десерты', food:'еда'};
+const MECH = {pct:'скидка в процентах', price:'специальная цена', gift:'подарок', combo:'комбо'};
+const SWATCH = {coffee:'var(--cream)', tea:'var(--sage)', pastry:'var(--pink)', food:'var(--aqua)'};
+const OFFER_BG = ['var(--sage)','var(--pink)','var(--cream)','var(--aqua)'];
+const LEVELS = [{w:0,p:2},{w:1,p:3},{w:2,p:5},{w:3,p:7},{w:4,p:10}]; // недель подряд в цель → % бонусами
+const DAY0 = new Date(2026,8,28); // пн 28 сентября 2026 — день 0 демо-календаря
+const WD = ['пн','вт','ср','чт','пт','сб','вс'];
+const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const byId = id => MENU.find(m=>m.id===id);
+const rub = n => Math.round(n).toLocaleString('ru-RU')+' ₽';
+const dateOf = d => { const x=new Date(DAY0); x.setDate(x.getDate()+d); return x; };
+const fmt = d => { const x=dateOf(d); return WD[(d%7)]+', '+x.getDate()+' '+MON[x.getMonth()]; };
+const fmtShort = d => { const x=dateOf(d); return x.getDate()+' '+MON[x.getMonth()]; };
+
+/* ===================== Состояние ===================== */
+const KEY='coffee-loyalty-proto-v1';
+function seed(){
+  const s = {
+    authed:false, phone:'', name:'Аня', guestId:'G-'+Math.random().toString(36).slice(2,8).toUpperCase(),
+    day:9, goal:4, streak:1, bonus:64, saved:0,
+    visits:[0,1,3,5,7,8],                // дни с покупкой
+    orders:[], weekHist:[{week:0,days:4,met:true}],
+    w:{cat:{coffee:1.4,tea:.8,pastry:1.2,food:.7}, mech:{pct:1,price:1,gift:1,combo:1}},
+    funnel:{shown:6,opened:4,activated:3,used:2},
+    mechTried:{pct:1,price:1},
+    pastryCount:3, offer:null, prices:null, pricesWeek:-1,
+    notif:{offer:true,streak:true,savings:false},
+    ach:{}
+  };
+  // история прошлых покупок (вымышленная)
+  const mk=(d,items,sv)=>({day:d,items,sum:items.reduce((a,i)=>a+byId(i).price,0)-sv,saved:sv,bonus:0});
+  s.orders=[mk(0,['cap','crois'],0),mk(1,['flat'],0),mk(3,['cap','cake'],29),mk(5,['raf'],0),mk(7,['cap','crois'],45),mk(8,['filt','cookie'],0)];
+  s.orders.forEach(o=>o.bonus=Math.floor(o.sum*0.02));
+  s.saved = s.orders.reduce((a,o)=>a+o.saved,0);
+  s.ach={first:true,week1:true};
+  return s;
+}
+let S;
+try{ S=JSON.parse(localStorage.getItem(KEY)) }catch(e){}
+if(!S||!S.w) S=seed();
+const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
+
+const weekOf = d => Math.floor(d/7);
+const weekDays = w => S.visits.filter(v=>weekOf(v)===w).length;
+const level = () => LEVELS.filter(l=>S.streak>=l.w).pop();
+const nextLevel = () => LEVELS.find(l=>l.w>S.streak);
+
+/* ===================== Персонализация (упрощённая) =====================
+   Вес = интерес к категории × интерес к механике. 30% — исследование (случайный вариант),
+   70% — выбор пропорционально весам. Использование усиливает веса, игнор — слегка ослабляет. */
+function pickWeighted(obj){ const e=Object.entries(obj); let t=e.reduce((a,[,v])=>a+v,0), r=Math.random()*t; for(const [k,v] of e){ if((r-=v)<=0) return k } return e[0][0]; }
+function makeOffer(){
+  const explore = Math.random()<0.3;
+  const cat = explore ? Object.keys(CAT)[Math.floor(Math.random()*4)] : pickWeighted(S.w.cat);
+  const mech = explore ? Object.keys(MECH)[Math.floor(Math.random()*4)] : pickWeighted(S.w.mech);
+  const pool = MENU.filter(m=>m.cat===cat);
+  const item = pool[Math.floor(Math.random()*pool.length)];
+  const o = {id:'O'+S.day+'-'+Math.random().toString(36).slice(2,6), day:S.day, cat, mech, item:item.id, status:'shown', explore, opened:false};
+  if(mech==='pct'){ o.pct=[10,15,20][Math.floor(Math.random()*3)]; o.title=`${item.name} −${o.pct}%`; o.val=`−${o.pct}%`; o.meta=`Сегодня ${item.name.toLowerCase()} со скидкой ${o.pct}%. Одна порция.`; }
+  if(mech==='price'){ o.newPrice=Math.round(item.price*0.8/10)*10; o.title=`${item.name} за ${o.newPrice} ₽`; o.val=rub(o.newPrice); o.meta=`Вместо ${rub(item.price)}. Одна порция, только сегодня.`; }
+  if(mech==='gift'){ o.item='cookie'; o.title='Печенье в подарок к любому кофе'; o.val='0 ₽'; o.meta='Возьмите любой кофе — печенье с солью добавим бесплатно.'; o.cat='pastry'; }
+  if(mech==='combo'){ const c = cat==='coffee'?'crois':'cap'; o.combo=[item.id===c?'cap':item.id, c]; if(o.combo[0]===o.combo[1]) o.combo=['cap','crois'];
+    const full=o.combo.reduce((a,i)=>a+byId(i).price,0); o.comboPrice=Math.round(full*0.85/10)*10;
+    o.title=`${byId(o.combo[0]).name} + ${byId(o.combo[1]).name.toLowerCase()}`; o.val=rub(o.comboPrice); o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
+  o.why = explore ? 'Пробуем новое: так приложение узнаёт, что вам нравится.'
+                  : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
+  o.bg = OFFER_BG[Math.floor(Math.random()*OFFER_BG.length)];
+  S.funnel.shown++;
+  return o;
+}
+function makePrices(){
+  // 3 блюда на неделю: из самых любимых категорий, скидка 3–8%
+  const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const picks=[]; for(const c of cats){ for(const m of MENU.filter(x=>x.cat===c)){ if(picks.length<3 && Math.random()<0.6) picks.push(m) } }
+  while(picks.length<3){ const m=MENU[Math.floor(Math.random()*MENU.length)]; if(!picks.includes(m)) picks.push(m) }
+  return picks.map(m=>({item:m.id, price: Math.max(m.price-Math.round(m.price*(0.03+Math.random()*0.05)/5)*5, m.price-40)}));
+}
+function ensureDaily(){
+  if(!S.offer || S.offer.day!==S.day) S.offer=makeOffer();
+  if(S.pricesWeek!==weekOf(S.day)){ S.prices=makePrices(); S.pricesWeek=weekOf(S.day); }
+}
+function learn(o, kind){
+  const k = kind==='used'?0.5 : kind==='ignored'?-0.08 : kind==='expired'?-0.15 : 0;
+  S.w.cat[o.cat]=Math.max(.3,+(S.w.cat[o.cat]+k).toFixed(2));
+  S.w.mech[o.mech]=Math.max(.3,+(S.w.mech[o.mech]+k).toFixed(2));
+}
+
+/* ===================== Расчёт чека =====================
+   На строку применяется ОДНА лучшая выгода: персональная цена или предложение дня (не суммируются). */
+function quote(cart){
+  const lines=[]; let regular=0, paid=0, offerUsed=false;
+  const o=S.offer && S.offer.status==='activated' ? S.offer : null;
+  const pp=Object.fromEntries((S.prices||[]).map(p=>[p.item,p.price]));
+  const units=[]; for(const [id,q] of Object.entries(cart)) for(let i=0;i<q;i++) units.push(id);
+  let comboLeft = o&&o.mech==='combo' ? [...o.combo] : null;
+  let singleLeft = o&&(o.mech==='pct'||o.mech==='price') ? 1 : 0;
+  const hasCoffee = units.some(u=>byId(u).cat==='coffee');
+  let giftLeft = o&&o.mech==='gift'&&hasCoffee ? 1 : 0;
+  const comboOk = comboLeft && comboLeft.every(c=>units.includes(c));
+  const out=[];
+  for(const id of units){
+    const m=byId(id); let price=m.price, why='';
+    if(pp[id]!=null && pp[id]<price){ price=pp[id]; why='персональная цена'; }
+    if(singleLeft && id===o.item){ const op = o.mech==='pct' ? Math.round(m.price*(1-o.pct/100)) : o.newPrice; if(op<price){ price=op; why='предложение дня'; singleLeft=0; offerUsed=true; } }
+    if(giftLeft && id==='cookie'){ price=0; why='подарок'; giftLeft=0; offerUsed=true; }
+    if(comboOk && comboLeft.includes(id)){ comboLeft.splice(comboLeft.indexOf(id),1); why='комбо'; price=null; }
+    regular+=m.price; out.push({id,name:m.name,regular:m.price,price,why});
+  }
+  if(comboOk){ const cl=out.filter(l=>l.price===null); const full=cl.reduce((a,l)=>a+l.regular,0);
+    cl.forEach(l=>l.price=Math.round(l.regular/full*o.comboPrice)); offerUsed=true; }
+  out.forEach(l=>{ if(l.price===null) l.price=l.regular; paid+=l.price; });
+  return {lines:out, regular, paid, saved:regular-paid, offerUsed, bonus:Math.floor(paid*level().p/100)};
+}
+
+/* ===================== Достижения ===================== */
+const ACH = [
+  {id:'first',  t:'Первый визит',        n:'1',  bg:'var(--sage)',  test:()=>S.orders.length>0},
+  {id:'week1',  t:'Неделя в цель',       n:'4',  bg:'var(--cream)', test:()=>S.weekHist.some(w=>w.met)},
+  {id:'streak3',t:'3 недели подряд',     n:'3',  bg:'var(--pink)',  test:()=>S.streak>=3},
+  {id:'explorer',t:'Попробовал 3 вида акций',n:'3',bg:'var(--aqua)',test:()=>Object.keys(S.mechTried).length>=3},
+  {id:'sweet',  t:'Сладкоежка: 5 десертов',n:'5',bg:'var(--pink)',  test:()=>S.pastryCount>=5},
+  {id:'save500',t:'Сэкономил 500 ₽',     n:'500',bg:'var(--sage)', test:()=>S.saved>=500},
+];
+function checkAch(){ const got=[]; for(const a of ACH){ if(!S.ach[a.id] && a.test()){ S.ach[a.id]=true; got.push(a.t) } } return got; }
+
+/* ===================== Действия ===================== */
+function activate(){ if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано. Покажите QR на кассе.'); } }
+function openOffer(){ if(!S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
+function pay(cart){
+  const q=quote(cart); if(!q.lines.length) return;
+  const first = !S.visits.includes(S.day);
+  if(first) S.visits.push(S.day);
+  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid, saved:q.saved, bonus:q.bonus});
+  S.saved+=q.saved; S.bonus+=q.bonus;
+  S.pastryCount+=q.lines.filter(l=>byId(l.id).cat==='pastry').length;
+  if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
+  // даже без акции покупка — сигнал о вкусе
+  q.lines.forEach(l=>{ const c=byId(l.id).cat; S.w.cat[c]=+(S.w.cat[c]+0.1).toFixed(2) });
+  const got=checkAch(); save(); closeSheet(); render();
+  const wd=weekDays(weekOf(S.day));
+  let msg = first ? `<b>День засчитан: ${wd} из ${S.goal}</b> на этой неделе.` : `<b>Покупка сохранена.</b> Этот день уже был засчитан.`;
+  if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
+  msg+=` Бонусы +${q.bonus}.`;
+  if(got.length) msg+=` Новое достижение: «${got.join('», «')}».`;
+  toast(msg, 4200);
+}
+function nextDay(){
+  if(S.offer){ if(S.offer.status==='activated') learn(S.offer,'expired'); else if(S.offer.status==='shown') learn(S.offer, S.offer.opened?'ignored':'none'); }
+  const w=weekOf(S.day); S.day++;
+  let msg='Новый день: '+fmt(S.day)+'.';
+  if(weekOf(S.day)!==w){
+    const d=weekDays(w), met=d>=S.goal; S.weekHist.push({week:w,days:d,met});
+    if(met){ S.streak++; msg=`Неделя закрыта: ${d} из ${S.goal}. Огонёк +1, бонусы теперь ${level().p}%.`; }
+    else { const was=level().p; S.streak=Math.max(0,S.streak-1); msg=`Неделя закрыта: ${d} из ${S.goal}, цель не достигнута. Уровень снизился на одну ступень: ${was}% → ${level().p}%. Бонусы на счёте сохранены.`; }
+  }
+  S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4200);
+}
+
+/* ===================== UI-утилиты ===================== */
+const $=s=>document.querySelector(s);
+let tab='home', tTimer, qrTimer;
+function toast(html,ms=2800){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms); }
+const tiles = n => `<span class="tiles">${String(n).split('').map(c=>`<span class="tile">${c}</span>`).join('')}</span>`;
+const blob = (fill,seed=0) => `<svg class="blob" viewBox="0 0 200 200" aria-hidden="true"><path fill="${fill}" d="${['M100 18c30-22 74 4 70 42 30 18 30 64-4 76 6 38-40 58-66 34-26 24-72 4-66-34-34-12-34-58-4-76-4-38 40-64 70-42z','M60 30c40-30 110-10 115 45 35 30 10 95-45 95-30 25-95 20-100-30-35-35-15-95 30-110z'][seed%2]}"/></svg>`;
+function qrSvg(text, dark='#212221'){
+  if(typeof qrcode!=='function') return `<svg viewBox="0 0 10 10"><text x="5" y="6" font-size="2" text-anchor="middle">${text}</text></svg>`;
+  const q=qrcode(0,'H'); q.addData(text); q.make(); const n=q.getModuleCount(); let p='';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) p+=`M${c} ${r}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-label="QR-код гостя"><path fill="${dark}" d="${p}"/></svg>`;
+}
+const qrToken = () => 'KF1.'+S.guestId+'.'+Math.floor(Date.now()/60000).toString(36); // в бою — одноразовый токен от сервера
+const itemIcon = cat => ({
+  coffee:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M8 14h20v8a10 10 0 0 1-20 0zM28 16h3a4 4 0 0 1 0 8h-3v-3h3a1 1 0 0 0 0-2h-3z"/><path fill="#212221" d="M6 34h26v2H6z"/></svg>',
+  tea:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M11 10h18l-2 24H13z"/><circle cx="20" cy="7" r="3" fill="#212221"/></svg>',
+  pastry:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 26c2-10 10-16 16-16s14 6 16 16c-4 3-10 4-16 4S8 29 4 26z"/></svg>',
+  food:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 20h32a16 12 0 0 1-32 0z"/><circle cx="14" cy="15" r="4" fill="#212221"/><circle cx="24" cy="13" r="5" fill="#212221"/></svg>',
+})[cat];
+
+/* ===================== Экраны ===================== */
+function demoBar(){
+  return `<div class="demo"><b>демо</b><span class="date">${fmt(S.day)}</span>
+    <button class="primary" onclick="openBuy()">Покупка на кассе</button>
+    <button onclick="nextDay()" aria-label="Следующий день">День →</button></div>`;
+}
+function home(){
+  const o=S.offer, wd=weekDays(weekOf(S.day)), visitedToday=S.visits.includes(S.day);
+  const left=Math.max(0,S.goal-wd), daysLeft=6-(S.day%7);
+  const status = {shown:'', activated:'<span class="chip on">✓ Активировано</span>', used:'<span class="chip on">Использовано сегодня</span>'}[o.status];
+  return `<section class="screen">
+    <div class="hello"><div class="stack" style="gap:2px"><span class="logo" style="width:150px" role="img" aria-label="кофейная"></span><h1>Привет, ${S.name}</h1></div></div>
+
+    <button class="qrcard" onclick="openQR()" aria-label="Показать QR-код на кассе">
+      <span class="mini">${qrSvg(qrToken())}</span>
+      <span class="t stack" style="gap:2px;text-align:left"><strong style="font-size:18px">Показать QR на кассе</strong>
+        <span class="bal">Бонусы: <span class="money">${S.bonus}</span> · начисляем ${level().p}% с покупки</span></span>
+    </button>
+
+    <article class="offer" style="background:${o.bg}" onclick="openOffer()">
+      ${blob('rgba(33,34,33,.12)', S.day)}
+      <div class="row between" style="position:relative"><span class="kicker">Предложение дня</span>${status}</div>
+      <div class="title">${o.title}</div>
+      <div class="meta">${o.meta}</div>
+      <div class="why">${o.why}</div>
+      <div class="actions">
+        ${o.status==='shown' ? `<button class="btn" onclick="event.stopPropagation();activate()">Активировать</button>`
+          : o.status==='activated' ? `<button class="btn" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ``}
+        <span class="chip">до 23:59</span>
+      </div>
+    </article>
+
+    <div class="panel">
+      <div class="row between"><h3>Цель недели</h3><span class="muted small">${wd} из ${S.goal} дней</span></div>
+      ${weekRow()}
+      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк и ${ (nextLevel()||level()).p }% бонусами.`}</p>
+    </div>
+
+    <div class="panel">
+      <div class="row between"><h3>Ваши цены недели</h3><button class="link" onclick="go('prices')">Все</button></div>
+      ${S.prices.slice(0,2).map(priceRow).join('')}
+    </div>
+  </section>`;
+}
+function plural(n,a,b,c){ n=Math.abs(n)%100; const n1=n%10; if(n>10&&n<20) return c; if(n1>1&&n1<5) return b; if(n1===1) return a; return c; }
+function weekRow(){
+  const w=weekOf(S.day);
+  return `<div class="week">${WD.map((d,i)=>{ const day=w*7+i; const cls=[S.visits.includes(day)?'done':'', day===S.day?'today':'', day>S.day?'future':''].join(' ');
+    return `<div class="day ${cls}"><span class="dot">${S.visits.includes(day)?'✓':dateOf(day).getDate()}</span>${d}</div>` }).join('')}</div>`;
+}
+function priceRow(p){ const m=byId(p.item); return `<div class="price"><span class="sw" style="background:${SWATCH[m.cat]}">${itemIcon(m.cat)}</span>
+  <div class="stack" style="gap:0;min-width:0"><strong>${m.name}</strong><span class="old money">${rub(m.price)}</span></div>
+  <span class="new money">${rub(p.price)}</span></div>`; }
+function prices(){
+  const end=weekOf(S.day)*7+6;
+  return `<section class="screen">
+    <div class="stack"><span class="label">Персональные цены</span><h1>Цены только для вас</h1>
+    <p class="muted">Действуют до ${fmt(end)} во всех кофейнях. Обновляются каждый понедельник по вашим любимым блюдам.</p></div>
+    <div class="prices">${S.prices.map(priceRow).join('')}</div>
+    <div class="panel small"><strong>Как это работает</strong>
+      <ul class="rules"><li>Цена закреплена до воскресенья и не меняется.</li><li>Если на это же блюдо есть предложение дня, применяется более выгодное — они не складываются.</li><li>Без ограничений по количеству в прототипе. Лимиты решим отдельно.</li></ul></div>
+  </section>`;
+}
+function progress(){
+  const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
+  const hist=S.weekHist.slice(-7);
+  return `<section class="screen">
+    <div class="stack"><span class="label">Прогресс</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
+    <div class="panel">
+      <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
+      <div class="goalbar"><i style="width:${pct}%"></i></div>
+      ${weekRow()}
+      <p class="small muted">Засчитывается день с покупкой в любой кофейне. Несколько покупок в один день — это один день.</p>
+    </div>
+    <div class="panel">
+      <h3>Огоньки</h3>
+      <div class="flames">${hist.map(h=>flame(h.met,`Неделя ${fmtShort(h.week*7)}: ${h.days} из ${S.goal}`)).join('')}${flame(false,'Текущая неделя', true)}</div>
+      <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, но бонусы на счёте не сгорают.</p>
+    </div>
+    <div class="panel">
+      <div class="row between"><h3>Бонусы с каждой покупки</h3><span class="chip">${level().p}%</span></div>
+      <div class="ladder">${LEVELS.map(l=>`<div class="step ${l===level()?'cur':''}"><span class="p">${l.p}%</span><span class="w">${l.w===4?'4+ нед.':l.w+' нед.'}</span></div>`).join('')}</div>
+      <p class="small">${nextLevel()?`Ещё одна неделя в цель — и будет ${nextLevel().p}%.`:'Максимальный уровень. Держите темп.'}</p>
+    </div>
+    <div class="panel">
+      <h3>Моя цель</h3>
+      <p class="small muted">Сколько дней в неделю вы хотите заходить. Можно менять раз в неделю.</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px">${[2,3,4,5,6].map(g=>`<button class="btn ${g===S.goal?'':'ghost'}" style="padding:10px 16px" onclick="setGoal(${g})">${g} ${plural(g,'день','дня','дней')}</button>`).join('')}</div>
+    </div>
+  </section>`;
+}
+function flame(lit,title,cur){ return `<svg class="flame ${lit?'lit':''}" viewBox="0 0 30 38" role="img" aria-label="${title}" style="${cur?'opacity:.5':''}"><title>${title}</title><path d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`; }
+function benefit(){
+  const f=S.funnel, mx=Math.max(1,f.shown), mo=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day));
+  const weekSaved=mo.reduce((a,o)=>a+o.saved,0);
+  return `<section class="screen">
+    <div class="stack"><span class="label">Моя выгода</span><h1>Сэкономлено ${rub(S.saved)}</h1>
+    <p class="muted small">Считаем только по оплаченным покупкам: обычная цена минус то, что вы заплатили. Бонусы — отдельно.</p></div>
+    <div class="stats">
+      <div class="stat"><span class="label">За эту неделю</span><span class="v money">${rub(weekSaved)}</span></div>
+      <div class="stat"><span class="label">Бонусов на счёте</span><span class="v money">${S.bonus}</span></div>
+      <div class="stat"><span class="label">Акций использовано</span><span class="v">${f.used}</span></div>
+      <div class="stat"><span class="label">Дней с покупкой</span><span class="v">${S.visits.length}</span></div>
+    </div>
+    <div class="panel">
+      <h3>Предложения дня</h3>
+      <div class="funnel">
+        ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <h3>История покупок</h3>
+      <div class="hist">${S.orders.slice().reverse().slice(0,12).map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).name).join(', ')}</span><span class="money">${rub(o.sum)}</span>
+        <span class="d">${fmt(o.day)}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}</span></div>`).join('')}</div>
+    </div>
+  </section>`;
+}
+function profile(){
+  const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]), mx=Math.max(...cats.map(c=>c[1]));
+  const mechs=Object.entries(S.w.mech).sort((a,b)=>b[1]-a[1]), mm=Math.max(...mechs.map(c=>c[1]));
+  return `<section class="screen">
+    <div class="row" style="gap:14px"><span class="tile" style="font-size:34px">${S.name[0]}</span>
+      <div class="stack" style="gap:0"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'} · ${S.guestId}</span></div></div>
+    <div class="stack"><h2>Достижения</h2>
+      <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
+    <div class="panel">
+      <h3>Что приложение о вас узнало</h3>
+      <p class="small muted">По этим данным подбираются предложения дня и цены недели. Растёт, когда вы пользуетесь акцией; немного снижается, когда пропускаете.</p>
+      <span class="label">Что вы любите</span>
+      <div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
+      <span class="label">Какие акции вам ближе</span>
+      <div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>
+    </div>
+    <div class="panel">
+      <h3>Уведомления</h3>
+      ${[['offer','Новое предложение дня'],['streak','Напоминание о цели недели'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}
+    </div>
+    <div class="stack">
+      <button class="btn ghost block" onclick="logout()">Выйти</button>
+      <button class="link" style="align-self:center" onclick="resetDemo()">Сбросить демо-данные</button>
+    </div>
+  </section>`;
+}
+
+const TABS=[
+  ['home','Главная','<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'],
+  ['prices','Цены','<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.6"/>'],
+  ['progress','Прогресс','<path d="M12 2c1.5 5 8 8 8 15a8 8 0 0 1-16 0c0-4 2-6 3.5-8 .5 3 2 4 3.5 4-1.5-4-.5-8 1-11z"/>'],
+  ['benefit','Выгода','<circle cx="12" cy="12" r="9"/><path d="M9 8h4a2.5 2.5 0 0 1 0 5H9m0-5v10m-2-3h6"/>'],
+  ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
+];
+function go(t){ tab=t; render(); window.scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
+function setGoal(g){ S.goal=g; save(); render(); toast(`Цель: ${g} ${plural(g,'день','дня','дней')} в неделю.`); }
+
+/* ===================== Вход по СМС (имитация) ===================== */
+let authStep='phone';
+function auth(){
+  return `<div class="auth">
+    <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Предложения, цены и бонусы — подобранные под вас.</p></div>
+    ${authStep==='phone' ? `
+      <form class="stack" style="gap:16px" onsubmit="event.preventDefault();sendCode()">
+        <div class="field"><label class="label" for="phone">Номер телефона</label>
+          <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 123-45-67" value="${S.phone||'+7 '}" oninput="maskPhone(this)"></div>
+        <button class="btn block" id="sendBtn" type="submit">Получить код по СМС</button>
+        <p class="hint">Демо: СМС не отправляется, подойдёт любой номер.</p>
+      </form>` : `
+      <form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
+        <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
+        <div class="field code"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="4" placeholder="····" aria-label="Код из СМС" oninput="codeIn(this)"></div>
+        <button class="btn block" type="submit">Войти</button>
+        <p class="hint">Демо: подойдёт любой код из 4 цифр.</p>
+      </form>`}
+  </div>`;
+}
+function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) d='7'+d.slice(1); if(!d.startsWith('7')) d='7'+d; d=d.slice(0,11);
+  const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7';
+  if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
+function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
+function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(); toast(`Добро пожаловать! Это демо: данные вымышленные, покупку можно сымитировать кнопкой сверху.`,4200); }
+function logout(){ S.authed=false; authStep='phone'; save(); render(); }
+function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); render(); toast('Демо-данные сброшены.'); }
+
+/* ===================== Шторки: QR и покупка ===================== */
+function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><span class="grab"></span>${html}</div>`; document.body.appendChild(bg);
+  document.addEventListener('keydown',escClose); }
+function escClose(e){ if(e.key==='Escape') closeSheet() }
+function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
+function openQR(){
+  const o=S.offer;
+  sheet(`<h2>Покажите кассиру</h2>
+    <div class="bigqr" id="bigqr">${qrSvg(qrToken())}<span class="c"><span class="mark" style="width:70%"></span></span></div>
+    <p class="timer muted small" id="qrt"></p>
+    <div class="panel small">
+      <div class="row between"><span>Бонусы</span><strong class="money">${S.bonus}</strong></div>
+      <div class="row between"><span>Предложение дня</span><strong>${o.status==='activated'?o.title:o.status==='used'?'использовано':'не активировано'}</strong></div>
+      <div class="row between"><span>Цены недели</span><strong>${S.prices.length} ${plural(S.prices.length,'блюдо','блюда','блюд')}</strong></div>
+    </div>
+    <p class="hint">Код обновляется каждую минуту — скриншот не сработает. Скидки посчитает касса.</p>
+    <button class="btn block" onclick="openBuy()">Демо: сымитировать покупку</button>`);
+  let left=60-new Date().getSeconds();
+  const tick=()=>{ const el=$('#qrt'); if(!el) return; el.textContent=`Обновится через ${left} с`; if(--left<0){ left=59; $('#bigqr').firstElementChild.outerHTML=qrSvg(qrToken()); } };
+  tick(); qrTimer=setInterval(tick,1000);
+}
+let cart={};
+function openBuy(){
+  cart={}; const o=S.offer;
+  if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>cart[i]=(cart[i]||0)+1); else if(o.mech==='gift'){ cart.cap=1; cart.cookie=1 } else cart[o.item]=1; }
+  else cart.cap=1;
+  drawBuy();
+}
+function drawBuy(){
+  const q=quote(cart), pp=Object.fromEntries(S.prices.map(p=>[p.item,p.price])), o=S.offer;
+  const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса</span><h2>Что гость покупает</h2>
+    <p class="small muted">${o.status==='activated'?`Активно: «${o.title}».`:o.status==='used'?'Предложение дня уже использовано.':'Предложение дня не активировано — сработают только цены недели.'}</p></div>
+    <div class="menu">${MENU.map(m=>`<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.name}</span>
+      <span class="pr">${pp[m.id]!=null?`<s>${rub(m.price)}</s> <span class="pp">${rub(pp[m.id])}</span>`:rub(m.price)}</span></div>
+      <div class="qty"><button aria-label="Убрать ${m.name}" onclick="chg('${m.id}',-1)">−</button><span>${cart[m.id]||0}</span><button aria-label="Добавить ${m.name}" onclick="chg('${m.id}',1)">+</button></div></div>`).join('')}</div>
+    <div class="sum panel">
+      ${q.lines.map(l=>`<div class="r"><span>${l.name}${l.why?` <span class="muted small">· ${l.why}</span>`:''}</span><span class="money">${l.price<l.regular?`<s class="muted">${rub(l.regular)}</s> `:''}${rub(l.price)}</span></div>`).join('') || '<span class="muted small">Корзина пуста</span>'}
+      ${q.saved?`<div class="r save"><span>Экономия</span><span class="money">−${rub(q.saved)}</span></div>`:''}
+      <div class="r"><span>Бонусы за покупку (${level().p}%)</span><span class="money">+${q.bonus}</span></div>
+      <div class="r tot"><span>К оплате</span><span class="money">${rub(q.paid)}</span></div>
+    </div>
+    <button class="btn block" ${q.lines.length?'':'disabled'} onclick="pay(cart)">Оплатить (имитация)</button>`;
+  const ex=document.querySelector('.sheet'); if(ex){ const st=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=st; } else sheet(html);
+}
+function chg(id,d){ cart[id]=Math.max(0,(cart[id]||0)+d); if(!cart[id]) delete cart[id]; drawBuy(); }
+
+/* ===================== Рендер ===================== */
+function render(){
+  const app=$('#app');
+  if(!S.authed){ app.innerHTML=auth(); return; }
+  ensureDaily();
+  const body={home,prices,progress,benefit,profile}[tab]();
+  app.innerHTML = demoBar() + `<main>${body}</main>` +
+    `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=>`<button onclick="go('${id}')" ${tab===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
+}
+try{ const t=localStorage.getItem(KEY+'-tab'); if(t && TABS.some(x=>x[0]===t)) tab=t; }catch(e){}
+render();
+</script>
