@@ -251,41 +251,196 @@ p{margin:0}
 .cmp{display:grid;grid-template-columns:1fr auto auto;gap:8px 12px;font-size:14px;align-items:center}
 .cmp .h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .cmp .y{text-align:center}
+
+/* v0.4: заказ (меню Starter), доставка / самовывоз / за столик, корзина */
+:root{--demo-h:44px}
+.demo{height:var(--demo-h)}
+.topbar{display:flex;align-items:center;gap:10px}
+.modechip{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-align:left}
+.modechip .m{font-weight:600;white-space:nowrap}
+.modechip .a{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.modechip svg{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:2}
+.coins{display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-variant-numeric:tabular-nums}
+.coins i{width:14px;height:14px;border-radius:50%;background:var(--sage);display:block}
+.hscroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll > *{scroll-snap-align:start;flex:none}
+.story{width:104px;height:136px;border-radius:16px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:13px;font-weight:600;line-height:1.15;color:var(--on-color);position:relative;overflow:hidden;text-align:left;border:2px solid var(--ink)}
+.story img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.story span{position:relative}
+.rec{width:136px;border-radius:16px;background:var(--surface);border:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.rec .ph{width:100%;aspect-ratio:1;border-radius:10px}
+.rec .nm{font-size:14px;line-height:1.2;height:2.4em;overflow:hidden}
+.ph{display:block;object-fit:cover;background:var(--line)}
+.ph.empty{display:grid;place-items:center}
+.ph.empty svg{width:42%;height:42%;opacity:.5}
+
+.catbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h));z-index:12;background:var(--bg);margin:0 -16px;padding:8px 16px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.catbar .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.catbar .chips::-webkit-scrollbar{display:none}
+.catchip{white-space:nowrap;padding:8px 12px;border-radius:999px;font-size:15px;color:var(--muted)}
+.catchip.on{background:var(--ink);color:var(--bg);font-weight:600}
+.iconbtn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;flex:none;position:relative}
+.iconbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2}
+.iconbtn .dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.section-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;scroll-margin-top:calc(var(--demo-h) + 70px)}
+.section-h h2{font-size:24px}
+.hours{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--cream);color:var(--on-color);font-size:13px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 10px}
+.card{display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left}
+.card .ph{width:100%;aspect-ratio:1;border-radius:14px}
+.card .wrap{position:relative}
+.card .ltag{position:absolute;right:6px;bottom:6px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--blue);color:#f9f9f9;white-space:nowrap}
+.card .ltag.six{background:var(--teal)}
+.card .ltag.offer{background:var(--sage);color:var(--on-color)}
+.card .ltag.bd{background:var(--pink);color:var(--on-color)}
+.card .nm{font-size:15px;line-height:1.2;margin-top:4px}
+.card .wt{font-size:13px;color:var(--muted)}
+.card .cp{font-size:12px;color:var(--muted);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill{align-self:flex-start;margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--surface);border:1.5px solid var(--ink);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill s{color:var(--muted);font-weight:400;font-size:13px}
+.pill.in{background:var(--ink);color:var(--bg);padding:4px}
+.pill.in button{width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;display:grid;place-items:center;color:inherit}
+.pill.in span{min-width:22px;text-align:center}
+.empty-note{padding:24px 0;text-align:center;color:var(--muted)}
+
+.cartbar{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom,0px));z-index:14;padding:0 12px;pointer-events:none}
+.cartbar button{pointer-events:auto;max-width:416px;margin:0 auto;width:100%;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;background:var(--green);color:#f9f9f9;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.cartbar .q{display:grid;place-items:center;min-width:26px;height:26px;border-radius:13px;background:var(--sage);color:var(--on-color);font-weight:700;font-size:14px}
+.cartbar .t{flex:1;text-align:left;font-weight:600}
+.cartbar .s{font-weight:700;font-variant-numeric:tabular-nums}
+.has-cart main{padding-bottom:calc(160px + env(safe-area-inset-bottom,0px))}
+
+.tabs .in{grid-template-columns:repeat(5,1fr);align-items:end}
+.tabs .qrtab{position:relative}
+.tabs .qrtab .ring{width:54px;height:54px;margin-top:-26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.tabs .qrtab .ring svg{stroke:var(--bg)}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--line)}
+.seg button{padding:9px 4px;border-radius:10px;font-weight:600;font-size:15px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.map{position:relative;height:190px;border-radius:16px;overflow:hidden;background:var(--map)}
+.map svg.base{position:absolute;inset:0;width:100%;height:100%}
+.map .pin{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:var(--green);border:2px solid #f9f9f9;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.map .pin .mark{width:60%;color:#f9f9f9}
+.map .pin.sel{background:var(--teal);transform:scale(1.15)}
+.map .me{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--teal);border:3px solid #f9f9f9}
+:root{--map:#dfe6e1;--road:#ffffff;--water:#b9d7df;--zone:rgba(23,47,40,.12);--zone-line:#172f28}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--map:#26302c;--road:#3a4540;--water:#1f3b45;--zone:rgba(167,210,185,.12);--zone-line:#a7d2b9}}
+:root[data-theme="dark"]{--map:#26302c;--road:#3a4540;--water:#1f3b45;--zone:rgba(167,210,185,.12);--zone-line:#a7d2b9}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.li:last-child{border-bottom:0}
+.li .radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none}
+.li .radio.on{border:7px solid var(--ink)}
+.li .th{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;background:var(--line)}
+.li .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.li .tx small{color:var(--muted);font-size:13px}
+.li .chev{color:var(--muted)}
+.li svg.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
+
+.pd .ph{width:100%;aspect-ratio:1;border-radius:18px}
+.optgroup{display:flex;flex-direction:column;gap:8px}
+.optrow{display:flex;flex-wrap:wrap;gap:8px}
+.optbtn{padding:9px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;background:var(--surface)}
+.optbtn.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.optbtn small{opacity:.7}
+.qtyrow{display:flex;align-items:center;gap:12px}
+.qtyrow .qty button{width:40px;height:40px}
+.hint-chip{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:var(--cream);color:var(--on-color);font-size:14px}
+.hint-chip .tile{font-size:14px}
+
+.cartline{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.cartline .ph{width:56px;height:56px;border-radius:10px}
+.cartline .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.cartline small{color:var(--muted);font-size:13px}
+.cartline .why{color:var(--ok);font-size:13px;font-weight:600}
+.minbar{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14px}
+.minbar .goalbar{height:6px}
+.paym{display:flex;flex-direction:column;gap:8px}
+.statusline{display:flex;flex-direction:column;gap:0}
+.st{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding-bottom:14px;position:relative}
+.st .b{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--bg);z-index:1}
+.st.done .b{background:var(--ok);border-color:var(--ok)}
+.st.cur .b{border:6px solid var(--ink)}
+.st:not(:last-child)::before{content:"";position:absolute;left:10px;top:22px;bottom:0;width:2px;background:var(--line)}
+.st.done:not(:last-child)::before{background:var(--ok)}
+.st .tx{display:flex;flex-direction:column}
+.st .tx small{color:var(--muted)}
+.bigcode{font-family:var(--f-num);font-size:56px;line-height:1}
+.notice{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--green);color:#f9f9f9;font-size:14px}
+.notice svg{width:22px;height:22px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8}
+.lcard{border-radius:20px;padding:18px;background:var(--sage);color:var(--on-color);display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.lcard .row{position:relative}
+.lcard .pct{display:inline-grid;place-items:center;padding:8px 12px;border:2px solid var(--on-color);border-radius:12px;font-family:var(--f-num);font-size:22px}
+.lcard .qrb{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;background:rgba(33,34,33,.12);font-weight:600}
+.bell{position:relative}
+.bell .n{position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--warn);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+.search{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface)}
+.search input{border:0;outline:0;background:none;font:inherit;color:var(--ink);flex:1;min-width:0}
+.story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.story.pic{border-color:var(--sage)}
+.sheet > *{flex-shrink:0}
 </style>
 
 <div class="app" id="app"></div>
 
+<script src="menu.js"></script>
 <script>
-/* ===================== Данные прототипа (вымышленные) ===================== */
-const MENU = [
-  {id:'cap',   name:'Капучино',            cat:'coffee', price:300},
-  {id:'flat',  name:'Флэт уайт',           cat:'coffee', price:320},
-  {id:'raf',   name:'Раф',                 cat:'coffee', price:340},
-  {id:'filt',  name:'Фильтр-кофе',         cat:'coffee', price:220},
-  {id:'matcha',name:'Матча латте',         cat:'tea',    price:360},
-  {id:'crois', name:'Круассан',            cat:'pastry', price:190},
-  {id:'muffin',name:'Маффин',              cat:'pastry', price:180},
-  {id:'cake',  name:'Чизкейк',             cat:'pastry', price:290},
-  {id:'cookie',name:'Печенье с солью',     cat:'pastry', price:150},
-  {id:'caesar',name:'Салат Цезарь',        cat:'food',   price:490},
-  {id:'salad', name:'Салат с креветками',  cat:'food',   price:540},
-  {id:'sand',  name:'Сэндвич с индейкой',  cat:'food',   price:390},
-];
-const CAT = {coffee:'кофе', tea:'чай и матча', pastry:'выпечка и десерты', food:'еда'};
+/* ===================== Меню (выгружено с kofeynaya.ru, Starter API: menu.js) ===================== */
+const CATS = window.MENU_CATS || [];
+const MENU = (window.MENU_ITEMS || []).slice();
+// Круассана нет в меню Кофейной 5 на сайте — добавлен вручную (участвует в «каждом 6-м»)
+MENU.push({id:'x01', n:'Круассан', c:'слоёное тесто, сливочное масло', p:190, b:'', cat:'vipechka_i_deserti', img:'', vars:[{code:'x01',l:'',p:190,w:70,vol:0,g:[]}]});
+const byId = id => MENU.find(m=>m.id===id);
+const findN = n => (MENU.find(m=>m.n===n)||{}).id;
+// категории для обучения персонализации
+const LCAT = m => ['chernii_kofe','kofeinaya_klassika1','sezonnoe_menyu__kofe','letnee_menyu'].includes(m.cat) ? 'coffee' : m.cat==='kakao' ? 'tea' : m.cat==='vipechka_i_deserti' ? 'pastry' : 'food';
+const CAT = {coffee:'кофе', tea:'не кофе и матча', pastry:'выпечка и десерты', food:'еда'};
 const MECH = {pct:'скидка в процентах', price:'специальная цена', gift:'подарок', combo:'комбо'};
 const SWATCH = {coffee:'var(--cream)', tea:'var(--sage)', pastry:'var(--pink)', food:'var(--aqua)'};
 const OFFER_BG = ['var(--sage)','var(--pink)','var(--cream)','var(--aqua)'];
-const LEVELS = [{w:0,p:2},{w:1,p:3},{w:2,p:5},{w:3,p:7},{w:4,p:10}]; // недель подряд в цель → % бонусами
-const FREE_CAP = 3;          // без подписки бонусы не выше 3%
-const SIXTH = ['cap','caesar','crois','muffin']; // «каждый 6-й −30%»
-const BD_FREE = 10, BD_CAP = 1500; // ДР: без подписки 10%; лимит скидки в день, ₽
-const REF_REWARD = 500, REF_DAYS = 3, REF_HOLD = 7; // друг: 3 разных дня покупок, затем проверка (в доке 14 дней)
+const ID = {cap:findN('Капучино'), latte:findN('Латте'), flat:findN('Флет Уайт'), caesar:findN('Цезарь с курицей'), croissant:'x01', muffin:findN('Апельсиновый маффин'), cookie:findN('Печенье шоколадное')};
+const SIXTH = [ID.cap, ID.caesar, ID.croissant, ID.muffin];
+const KASSA = [ID.cap, ID.latte, ID.flat, findN('Американо'), findN('Эспрессо'), ID.croissant, ID.muffin, ID.cookie, ID.caesar, findN('Нежные сырники с ягодным конфитюром и сметаной'), findN('Ягодный чизкейк'), findN('Матча латте')].filter(Boolean);
+
+/* Опции — настоящие: размер (варианты блюда) + группы добавок Starter (зерно, молоко, сиропы, посуда…).
+   opts = {v: индекс варианта, s: {индекс группы: [индексы добавок]}} */
+const hasOpts = m => m.vars.length>1 || m.vars[0].g.length>0;
+const wt = (m,v=0) => { const x=m.vars[v]; return x.w ? `${x.w} г` : x.vol ? `${x.vol} мл` : ''; };
+function defOpts(m,v=0){ const s={}; m.vars[v].g.forEach((g,i)=>{ s[i] = g.req && g.min>=1 ? [0] : [] }); return {v,s}; }
+function unitPrice(m,o){ const x=m.vars[o?.v||0]; let p=x.p; for(const [gi,arr] of Object.entries(o?.s||{})) arr.forEach(t=>p+=x.g[gi]?.v[t]?.[1]||0); return p; }
+const optSur = (m,o) => unitPrice(m,o)-m.p;
+function optLabel(m,o){ const x=m.vars[o?.v||0], a=[]; if(m.vars.length>1&&x.l) a.push(x.l); for(const [gi,arr] of Object.entries(o?.s||{})) arr.forEach(t=>{ const n=x.g[gi]?.v[t]?.[0]; if(n) a.push(n) }); return a.join(', '); }
+
+/* ===================== Кофейни и доставка (данные сайта) ===================== */
+const SHOPS = [
+  {n:'Кофейная 1', a:'бул. Энтузиастов, 2А', d:'Только выпечка и кофе', wd:'7:30–22:20', we:'8:30–22:20', lat:52.756817, lng:41.432964, img:'img/shop1.jpg', t:['pickup','table'], eta:'20 мин'},
+  {n:'Кофейная 2', a:'ул. Советская, 161', d:'Только выпечка и кофе', wd:'7:30–22:20', we:'8:30–22:20', lat:52.739313, lng:41.451812, img:'img/shop2.jpg', t:['pickup','table'], eta:'5 мин', closed:'Временно не принимаем заказы'},
+  {n:'Кофейная 3', a:'ул. Советская, 83', d:'Только выпечка и кофе', wd:'7:30–22:20', we:'8:30–22:20', lat:52.719021, lng:41.458409, img:'img/shop3.jpg', t:['pickup','table'], eta:'5 мин', closed:'Принимаем заказы только в кофейне'},
+  {n:'Кофейная 4', a:'ул. Ореховая, 13', d:'Только выпечка и кофе', wd:'7:30–22:20', we:'8:30–22:20', lat:52.771933, lng:41.400091, img:'img/shop4.jpg', t:['pickup','table','delivery'], eta:'10–20 мин'},
+  {n:'Кофейная 5', a:'ул. Советская, 17', d:'Большое меню с кухней', wd:'8:00–23:00', we:'9:00–23:00', lat:52.706064, lng:41.470689, img:'img/shop5.jpg', t:['pickup','table','delivery'], eta:'30–40 мин', phone:'+7 (902) 727-85-55'},
+  {n:'Кофейная 6', a:'ул. Советская, 99А', d:'Маленький островок у главного входа с выпечкой и кофе', wd:'10:00–21:00', we:'10:00–21:00', lat:52.724114, lng:41.456327, img:'img/shop6.jpg', t:['pickup'], eta:'15 мин'},
+  {n:'Кофейная 7', a:'ул. Советская, 74', d:'Только выпечка и кофе', wd:'7:30–22:20', we:'8:30–22:20', lat:52.713896, lng:41.460657, img:'img/shop7.jpg', t:['pickup','table'], eta:'20 мин'},
+];
+(()=>{ const la=SHOPS.map(s=>s.lat), ln=SHOPS.map(s=>s.lng), [a,b]=[Math.min(...la),Math.max(...la)], [c,d]=[Math.min(...ln),Math.max(...ln)];
+  SHOPS.forEach(s=>{ s.x=12+(s.lng-c)/(d-c)*76; s.y=12+(b-s.lat)/(b-a)*76; }); })();
+// Зоны доставки Кофейной 5 (с сайта): центр — мин. 700 ₽, 150 ₽ до 1 500 ₽, 70–90 мин; дальние — мин. 1 000 ₽, 250 ₽, 135–155 мин
+const ZONES = {center:{min:700, fee:150, free:1500, eta:'70–90 мин'}, far:{min:1000, fee:250, free:1500, eta:'135–155 мин'}};
+const zoneOf = a => ZONES[a?.zone||'center'];
+const DELIVERY = { get z(){ return zoneOf(S.addrs[S.addr]) }, get min(){ return this.z.min }, get eta(){ return this.z.eta }, fee(sub){ return sub>=this.z.free?0:this.z.fee } };
+const MODES = {delivery:'Доставка', pickup:'Самовывоз', table:'За столик'};
+
+/* ===================== Лояльность: константы ===================== */
+const LEVELS = [{w:0,p:2},{w:1,p:3},{w:2,p:5},{w:3,p:7},{w:4,p:10}];
+const FREE_CAP = 3;
+const BD_FREE = 10, BD_CAP = 1500;
+const REF_REWARD = 500, REF_DAYS = 3, REF_HOLD = 7;
 const TOPUPS = [{sum:3000,gift:150},{sum:5000,gift:400},{sum:10000,gift:1000}];
-const BONUS_MAX_SHARE = 0.3; // бонусами — до 30% чека
-const DAY0 = new Date(2026,8,28); // пн 28 сентября 2026 — день 0 демо-календаря
+const BONUS_MAX_SHARE = 0.3;
+const DAY0 = new Date(2026,8,28);
 const WD = ['пн','вт','ср','чт','пт','сб','вс'];
 const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const byId = id => MENU.find(m=>m.id===id);
 const rub = n => Math.round(n).toLocaleString('ru-RU')+' ₽';
 const dateOf = d => { const x=new Date(DAY0); x.setDate(x.getDate()+d); return x; };
 const fmt = d => { const x=dateOf(d); return WD[(d%7)]+', '+x.getDate()+' '+MON[x.getMonth()]; };
@@ -293,38 +448,40 @@ const fmtShort = d => { const x=dateOf(d); return x.getDate()+' '+MON[x.getMonth
 const fmtDate = x => x.getDate()+' '+MON[x.getMonth()];
 
 /* ===================== Состояние ===================== */
-const KEY='coffee-loyalty-proto-v3';
+const KEY='coffee-loyalty-proto-v4';
 function seed(){
   const s = {
     authed:false, phone:'', name:'Аня', guestId:'G-'+Math.random().toString(36).slice(2,8).toUpperCase(),
     day:9, goal:4, streak:1, bonus:64, saved:0,
-    visits:[0,1,3,5,7,8],
-    orders:[], weekHist:[{week:0,days:4,met:true}],
+    visits:[0,1,3,5,7,8], orders:[], weekHist:[{week:0,days:4,met:true}],
     w:{cat:{coffee:1.4,tea:.8,pastry:1.2,food:.7}, mech:{pct:1,price:1,gift:1,combo:1}},
-    funnel:{shown:6,opened:4,activated:3,used:2},
-    mechTried:{pct:1,price:1},
+    funnel:{shown:6,opened:4,activated:3,used:2}, mechTried:{pct:1,price:1},
     pastryCount:3, offer:null, prices:null, pricesWeek:-1,
-    notif:{offer:true,streak:true,savings:false},
-    ach:{},
-    plus:false,
-    wallet:{money:0,gift:0},
-    stamps:{cap:4,caesar:1,crois:2,muffin:5}, stampDay:{},
+    notif:{offer:true,streak:true,savings:false}, ach:{},
+    plus:false, wallet:{money:0,gift:0},
+    stamps:{[ID.cap]:4,[ID.caesar]:1,[ID.croissant]:2,[ID.muffin]:5}, stampDay:{},
     birth:{y:1993,m:9,d:10,verified:false}, bdUsed:{},
     ref:{code:'ANYA-7K2Q', friends:[
       {name:'Миша', phone:'+7 9•• •••-41-08', days:[8], hold:null, paid:false},
       {name:'+7 900 •••-00-01', phone:'', blocked:'Номер виртуальный — не мобильный оператор. Приглашение не засчитано.'},
     ]},
+    // заказ
+    mode:'pickup', addr:1, shop:4, table:null, when:'asap',
+    addrs:[{t:'Советская улица, 190',zone:'center'},{t:'Советская улица, 81А',d:'кв 22, 1 подъезд, 8 этаж',zone:'center'},{t:'ул. Советская, 17',zone:'center'},{t:'Уральская улица, 42',zone:'far'}],
+    basket:[], myOrders:[], card:'•• 4242', pay:'card', notify:[],
   };
-  const mk=(d,items,sv)=>({day:d,items,sum:items.reduce((a,i)=>a+byId(i).price,0)-sv,saved:sv,bonus:0});
-  s.orders=[mk(0,['cap','crois'],0),mk(1,['flat'],0),mk(3,['cap','cake'],29),mk(5,['raf'],0),mk(7,['cap','crois'],45),mk(8,['filt','cookie'],0)];
+  const cake=findN('Ягодный чизкейк'), amer=findN('Американо');
+  const mk=(d,items,sv,ch)=>({day:d,items,sum:items.reduce((a,i)=>a+byId(i).p,0)-sv,saved:sv,bonus:0,ch});
+  s.orders=[mk(0,[ID.cap,ID.croissant],0,'Касса'),mk(1,[ID.flat],0,'Касса'),mk(3,[ID.cap,cake],29,'Самовывоз'),mk(5,[ID.latte],0,'Касса'),mk(7,[ID.cap,ID.muffin,cake],45,'Доставка'),mk(8,[amer,ID.cookie],0,'Касса')];
   s.orders.forEach(o=>o.bonus=Math.floor(o.sum*0.02));
   s.saved = s.orders.reduce((a,o)=>a+o.saved,0);
+  s.myOrders=[{id:'K-2481',day:7,mode:'delivery',place:'Советская улица, 81А',lines:[{id:ID.cap,qty:1,opts:defOpts(byId(ID.cap)),unit:220},{id:ID.muffin,qty:1,opts:defOpts(byId(ID.muffin)),unit:190},{id:cake,qty:1,opts:defOpts(byId(cake)),unit:390}],total:800,status:3}];
   s.ach={first:true,week1:true};
   return s;
 }
 let S;
 try{ S=JSON.parse(localStorage.getItem(KEY)) }catch(e){}
-if(!S||!S.w||!S.wallet) S=seed();
+if(!S||!S.w||!S.basket) S=seed();
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
 const weekOf = d => Math.floor(d/7);
@@ -334,48 +491,43 @@ const effLevel = () => (!S.plus && level().p>FREE_CAP) ? LEVELS.find(l=>l.p===FR
 const nextLevel = () => LEVELS.find(l=>l.w>S.streak);
 const walletTotal = () => S.wallet.money+S.wallet.gift;
 
-/* День рождения: окно ±7 дней от ближайшего ДР */
 function bdInfo(){
-  const b=S.birth; if(!b) return null; const today=dateOf(S.day); let best=null;
+  const b=S.birth; const today=dateOf(S.day); let best=null;
   for(const y of [today.getFullYear()-1,today.getFullYear(),today.getFullYear()+1]){
     const bd=new Date(y,b.m,b.d); const diff=Math.round((bd-today)/864e5);
     if(!best||Math.abs(diff)<Math.abs(best.diff)) best={diff,age:y-b.y,date:bd};
   }
-  best.active=Math.abs(best.diff)<=7;
-  best.pct=S.plus?best.age:BD_FREE;
+  best.active=Math.abs(best.diff)<=7; best.pct=S.plus?best.age:BD_FREE;
   best.from=new Date(+best.date-7*864e5); best.to=new Date(+best.date+7*864e5);
   best.capLeft=Math.max(0,BD_CAP-(S.bdUsed[S.day]||0));
   return best;
 }
 
-/* ===================== Персонализация (упрощённая) =====================
-   Вес = интерес к категории × интерес к механике. 30% — исследование (случайный вариант),
-   70% — выбор пропорционально весам. Использование усиливает веса, игнор — слегка ослабляет. */
+/* ===================== Персонализация ===================== */
 function pickWeighted(obj){ const e=Object.entries(obj); let t=e.reduce((a,[,v])=>a+v,0), r=Math.random()*t; for(const [k,v] of e){ if((r-=v)<=0) return k } return e[0][0]; }
+const rnd = a => a[Math.floor(Math.random()*a.length)];
 function makeOffer(){
   const explore = Math.random()<0.3;
-  const cat = explore ? Object.keys(CAT)[Math.floor(Math.random()*4)] : pickWeighted(S.w.cat);
-  const mech = explore ? Object.keys(MECH)[Math.floor(Math.random()*4)] : pickWeighted(S.w.mech);
-  const pool = MENU.filter(m=>m.cat===cat);
-  const item = pool[Math.floor(Math.random()*pool.length)];
-  const o = {id:'O'+S.day+'-'+Math.random().toString(36).slice(2,6), day:S.day, cat, mech, item:item.id, status:'shown', explore, opened:false};
-  if(mech==='pct'){ o.pct=[10,15,20][Math.floor(Math.random()*3)]; o.title=`${item.name} −${o.pct}%`; o.meta=`Сегодня ${item.name.toLowerCase()} со скидкой ${o.pct}%. Одна порция.`; }
-  if(mech==='price'){ o.newPrice=Math.round(item.price*0.8/10)*10; o.title=`${item.name} за ${o.newPrice} ₽`; o.meta=`Вместо ${rub(item.price)}. Одна порция, только сегодня.`; }
-  if(mech==='gift'){ o.item='cookie'; o.title='Печенье в подарок к любому кофе'; o.meta='Возьмите любой кофе — печенье с солью добавим бесплатно.'; o.cat='pastry'; }
-  if(mech==='combo'){ const c = cat==='coffee'?'crois':'cap'; o.combo=[item.id===c?'cap':item.id, c]; if(o.combo[0]===o.combo[1]) o.combo=['cap','crois'];
-    const full=o.combo.reduce((a,i)=>a+byId(i).price,0); o.comboPrice=Math.round(full*0.85/10)*10;
-    o.title=`${byId(o.combo[0]).name} + ${byId(o.combo[1]).name.toLowerCase()}`; o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
-  o.why = explore ? 'Пробуем новое: так приложение узнаёт, что вам нравится.'
-                  : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
-  o.bg = OFFER_BG[Math.floor(Math.random()*OFFER_BG.length)];
-  S.funnel.shown++;
+  const cat = explore ? rnd(Object.keys(CAT)) : pickWeighted(S.w.cat);
+  const mech = explore ? rnd(Object.keys(MECH)) : pickWeighted(S.w.mech);
+  const item = rnd(MENU.filter(m=>LCAT(m)===cat && m.p<=700));
+  const o = {day:S.day, cat, mech, item:item.id, status:'shown', explore, opened:false};
+  const nm = item.n;
+  if(mech==='pct'){ o.pct=rnd([10,15,20]); o.title=`${nm} −${o.pct}%`; o.meta=`Сегодня со скидкой ${o.pct}%. Одна порция — на кассе или в заказе.`; }
+  if(mech==='price'){ o.newPrice=Math.round(item.p*0.8/10)*10; o.title=`${nm} за ${o.newPrice} ₽`; o.meta=`Вместо ${rub(item.p)}. Одна порция, только сегодня.`; }
+  if(mech==='gift'){ o.item=ID.cookie; o.cat='pastry'; o.title='Шоколадное печенье в подарок к кофе'; o.meta='Возьмите любой кофе — печенье добавим бесплатно.'; }
+  if(mech==='combo'){ const c=rnd([ID.cap,ID.latte,ID.flat]), p=rnd([ID.croissant,ID.muffin]); o.combo=[c,p]; o.item=c;
+    const full=byId(c).p+byId(p).p; o.comboPrice=Math.round(full*0.85/10)*10;
+    o.title=`${byId(c).n} + ${byId(p).n.toLowerCase()}`; o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
+  o.why = explore ? 'Пробуем новое: так приложение узнаёт, что вам нравится.' : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
+  o.bg = rnd(OFFER_BG); S.funnel.shown++;
   return o;
 }
 function makePrices(){
-  const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
-  const picks=[]; for(const c of cats){ for(const m of MENU.filter(x=>x.cat===c)){ if(picks.length<3 && Math.random()<0.6) picks.push(m) } }
-  while(picks.length<3){ const m=MENU[Math.floor(Math.random()*MENU.length)]; if(!picks.includes(m)) picks.push(m) }
-  return picks.map(m=>({item:m.id, price: Math.max(m.price-Math.round(m.price*(0.03+Math.random()*0.05)/5)*5, m.price-40)}));
+  const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]).map(e=>e[0]); const picks=[];
+  for(const c of cats){ for(const m of MENU.filter(x=>LCAT(x)===c && x.p<=600 && x.img && x.vars.length===1)){ if(picks.length<3 && Math.random()<0.35 && !picks.includes(m)) picks.push(m) } }
+  while(picks.length<3){ const m=rnd(MENU.filter(x=>x.img)); if(!picks.includes(m)) picks.push(m) }
+  return picks.map(m=>({item:m.id, price: m.p-Math.max(5,Math.round(m.p*(0.03+Math.random()*0.05)/5)*5)}));
 }
 function ensureDaily(){
   if(!S.offer || S.offer.day!==S.day) S.offer=makeOffer();
@@ -386,47 +538,72 @@ function learn(o, kind){
   S.w.cat[o.cat]=Math.max(.3,+(S.w.cat[o.cat]+k).toFixed(2));
   S.w.mech[o.mech]=Math.max(.3,+(S.w.mech[o.mech]+k).toFixed(2));
 }
+const myPrice = id => S.plus ? (S.prices||[]).find(p=>p.item===id)?.price : undefined;
+function recommend(n=8){
+  const inB=new Set(S.basket.map(l=>l.id));
+  return MENU.filter(m=>m.img && !inB.has(m.id)).map(m=>({m, s:S.w.cat[LCAT(m)]*(m.b==='hit'?1.3:1)*(myPrice(m.id)?1.4:1)*(0.6+Math.random()*0.8)})).sort((a,b)=>b.s-a.s).slice(0,n).map(x=>x.m);
+}
 
-/* ===================== Расчёт чека =====================
-   На строку — ОДНА самая выгодная скидка: предложение дня / цена недели (★) / каждый 6-й / день рождения.
-   Комбо — на свои строки. Потом можно списать бонусы (до 30%) и оплатить с баланса. */
-function quote(cart, opt={}){
+/* ===================== Расчёт выгоды (касса и онлайн — один движок) =====================
+   lines: [{id, qty, sur}] — sur = доплата за опции. На строку одна лучшая скидка; комбо — на свои строки. */
+function quote(lines, opt={}){
   let regular=0, offerUsed=false, bdDisc=0; const sixthUsed=[];
   const o=S.offer && S.offer.status==='activated' ? S.offer : null;
-  const pp=S.plus ? Object.fromEntries((S.prices||[]).map(p=>[p.item,p.price])) : {};
-  const units=[]; for(const [id,q] of Object.entries(cart)) for(let i=0;i<q;i++) units.push(id);
+  const units=[]; for(const l of lines) for(let i=0;i<l.qty;i++) units.push({id:l.id,sur:l.sur||0});
   const comboLeft = o&&o.mech==='combo' ? [...o.combo] : null;
   let singleLeft = o&&(o.mech==='pct'||o.mech==='price') ? 1 : 0;
-  const hasCoffee = units.some(u=>byId(u).cat==='coffee');
-  let giftLeft = o&&o.mech==='gift'&&hasCoffee ? 1 : 0;
-  const comboOk = comboLeft && comboLeft.every(c=>units.includes(c));
-  const bd=bdInfo(), bdOn=bd&&bd.active&&(S.birth.verified||opt.doc); let bdLeft=bdOn?bd.capLeft:0;
+  let giftLeft = o&&o.mech==='gift'&&units.some(u=>LCAT(byId(u.id))==='coffee') ? 1 : 0;
+  const comboOk = comboLeft && comboLeft.every(c=>units.some(u=>u.id===c));
+  const bd=bdInfo(), bdOn=bd.active&&(S.birth.verified||opt.doc||opt.online); let bdLeft=bdOn?bd.capLeft:0;
   const sixLeft={}; SIXTH.forEach(id=>{ if(S.stamps[id]>=5) sixLeft[id]=1 });
-  const lines=[];
-  for(const id of units){
-    const m=byId(id); regular+=m.price;
-    if(comboOk && comboLeft.includes(id)){ comboLeft.splice(comboLeft.indexOf(id),1); lines.push({id,name:m.name,regular:m.price,price:null,why:'комбо'}); continue; }
-    let best={price:m.price,why:'',k:''};
+  const out=[];
+  for(const u of units){
+    const m=byId(u.id), full=m.p+u.sur; regular+=full;
+    if(comboOk && comboLeft.includes(u.id)){ comboLeft.splice(comboLeft.indexOf(u.id),1); out.push({id:u.id,name:m.n,regular:full,price:null,why:'комбо дня'}); continue; }
+    let best={price:full,why:'',k:''};
     const cand=(p,why,k)=>{ if(p<best.price) best={price:p,why,k} };
-    if(pp[id]!=null) cand(pp[id],'★ цена недели','pp');
-    if(singleLeft && id===o.item) cand(o.mech==='pct'?Math.round(m.price*(1-o.pct/100)):o.newPrice,'предложение дня','offer');
-    if(sixLeft[id]) cand(Math.round(m.price*0.7),'6-й −30%','six');
-    if(bdLeft>0) cand(m.price-Math.min(bdLeft,Math.round(m.price*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
-    if(giftLeft && id==='cookie') cand(0,'подарок','gift');
+    const pp=myPrice(u.id); if(pp!=null) cand(pp+u.sur,'★ цена недели','pp');
+    if(singleLeft && u.id===o.item) cand(o.mech==='pct'?Math.round(full*(1-o.pct/100)):o.newPrice+u.sur,'предложение дня','offer');
+    if(sixLeft[u.id]) cand(Math.round(full*0.7),'6-й −30%','six');
+    if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
+    if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
-    if(best.k==='six'){ sixLeft[id]=0; sixthUsed.push(id); }
-    if(best.k==='bd'){ bdLeft-=m.price-best.price; bdDisc+=m.price-best.price; }
-    lines.push({id,name:m.name,regular:m.price,price:best.price,why:best.why});
+    if(best.k==='six'){ sixLeft[u.id]=0; sixthUsed.push(u.id); }
+    if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
+    out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why});
   }
-  if(comboOk){ const cl=lines.filter(l=>l.price===null); const full=cl.reduce((a,l)=>a+l.regular,0);
+  if(comboOk){ const cl=out.filter(l=>l.price===null); const full=cl.reduce((a,l)=>a+l.regular-0,0);
     cl.forEach(l=>l.price=Math.round(l.regular/full*o.comboPrice)); offerUsed=true; }
-  const paid=lines.reduce((a,l)=>a+l.price,0);
+  const paid=out.reduce((a,l)=>a+l.price,0);
+  const fee=opt.fee||0;
   const bonusSpend = opt.bonus ? Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE)) : 0;
-  const after = paid-bonusSpend;
+  const after = paid-bonusSpend+fee;
   const walletSpend = opt.wallet ? Math.min(walletTotal(), after) : 0;
-  return {lines, regular, paid, saved:regular-paid, offerUsed, sixthUsed, bdDisc, bdOn, bdNeedsDoc: bd&&bd.active&&!S.birth.verified,
-          bonusSpend, walletSpend, card:after-walletSpend, bonus:Math.floor(after*effLevel().p/100)};
+  return {lines:out, regular, paid, saved:regular-paid, offerUsed, sixthUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
+          bonusSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*effLevel().p/100)};
+}
+/* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
+function applyPurchase(q, channel, doc){
+  const first = !S.visits.includes(S.day); if(first) S.visits.push(S.day);
+  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, saved:q.saved, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
+  S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
+  let w=q.walletSpend; const fm=Math.min(S.wallet.money,w); S.wallet.money-=fm; w-=fm; S.wallet.gift-=w;
+  S.pastryCount+=q.lines.filter(l=>LCAT(byId(l.id))==='pastry').length;
+  if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
+  const bought=new Set(q.lines.map(l=>l.id));
+  for(const id of SIXTH){ if(!bought.has(id)) continue;
+    if(q.sixthUsed.includes(id)){ S.stamps[id]=0; S.stampDay[id]=S.day; }
+    else if(S.stampDay[id]!==S.day){ S.stamps[id]=Math.min(5,(S.stamps[id]||0)+1); S.stampDay[id]=S.day; } }
+  if(q.bdOn){ if(doc) S.birth.verified=true; S.bdUsed[S.day]=(S.bdUsed[S.day]||0)+q.bdDisc; }
+  q.lines.forEach(l=>{ const c=LCAT(byId(l.id)); S.w.cat[c]=+(S.w.cat[c]+0.1).toFixed(2) });
+  const got=checkAch();
+  const wd=weekDays(weekOf(S.day));
+  let msg = first ? `<b>День засчитан: ${wd} из ${S.goal}</b> на этой неделе.` : `<b>Покупка сохранена.</b> Этот день уже был засчитан.`;
+  if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
+  msg+=` Бонусы +${q.bonus}${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
+  if(got.length) msg+=` Новое достижение: «${got.join('», «')}».`;
+  return msg;
 }
 
 /* ===================== Достижения ===================== */
@@ -440,35 +617,10 @@ const ACH = [
 ];
 function checkAch(){ const got=[]; for(const a of ACH){ if(!S.ach[a.id] && a.test()){ S.ach[a.id]=true; got.push(a.t) } } return got; }
 
-/* ===================== Действия ===================== */
-function activate(){ if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано. Покажите QR на кассе.'); } }
+/* ===================== Действия лояльности ===================== */
+function activate(){ if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано: сработает на кассе по QR и в заказе в приложении.'); } }
+function offerToCart(){ activate(); const o=S.offer; if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render(); toast('Добавили в корзину. Скидка уже посчитана.'); }
 function openOffer(){ if(!S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
-function pay(){
-  const q=quote(cart,buyOpt); if(!q.lines.length) return;
-  const first = !S.visits.includes(S.day);
-  if(first) S.visits.push(S.day);
-  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend, saved:q.saved, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend});
-  S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
-  // баланс: сначала деньги, потом подарок
-  let w=q.walletSpend; const fromMoney=Math.min(S.wallet.money,w); S.wallet.money-=fromMoney; w-=fromMoney; S.wallet.gift-=w;
-  S.pastryCount+=q.lines.filter(l=>byId(l.id).cat==='pastry').length;
-  if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
-  // каждый 6-й: одна отметка на позицию в день; использованная скидка обнуляет карточку
-  const bought=new Set(q.lines.map(l=>l.id));
-  for(const id of SIXTH){ if(!bought.has(id)) continue;
-    if(q.sixthUsed.includes(id)){ S.stamps[id]=0; S.stampDay[id]=S.day; }
-    else if(S.stampDay[id]!==S.day){ S.stamps[id]=Math.min(5,S.stamps[id]+1); S.stampDay[id]=S.day; } }
-  if(q.bdOn){ if(buyOpt.doc) S.birth.verified=true; S.bdUsed[S.day]=(S.bdUsed[S.day]||0)+q.bdDisc; }
-  q.lines.forEach(l=>{ const c=byId(l.id).cat; S.w.cat[c]=+(S.w.cat[c]+0.1).toFixed(2) });
-  const got=checkAch(); save(); closeSheet(); render();
-  const wd=weekDays(weekOf(S.day));
-  let msg = first ? `<b>День засчитан: ${wd} из ${S.goal}</b> на этой неделе.` : `<b>Покупка сохранена.</b> Этот день уже был засчитан.`;
-  if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
-  msg+=` Бонусы +${q.bonus}${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
-  if(q.walletSpend) msg+=` С баланса ${rub(q.walletSpend)}.`;
-  if(got.length) msg+=` Новое достижение: «${got.join('», «')}».`;
-  toast(msg, 4500);
-}
 function nextDay(){
   if(S.offer){ if(S.offer.status==='activated') learn(S.offer,'expired'); else if(S.offer.status==='shown') learn(S.offer, S.offer.opened?'ignored':'none'); }
   const w=weekOf(S.day); S.day++;
@@ -476,35 +628,82 @@ function nextDay(){
   if(weekOf(S.day)!==w){
     const d=weekDays(w), met=d>=S.goal; S.weekHist.push({week:w,days:d,met});
     if(met){ S.streak++; msg=`Неделя закрыта: ${d} из ${S.goal}. Огонёк +1, уровень бонусов ${level().p}%${!S.plus&&level().p>FREE_CAP?` (без подписки начисляем ${FREE_CAP}%)`:''}.`; }
-    else { const was=level().p; S.streak=Math.max(0,S.streak-1); msg=`Неделя закрыта: ${d} из ${S.goal}, цель не достигнута. Уровень снизился на одну ступень: ${was}% → ${level().p}%. Бонусы на счёте сохранены.`; }
+    else { const was=level().p; S.streak=Math.max(0,S.streak-1); msg=`Неделя закрыта: ${d} из ${S.goal}, цель не достигнута. Уровень: ${was}% → ${level().p}%. Бонусы на счёте сохранены.`; }
   }
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
-function togglePlus(){ S.plus=!S.plus; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 10% и скидка в ДР = возраст.':'Подписка отключена (демо). Жирные функции снова под замком.'); }
+function togglePlus(){ S.plus=!S.plus; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 10% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
 function topUp(i){ const t=TOPUPS[i]; S.wallet.money+=t.sum; S.wallet.gift+=t.gift; save(); render(); toast(`Баланс пополнен на ${rub(t.sum)} и подарок ${rub(t.gift)} (имитация оплаты).`); }
 function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
   f.days.push(S.day);
-  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}: если покупки не вернут, начислим ${REF_REWARD} бонусов.`,4500); }
+  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}, затем начислим ${REF_REWARD} бонусов.`,4500); }
   else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
   save(); render();
 }
 function demoBirthdayToday(){ const t=dateOf(S.day); S.birth.m=t.getMonth(); S.birth.d=t.getDate(); save(); render(); toast('Демо: день рождения перенесён на сегодня.'); }
-function copyRef(){ const t=refLink(); const done=()=>toast('Ссылка скопирована.'); try{ navigator.clipboard.writeText(t).then(done,()=>selectRef()) }catch(e){ selectRef() } }
-function selectRef(){ const c=$('#reflink'); if(!c) return; const r=document.createRange(); r.selectNodeContents(c); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast('Выделили ссылку — скопируйте её.'); }
 const refLink = () => 'https://kofeynaya.github.io/prototype/?ref='+S.ref.code;
+function copyText(t){ const done=()=>toast('Скопировано.'); try{ navigator.clipboard.writeText(t).then(done,()=>toast('Не получилось скопировать — выделите текст вручную.')) }catch(e){ toast('Не получилось скопировать — выделите текст вручную.') } }
+
+/* ===================== Корзина ===================== */
+const lineKey = (id,opts) => id+'|'+JSON.stringify(opts||{});
+function addLine(id,opts,silent){
+  const m=byId(id); opts=opts||defOpts(m); const k=lineKey(id,opts);
+  const l=S.basket.find(x=>x.k===k); if(l) l.qty++; else S.basket.push({k,id,opts,qty:1,sur:optSur(m,opts)});
+  save(); if(!silent) refreshBasket(id);
+}
+function changeLine(k,d){ const l=S.basket.find(x=>x.k===k); if(!l) return; l.qty+=d; if(l.qty<=0) S.basket=S.basket.filter(x=>x!==l); save(); }
+function qtyOf(id){ return S.basket.filter(l=>l.id===id).reduce((a,l)=>a+l.qty,0); }
+function tapAdd(id){ const m=byId(id); if(hasOpts(m)) openProduct(id); else addLine(id); }
+function tapMinus(id){ const ls=S.basket.filter(l=>l.id===id); if(!ls.length) return; changeLine(ls[ls.length-1].k,-1); refreshBasket(id); }
+function basketCount(){ return S.basket.reduce((a,l)=>a+l.qty,0); }
+function basketQuote(extra={}){
+  const lines=S.basket.map(l=>({id:l.id,qty:l.qty,sur:l.sur}));
+  const sub=S.basket.reduce((a,l)=>a+(byId(l.id).p+l.sur)*l.qty,0);
+  if(!S.basket.length) return {...quote([],{}), sub:0};
+  const q0=quote(lines,{online:true});
+  const fee = S.mode==='delivery' ? DELIVERY.fee(q0.paid) : 0;
+  return {...quote(lines,{online:true,fee,...extra}), sub};
+}
+/* точечное обновление без полной перерисовки меню */
+function refreshBasket(id){
+  if(['menu','home'].includes(tab)){
+    document.querySelectorAll(`[data-pill="${id}"]`).forEach(el=>el.outerHTML=pillHtml(byId(id)));
+    const cb=$('#cartbar'); if(cb) cb.outerHTML=cartbarHtml(); else render();
+    document.querySelector('.app').classList.toggle('has-cart', basketCount()>0);
+  } else render();
+}
 
 /* ===================== UI-утилиты ===================== */
 const $=s=>document.querySelector(s);
 let tab='home', tTimer, qrTimer;
-function toast(html,ms=2800){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms); }
+function toast(html,ms=2900){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms); }
 const tiles = n => `<span class="tiles">${String(n).split('').map(c=>`<span class="tile">${c}</span>`).join('')}</span>`;
 const blob = (fill,seed=0) => `<svg class="blob" viewBox="0 0 200 200" aria-hidden="true"><path fill="${fill}" d="${['M100 18c30-22 74 4 70 42 30 18 30 64-4 76 6 38-40 58-66 34-26 24-72 4-66-34-34-12-34-58-4-76-4-38 40-64 70-42z','M60 30c40-30 110-10 115 45 35 30 10 95-45 95-30 25-95 20-100-30-35-35-15-95 30-110z'][seed%2]}"/></svg>`;
 const PLUS = '<span class="plus-tag">★ Кофейная+</span>';
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
 const locked = (inner, what) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">Доступно с подпиской Кофейная+</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подробнее</button></div></div>`;
+const IC = {
+  chev:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+  filter:'<svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  bag:'<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  pin:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>',
+  card:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24"><path d="M4 7h15a1 1 0 0 1 1 1v11H5a1 1 0 0 1-1-1z"/><path d="M16 13h2"/><path d="M4 7l12-3v3"/></svg>',
+  gift:'<svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10"/><path d="M3 7h18v3H3zM12 7v13M12 7c-2-3-6-3-5 0M12 7c2-3 6-3 5 0"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  cake:'<svg viewBox="0 0 24 24"><path d="M4 20h16v-8H4zM4 15c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 4 0M12 12V8M12 5v.5"/></svg>',
+  city:'<svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8z"/></svg>',
+  out:'<svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg>',
+  bell:'<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg>',
+  qr:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.5M14 20h.5M17 17h3v3"/></svg>',
+  search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+};
 function qrSvg(text, dark='#212221'){
   if(typeof qrcode!=='function') return `<svg viewBox="0 0 10 10"><text x="5" y="6" font-size="2" text-anchor="middle">${text}</text></svg>`;
   const q=qrcode(0,'H'); q.addData(text); q.make(); const n=q.getModuleCount(); let p='';
@@ -512,48 +711,84 @@ function qrSvg(text, dark='#212221'){
   return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-label="QR-код гостя"><path fill="${dark}" d="${p}"/></svg>`;
 }
 const qrToken = () => 'KF1.'+S.guestId+'.'+Math.floor(Date.now()/60000).toString(36);
-const itemIcon = cat => ({
-  coffee:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M8 14h20v8a10 10 0 0 1-20 0zM28 16h3a4 4 0 0 1 0 8h-3v-3h3a1 1 0 0 0 0-2h-3z"/><path fill="#212221" d="M6 34h26v2H6z"/></svg>',
-  tea:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M11 10h18l-2 24H13z"/><circle cx="20" cy="7" r="3" fill="#212221"/></svg>',
+const catIcon = c => ({
+  coffee:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M8 14h20v8a10 10 0 0 1-20 0zM28 16h3a4 4 0 0 1 0 8h-3v-3h3a1 1 0 0 0 0-2h-3z"/></svg>',
+  tea:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M11 10h18l-2 24H13z"/></svg>',
   pastry:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 26c2-10 10-16 16-16s14 6 16 16c-4 3-10 4-16 4S8 29 4 26z"/></svg>',
-  food:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 20h32a16 12 0 0 1-32 0z"/><circle cx="14" cy="15" r="4" fill="#212221"/><circle cx="24" cy="13" r="5" fill="#212221"/></svg>',
-})[cat];
+  food:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 20h32a16 12 0 0 1-32 0z"/></svg>'})[c];
+const photo = (m, cls='ph') => m.img ? `<img class="${cls}" src="${m.img}" alt="${m.n}" loading="lazy" decoding="async">` : `<span class="${cls} empty" style="background:${SWATCH[LCAT(m)]}">${catIcon(LCAT(m))}</span>`;
 function plural(n,a,b,c){ n=Math.abs(n)%100; const n1=n%10; if(n>10&&n<20) return c; if(n1>1&&n1<5) return b; if(n1===1) return a; return c; }
-const back = () => `<button class="back" onclick="go('home')">← Главная</button>`;
+const back = (to='home', t='Назад') => `<button class="back" onclick="go('${to}')">← ${t}</button>`;
+const minPrice = m => { const pp=myPrice(m.id); return pp!=null && pp<m.p ? pp : m.p; };
+function loyalTag(m){
+  const o=S.offer, bd=bdInfo();
+  if(o && o.status!=='used' && (o.item===m.id || o.combo?.includes(m.id))) return `<span class="ltag offer">Предложение дня</span>`;
+  if(SIXTH.includes(m.id) && S.stamps[m.id]>=5) return `<span class="ltag six">6-й −30%</span>`;
+  const pp=myPrice(m.id); if(pp!=null) return `<span class="ltag">★ ${rub(pp)}</span>`;
+  if(bd.active && S.plus) return '';
+  return '';
+}
+function pillHtml(m){
+  const q=qtyOf(m.id), pp=myPrice(m.id), o=hasOpts(m);
+  m.o = o; // «от N ₽ →» — у блюд с выбором (как на сайте), «N ₽ +» — сразу в корзину
+  if(q>0 && !o) return `<span class="pill in" data-pill="${m.id}"><button aria-label="Убрать ${m.n}" onclick="event.stopPropagation();tapMinus('${m.id}')">−</button><span>${q}</span><button aria-label="Добавить ${m.n}" onclick="event.stopPropagation();tapAdd('${m.id}')">+</button></span>`;
+  const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : `${m.o?'от ':''}${rub(m.p)}`;
+  return `<button class="pill" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')">${price} ${o?'→':'+'}${q>0?` · ${q}`:''}</button>`;
+}
+function cartbarHtml(){
+  const n=basketCount(); if(!n || !['home','menu','prices'].includes(tab)) return '<div id="cartbar"></div>';
+  const q=basketQuote();
+  return `<div class="cartbar" id="cartbar"><button onclick="go('cart')"><span class="q">${n}</span><span class="t">Корзина · ${MODES[S.mode].toLowerCase()}</span><span class="s">${q.saved?`<s style="opacity:.6;font-weight:400">${rub(q.regular)}</s> `:''}${rub(q.paid)}</span></button></div>`;
+}
+function modeLine(){
+  if(S.mode==='delivery'){ const a=S.addrs[S.addr]; return a? a.t : 'Укажите адрес'; }
+  if(S.mode==='pickup') return SHOPS[S.shop].n+', '+SHOPS[S.shop].a;
+  return S.table ? `${SHOPS[S.table.shop].n}, столик ${S.table.n}` : 'Отсканируйте QR на столе';
+}
+const modeChip = () => `<button class="modechip" onclick="openMode()"><span class="m">${MODES[S.mode]}</span><span class="a">${modeLine()}</span>${IC.chev}</button>`;
 
 /* ===================== Экраны ===================== */
 function demoBar(){
   return `<div class="demo"><b>демо</b><span class="date">${fmt(S.day)}${S.plus?' · ★':''}</span>
-    <button class="primary" onclick="openBuy()">Покупка на кассе</button>
+    <button class="primary" onclick="openKassa()">Касса</button>
     <button onclick="nextDay()" aria-label="Следующий день">День →</button></div>`;
 }
 function bdBanner(){
-  const bd=bdInfo(); if(!bd||!bd.active) return '';
+  const bd=bdInfo(); if(!bd.active) return '';
   const when = bd.diff>0 ? `через ${bd.diff} ${plural(bd.diff,'день','дня','дней')}` : bd.diff<0 ? `был ${-bd.diff} ${plural(-bd.diff,'день','дня','дней')} назад` : 'сегодня!';
   return `<button class="bday" style="text-align:left;width:100%" onclick="go('birthday')">${blob('rgba(249,249,249,.12)',1)}
     <span class="label" style="color:#f9f9f9;opacity:.8">День рождения ${when}</span>
     <span class="big">−${bd.pct}%</span>
-    <span>На всё до ${fmtDate(bd.to)}. ${S.plus?`Скидка = ваш возраст: ${bd.age}.`:`С Кофейная+ было бы −${bd.age}% — по возрасту.`}</span>
+    <span>На всё до ${fmtDate(bd.to)} — на кассе и в заказе. ${S.plus?`Скидка = ваш возраст: ${bd.age}.`:`С Кофейная+ было бы −${bd.age}%.`}</span>
     ${S.birth.verified?'':'<span class="small" style="opacity:.85">Перед первой покупкой бариста проверит документ.</span>'}</button>`;
 }
 function stampsBlock(compact){
   return `<div class="stamps">${SIXTH.map(id=>{ const n=S.stamps[id]||0, ready=n>=5, m=byId(id);
-    return `<div class="stamp"><span>${m.name}</span><span class="dots">${[0,1,2,3,4].map(i=>`<i class="${i<n?'f':''}"></i>`).join('')}<i class="six ${ready?'ready':''}">−30%</i></span>
-      ${compact&&!ready?'':`<span class="hint ${ready?'ready':''}">${ready?`Следующий ${m.name.toLowerCase()} — на 30% дешевле: ${rub(Math.round(m.price*.7))}`:`Ещё ${5-n} ${plural(5-n,'день','дня','дней')} с покупкой — и 6-й со скидкой`}</span>`}</div>` }).join('')}</div>`;
+    return `<div class="stamp"><span>${m.n}</span><span class="dots">${[0,1,2,3,4].map(i=>`<i class="${i<n?'f':''}"></i>`).join('')}<i class="six ${ready?'ready':''}">−30%</i></span>
+      ${compact&&!ready?'':`<span class="hint ${ready?'ready':''}">${ready?`Следующий — на 30% дешевле: ${rub(Math.round(m.p*.7))}`:`Ещё ${5-n} ${plural(5-n,'день','дня','дней')} с покупкой — и 6-й со скидкой`}</span>`}</div>` }).join('')}</div>`;
 }
+// Баннеры-истории — с сайта kofeynaya.ru (картинки), плюс две свои — про лояльность
+const STORIES = [
+  {t:'Гид по пенкам', img:'img/bn1.jpg', body:'Капучино, флэт уайт, латте — чем отличаются пенки и что выбрать.', link:'https://kofeynaya.ru/stories/XdBGzpQr', cta:['Кофе с молоком',"go('menu');setTimeout(()=>jump('kofeinaya_klassika1'),60)"]},
+  {t:'Только в октябре', img:'img/bn2.jpg', body:'Пицца-донат с пепперони и острым мёдом.', link:'https://kofeynaya.ru/stories/cdpu0AT5', cta:['В меню: Спешл',"go('menu');setTimeout(()=>jump('speshl'),60)"]},
+  {t:'Цель недели', bg:'var(--sage)', body:'Выберите, сколько дней в неделю заходить. Выполнили — огонёк и больше бонусов с каждой покупки.', cta:['Мой прогресс',"go('progress')"]},
+  {t:'Гид по топпингам', img:'img/bn3.jpg', body:'Сиропы, молоко и добавки — что с чем сочетается.', link:'https://kofeynaya.ru/stories/mjKz06mI', cta:['Авторские напитки',"go('menu');setTimeout(()=>jump('sezonnoe_menyu__kofe'),60)"]},
+  {t:'★ Кофейная+', bg:'var(--blue)', fg:'#f9f9f9', body:'Цены недели только для вас, бонусы до 10% и скидка в день рождения = возраст.', cta:['Подробнее',"go('plus')"]},
+  {t:'Рекомендация недели', img:'img/bn4.jpg', body:'Что попробовать на этой неделе.', link:'https://kofeynaya.ru/stories/C1m1jvqX', cta:['Всё меню',"go('menu')"]},
+  {t:'Новое меню в Кофейной 5', img:'img/bn5.jpg', body:'Большое меню с кухней на Советской, 17.', link:'https://kofeynaya.ru/stories/cFDelrMu', cta:['Основные блюда',"go('menu');setTimeout(()=>jump('goryachee'),60)"]},
+];
+function openStory(i){ const s=STORIES[i]; sheet(`${s.img?`<img src="${s.img}" alt="" style="width:100%;max-height:60vh;object-fit:cover;border-radius:16px">`:`<div class="bday" style="background:${s.bg};color:${s.fg||'var(--on-color)'};min-height:160px">${blob('rgba(127,127,127,.15)',i)}<span class="big" style="font-size:34px">${s.t}</span></div>`}
+  <h2>${s.t}</h2><p>${s.body}</p><button class="btn block" onclick="closeSheet();${s.cta[1]}">${s.cta[0]}</button>${s.link?`<a class="link" style="align-self:center" href="${s.link}" target="_blank" rel="noopener">Вся история на kofeynaya.ru ↗</a>`:''}`); }
+
 function home(){
   const o=S.offer, wd=weekDays(weekOf(S.day)), visitedToday=S.visits.includes(S.day);
   const left=Math.max(0,S.goal-wd), daysLeft=6-(S.day%7);
   const status = {shown:'', activated:'<span class="chip on">✓ Активировано</span>', used:'<span class="chip on">Использовано сегодня</span>'}[o.status];
-  const pricesInner = S.prices.slice(0,2).map(priceRow).join('');
   return `<section class="screen">
-    <div class="hello"><div class="stack" style="gap:2px"><span class="logo" style="width:150px" role="img" aria-label="кофейная"></span><h1>Привет, ${S.name}</h1></div>${S.plus?PLUS:''}</div>
+    <div class="topbar">${modeChip()}<button class="coins" onclick="go('progress')" aria-label="Бонусы">${S.bonus}<i></i></button></div>
+    <div class="hello"><div class="stack" style="gap:2px"><span class="logo" style="width:140px" role="img" aria-label="кофейная"></span><h1>Привет, ${S.name}</h1></div>${S.plus?PLUS:''}</div>
     ${bdBanner()}
-    <button class="qrcard" onclick="openQR()" aria-label="Показать QR-код на кассе">
-      <span class="mini">${qrSvg(qrToken())}</span>
-      <span class="t stack" style="gap:2px;text-align:left"><strong style="font-size:18px">Показать QR на кассе</strong>
-        <span class="bal">Бонусы ${S.bonus} · баланс ${rub(walletTotal())} · ${effLevel().p}% с покупки</span></span>
-    </button>
+    <div class="hscroll">${STORIES.map((s,i)=>`<button class="story ${s.img?'pic':''}" style="background:${s.bg||'var(--line)'};color:${s.img?'#fff':s.fg||'var(--on-color)'}" onclick="openStory(${i})">${s.img?`<img src="${s.img}" alt="">`:''}<span>${s.t==='Только в октябре'?'':s.t}</span></button>`).join('')}</div>
 
     <article class="offer" style="background:${o.bg}" onclick="openOffer()">
       ${blob('rgba(33,34,33,.12)', S.day)}
@@ -562,31 +797,29 @@ function home(){
       <div class="meta">${o.meta}</div>
       <div class="why">${o.why}</div>
       <div class="actions">
-        ${o.status==='shown' ? `<button class="btn" onclick="event.stopPropagation();activate()">Активировать</button>`
-          : o.status==='activated' ? `<button class="btn" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ``}
-        <span class="chip">до 23:59</span>
+        ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
+        ${o.status==='shown' ? `<button class="btn ghost" onclick="event.stopPropagation();activate()">На кассе по QR</button>` : o.status==='activated' ? `<button class="btn ghost" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ''}
       </div>
     </article>
 
     <div class="panel">
       <div class="row between"><h3>Цель недели</h3><span class="muted small">${wd} из ${S.goal} дней</span></div>
       ${weekRow()}
-      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк.`}</p>
+      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Закажите или зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк.`}</p>
     </div>
 
-    <div class="panel">
-      <div class="row between"><h3>Каждый 6-й — на 30% дешевле</h3></div>
-      ${stampsBlock(true)}
-      <p class="small muted">Одна отметка на позицию в день.</p>
-    </div>
+    <div class="stack"><div class="row between"><h2>Рекомендуем вам</h2><button class="link" onclick="go('menu')">Всё меню</button></div>
+      <div class="hscroll">${recommend().map(m=>`<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`).join('')}</div></div>
+
+    <div class="panel"><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(true)}<p class="small muted">Одна отметка на позицию в день — на кассе и в заказах.</p></div>
 
     <div class="panel">
       <div class="row between"><h3>Ваши цены недели</h3>${S.plus?`<button class="link" onclick="go('prices')">Все</button>`:PLUS}</div>
-      ${S.plus ? pricesInner : locked(pricesInner,'Цены только для вас')}
+      ${S.plus ? S.prices.map(priceRow).join('') : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
     </div>
 
     <div class="more">
-      <button style="background:var(--cream)" onclick="go('wallet')">${blob('rgba(33,34,33,.08)',0)}<strong>Баланс ${rub(walletTotal())}</strong><span>Пополните на 10 000 — получите +1 000 ₽</span></button>
+      <button style="background:var(--cream)" onclick="go('wallet')">${blob('rgba(33,34,33,.08)',0)}<strong>Баланс ${rub(walletTotal())}</strong><span>Пополните на 10 000 — +1 000 ₽</span></button>
       <button style="background:var(--sage)" onclick="go('invite')">${blob('rgba(33,34,33,.08)',1)}<strong>Пригласить друга</strong><span>+${REF_REWARD} ₽ бонусами вам и другу</span></button>
       <button style="background:var(--pink)" onclick="go('birthday')">${blob('rgba(33,34,33,.08)',0)}<strong>День рождения</strong><span>Скидка = ваш возраст ★</span></button>
       <button style="background:var(--blue);color:#f9f9f9" onclick="go('plus')">${blob('rgba(249,249,249,.1)',1)}<strong>★ Кофейная+</strong><span>${S.plus?'Подключена':'99 ₽ в месяц'}</span></button>
@@ -598,117 +831,324 @@ function weekRow(){
   return `<div class="week">${WD.map((d,i)=>{ const day=w*7+i; const cls=[S.visits.includes(day)?'done':'', day===S.day?'today':'', day>S.day?'future':''].join(' ');
     return `<div class="day ${cls}"><span class="dot">${S.visits.includes(day)?'✓':dateOf(day).getDate()}</span>${d}</div>` }).join('')}</div>`;
 }
-function priceRow(p){ const m=byId(p.item); return `<div class="price"><span class="sw" style="background:${SWATCH[m.cat]}">${itemIcon(m.cat)}</span>
-  <div class="stack" style="gap:0;min-width:0"><strong>${m.name}</strong><span class="old money">${rub(m.price)}</span></div>
+function priceRow(p){ const m=byId(p.item); return `<div class="price" onclick="openProduct('${m.id}')">${photo(m,'sw')}
+  <div class="stack" style="gap:0;min-width:0"><strong>${m.n}</strong><span class="old money">${rub(m.p)}</span></div>
   <span class="new money">${rub(p.price)}</span></div>`; }
-function prices(){
-  const end=weekOf(S.day)*7+6, list=`<div class="prices">${S.prices.map(priceRow).join('')}</div>`;
-  return `<section class="screen">
-    <div class="stack"><div class="row between"><span class="label">Персональные цены</span>${PLUS}</div><h1>Цены только для вас</h1>
-    <p class="muted">Действуют до ${fmt(end)} во всех кофейнях. Обновляются каждый понедельник по вашим любимым блюдам.</p></div>
-    ${S.plus?list:locked(list,'Цены только для вас')}
-    <div class="panel small"><strong>Как это работает</strong>
-      <ul class="rules"><li>Цена закреплена до воскресенья и не меняется.</li><li>На одно блюдо действует одна скидка — самая выгодная. Скидки не складываются.</li><li>Лимиты по количеству решим отдельно.</li></ul></div>
+
+/* ---------- Меню ---------- */
+let filt={new:false,hit:false,chef:false}, q='';
+function menu(){
+  const f=Object.entries(filt).filter(([,v])=>v).map(([k])=>k);
+  const ok = m => (!f.length || f.includes(m.b)) && (!q || m.n.toLowerCase().includes(q.toLowerCase()));
+  const secs = CATS.map(c=>({c, items:MENU.filter(m=>m.cat===c.id && ok(m))})).filter(s=>s.items.length);
+  return `<section class="screen" style="gap:16px">
+    <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
+    <div class="notice" style="background:var(--surface);color:var(--ink);border:1px solid var(--line)">${IC.clock.replace('width="13" height="13"','width="22" height="22"')}<span><b>Готовим с 8:00 до 23:00.</b> Можно сделать предзаказ ко времени.</span></div>
+    <div class="catbar"><div class="chips" id="chips">${secs.map(s=>`<button class="catchip" data-c="${s.c.id}" onclick="jump('${s.c.id}')">${s.c.name}</button>`).join('')}</div>
+      <button class="iconbtn" onclick="openFilter()" aria-label="Фильтр">${IC.filter}${f.length||q?'<span class="dot"></span>':''}</button></div>
+    ${S.plus?`<div class="stack"><h3>★ Ваши цены недели</h3><div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div></div>`:''}
+    ${secs.length?secs.map(s=>`<div class="stack" style="gap:12px" id="sec-${s.c.id}">
+      <div class="section-h" data-sec="${s.c.id}"><h2>${s.c.name}</h2>${s.c.hours?`<span class="hours">${IC.clock}${s.c.hours}</span>`:''}</div>
+      <div class="grid">${s.items.map(cardHtml).join('')}</div></div>`).join('') : `<p class="empty-note">Ничего не нашли. <button class="link" onclick="filt={new:false,hit:false,chef:false};q='';render()">Сбросить фильтр</button></p>`}
   </section>`;
 }
+function cardHtml(m){
+  return `<div class="card" onclick="openProduct('${m.id}')"><div class="wrap">${photo(m)}${loyalTag(m)}</div>
+    <span class="nm">${m.n}</span><span class="wt">${wt(m)}</span>${m.c?`<span class="cp">Состав: ${m.c}</span>`:''}${pillHtml(m)}</div>`;
+}
+function jump(id){ const el=document.getElementById('sec-'+id); if(!el) return; const y=el.getBoundingClientRect().top+scrollY-110; scrollTo({top:y,behavior:'smooth'}); }
+function spy(){
+  if(tab!=='menu') return; const hs=[...document.querySelectorAll('[data-sec]')]; let cur=hs[0]?.dataset.sec;
+  for(const h of hs){ if(h.getBoundingClientRect().top<140) cur=h.dataset.sec; }
+  document.querySelectorAll('.catchip').forEach(c=>{ const on=c.dataset.c===cur; if(on&&!c.classList.contains('on')){ c.classList.add('on'); c.scrollIntoView({inline:'center',block:'nearest'}); } else if(!on) c.classList.remove('on'); });
+}
+addEventListener('scroll',()=>requestAnimationFrame(spy),{passive:true});
+function openFilter(){
+  sheet(`<h2>Фильтр</h2>
+    <div class="search">${IC.search}<input id="q" placeholder="Найти блюдо" value="${q}" oninput="q=this.value"></div>
+    <div class="panel" style="gap:0">${[['new','Новое'],['hit','Хит! :)'],['chef','Выбор шефа']].map(([k,t])=>`<label class="opt" for="f-${k}"><span>${t}</span><input type="checkbox" id="f-${k}" ${filt[k]?'checked':''} onchange="filt.${k}=this.checked"></label>`).join('')}</div>
+    <h3>Категории</h3><div class="list">${CATS.map(c=>`<button class="li" onclick="closeSheet();render();setTimeout(()=>jump('${c.id}'),30)"><span class="tx">${c.name}</span>${c.hours?`<small class="muted">${c.hours}</small>`:''}</button>`).join('')}</div>
+    <button class="btn block" onclick="closeSheet();render()">Показать</button>`);
+}
+function openConditions(){
+  const sub=basketQuote().paid;
+  const z=DELIVERY.z;
+  if(S.mode==='delivery') sheet(`<h2>Условия доставки</h2><div class="list">
+      <div class="li"><span class="tx">Минимальный заказ</span><strong>от ${rub(z.min)}</strong></div>
+      <div class="li"><span class="tx">Доставка<small>бесплатно от ${rub(z.free)}</small></span><strong>${rub(z.fee)}</strong></div>
+      <div class="li"><span class="tx">Время ожидания</span><strong>${z.eta}</strong></div></div>
+      <p class="muted small">Везём из Кофейной 5 (Советская, 17). Условия зависят от зоны: в центре — мин. 700 ₽ и 150 ₽, в дальних районах — мин. 1 000 ₽ и 250 ₽. Готовим с 8:00 до 23:00, можно предзаказ.</p>
+      <button class="btn ghost block" onclick="openMode('delivery')">${S.addrs[S.addr]?'Адрес: '+S.addrs[S.addr].t:'Указать адрес доставки'}</button>`);
+  else sheet(`<h2>${S.mode==='pickup'?'Самовывоз':'Заказ к столику'}</h2><div class="list">
+      <div class="li"><span class="tx">${S.mode==='pickup'?'Кофейня':'Где'}<small>${modeLine()}</small></span></div>
+      <div class="li"><span class="tx">Приготовим за</span><strong>${S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</strong></div>
+      <div class="li"><span class="tx">Минимальный заказ</span><strong>нет</strong></div></div>
+      <p class="muted small">${S.mode==='pickup'?'Заберите на стойке по коду заказа. Можно сделать предзаказ ко времени.':'Принесём к вашему столику. Оплата — в приложении.'}</p>
+      <button class="btn ghost block" onclick="openMode()">Изменить</button>`);
+}
+
+/* ---------- Карточка блюда ---------- */
+let pd=null;
+function openProduct(id){ const m=byId(id); pd={id, opts:defOpts(m), qty:1, more:{}}; drawProduct(); }
+function drawProduct(){
+  const m=byId(pd.id), x=m.vars[pd.opts.v], pp=myPrice(m.id), base=unitPrice(m,pd.opts), unit=pp!=null&&pd.opts.v===0? base-(m.p-pp) : base;
+  const six=SIXTH.includes(m.id), st=S.stamps[m.id]||0;
+  const sizes = m.vars.length>1 ? `<div class="optgroup"><strong>${m.vt||'Размер'}</strong><div class="seg" style="grid-template-columns:repeat(${m.vars.length},1fr)">${m.vars.map((v,i)=>`<button class="${pd.opts.v===i?'on':''}" onclick="pd.opts=defOpts(byId(pd.id),${i});drawProduct()">${v.l}</button>`).join('')}</div></div>` : '';
+  const groups = x.g.map((g,gi)=>{ const one=g.max===1, sel=pd.opts.s[gi]||[], lim=pd.more[gi]?g.v.length:6;
+    return `<div class="optgroup"><div class="stack" style="gap:0"><strong>${g.t}</strong>${g.min?`<span class="small muted">Минимум: ${g.min}</span>`:g.max>1&&g.max<g.v.length?`<span class="small muted">Можно выбрать до ${g.max}</span>`:''}</div>
+      <div class="list">${g.v.slice(0,lim).map(([n,p],i)=>`<label class="opt" style="border-bottom:1px dashed var(--line)"><span>${n}${p?` <span class="muted">+ ${rub(p)}</span>`:''}</span><input type="${one?'radio':'checkbox'}" name="g${gi}" ${sel.includes(i)?'checked':''} onchange="pickOpt(${gi},${i})"></label>`).join('')}</div>
+      ${g.v.length>6&&!pd.more[gi]?`<button class="link" style="align-self:flex-start" onclick="pd.more[${gi}]=1;drawProduct()">Показать ещё ${g.v.length-6}</button>`:''}</div>` }).join('');
+  const html=`<div class="pd stack" style="gap:16px">${photo(m)}
+    <div class="stack" style="gap:4px"><h2>${m.n}</h2><span class="muted small">${wt(m,pd.opts.v)}${m.b?` · ${{new:'Новое',hit:'Хит! :)',chef:'Выбор шефа'}[m.b]}`:''}</span>${m.c?`<p class="small muted">Состав: ${m.c}</p>`:''}</div>
+    ${six?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'Этот — 6-й: скидка 30% применится в корзине и на кассе.':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'день','дня','дней')} с покупкой — и 6-й на 30% дешевле.`}</span></div>`:''}
+    ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
+    ${sizes}${groups}
+    <div class="qtyrow" style="position:sticky;bottom:0;background:var(--bg);padding-top:8px"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
+      <button class="btn" style="flex:1" onclick="addFromPd()">${rub(unit*pd.qty)} +</button></div></div>`;
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=s; } else sheet(html);
+}
+function pickOpt(gi,i){
+  const g=byId(pd.id).vars[pd.opts.v].g[gi], a=pd.opts.s[gi]||[];
+  if(g.max===1) pd.opts.s[gi]=[i];
+  else if(a.includes(i)) pd.opts.s[gi]=a.filter(x=>x!==i);
+  else if(a.length>=g.max){ toast(`В группе «${g.t}» можно выбрать не больше ${g.max}.`); }
+  else pd.opts.s[gi]=[...a,i];
+  drawProduct();
+}
+function addFromPd(){ for(let i=0;i<pd.qty;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id; closeSheet(); refreshBasket(id); toast(`${byId(id).n} — в корзине.`); }
+
+/* ---------- Способ получения: доставка / самовывоз / за столик ---------- */
+let modeTab=null, addrInput=null;
+function openMode(t){ modeTab=t||S.mode; addrInput=null; drawMode(); }
+function mapHtml(){
+  const pins = modeTab==='delivery' ? '' : SHOPS.map((s,i)=>!s.t.includes(modeTab==='table'?'table':'pickup')?'':`<button class="pin ${(modeTab==='pickup'?S.shop:S.table?.shop)===i?'sel':''}" style="left:${s.x}%;top:${s.y}%" onclick="pickShop(${i})" aria-label="${s.n}"><span class="mark"></span></button>`).join('');
+  return `<div class="map"><svg class="base" viewBox="0 0 400 190" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M250 0 C230 60 300 110 270 190" stroke="var(--water)" stroke-width="14" fill="none"/>
+    <path d="M0 70 L400 95 M0 140 L400 120 M120 0 L150 190 M300 0 L210 190 M0 30 L260 190" stroke="var(--road)" stroke-width="5" fill="none"/>
+    ${modeTab==='delivery'?'<path d="M70 30 L210 15 L330 60 L320 160 L180 175 L60 140 Z" fill="var(--zone)" stroke="var(--zone-line)" stroke-width="2" stroke-dasharray="6 4"/>':''}
+  </svg>${pins}<span class="me" style="left:47%;top:52%"></span>
+  <span style="position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted)">Тамбов · ${modeTab==='delivery'?'зона доставки':'кофейни'}</span></div>`;
+}
+function drawMode(){
+  const t=modeTab; let body='';
+  if(t==='delivery'){
+    body = addrInput!==null ? `<h3>Укажите адрес доставки</h3>
+      <div class="field"><label class="label" for="addr">Адрес</label><input id="addr" style="font-size:17px" value="${addrInput}" placeholder="Улица, дом" oninput="addrInput=this.value"></div>
+      <div class="field"><label class="label" for="addr2">Квартира, подъезд, этаж</label><input id="addr2" style="font-size:17px" placeholder="необязательно"></div>
+      <button class="btn block" onclick="saveAddr()">Сохранить адрес</button>
+      <p class="hint">Попробуйте адрес вне Тамбова, например «Приморский проспект, 56, Санкт-Петербург».</p>`
+    : `<h3>Мои адреса</h3><div class="list">${S.addrs.map((a,i)=>`<button class="li" onclick="S.addr=${i};S.mode='delivery';save();closeSheet();render()"><span class="radio ${S.mode==='delivery'&&S.addr===i?'on':''}"></span><span class="tx">${a.t}${a.d?`<small>${a.d}</small>`:''}<small>от ${rub(zoneOf(a).min)} · доставка ${rub(zoneOf(a).fee)} · ${zoneOf(a).eta}</small></span></button>`).join('')}</div>
+      <button class="btn ghost block" onclick="addrInput='';drawMode()">+ Добавить новый адрес</button>`;
+  } else if(t==='pickup'){
+    body = `<div class="stack" style="gap:2px"><h3>Выберите кофейню</h3><span class="muted small">Меню и наличие могут отличаться в зависимости от кофейни.</span></div>${shopList('pickShop')}`;
+  } else {
+    body = `<button class="btn block" onclick="scanTable()">${IC.qr.replace('<svg','<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"')} Сканировать QR-код на столе</button>
+      <div class="stack" style="gap:2px"><h3>или выберите кофейню</h3><span class="muted small">Номер столика укажете после выбора.</span></div>${shopList('pickShop')}`;
+  }
+  const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" onclick="modeTab='${k}';addrInput=null;drawMode()">${v}</button>`).join('')}</div>${mapHtml()}${body}`;
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.seg')){ ex.innerHTML='<span class="grab"></span>'+html; } else sheet(html);
+}
+function shopList(fn){ const need=modeTab==='table'?'table':'pickup';
+  return `<div class="list">${SHOPS.map((s,i)=>s.t.includes(need)?`<button class="li" onclick="${fn}(${i})"><img class="th" src="${s.img}" alt=""><span class="tx"><strong>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</strong><small>${s.d}</small><small>Будни ${s.wd} · сб–вс ${s.we}</small>${s.closed?`<small style="color:var(--warn)">${s.closed}</small>`:''}</span><span class="chev">›</span></button>`:'').join('')}</div>`; }
+let shopView=null;
+function pickShop(i){ shopView=i; const s=SHOPS[i], tbl=modeTab==='table';
+  const ex=document.querySelector('.sheet'); const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${modeTab===k?'on':''}" onclick="modeTab='${k}';drawMode()">${v}</button>`).join('')}</div>${mapHtml()}
+    <img src="${s.img}" alt="${s.n}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px">
+    <div class="stack" style="gap:4px"><h2>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</h2><span class="muted">${s.d}</span></div>
+    <div class="list"><div class="li">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx">${s.a}</span></div>
+      <div class="li">${IC.clock.replace('width="13" height="13"','class="ic"')}<span class="tx">Будни: ${s.wd}<small>Сб–вс: ${s.we}</small></span></div>
+      <div class="li">${IC.bag.replace('<svg','<svg class="ic"')}<span class="tx">Приготовим за ${s.eta}</span></div>
+      ${s.phone?`<div class="li"><span class="tx">${s.phone}</span></div>`:''}</div>
+    ${s.closed?`<div class="notice" style="background:var(--warn)">${IC.info}<span>${s.closed}</span></div>`:''}
+    <button class="btn block" ${s.closed?'disabled':''} onclick="confirmShop(${i})">${tbl?'Я за столиком здесь':'Заберу здесь'}</button>
+    <button class="link" style="align-self:center" onclick="shopView=null;drawMode()">← Все кофейни</button>`;
+  ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=0; }
+function confirmShop(i){
+  if(modeTab==='pickup'){ S.mode='pickup'; S.shop=i; save(); closeSheet(); render(); toast(`Самовывоз: ${SHOPS[i].n}, ${SHOPS[i].a}. Приготовим за ${SHOPS[i].eta}.`); return; }
+  S.mode='table'; S.table={shop:i,n:7}; save(); closeSheet(); render(); toast(`${SHOPS[i].n}: заказ к столику 7. В жизни номер подставится из QR на столе.`);
+}
+function scanTable(){ S.mode='table'; S.table={shop:4,n:7}; save(); closeSheet(); render(); toast('Демо: отсканирован QR столика 7 в Кофейной 5. Закажите — принесём к столу.'); }
+function saveAddr(){
+  const v=($('#addr')?.value||'').trim(), d=($('#addr2')?.value||'').trim();
+  if(!v){ toast('Введите улицу и дом.'); return; }
+  if(/(петербург|москва|казань|спб)/i.test(v)){
+    const ex=document.querySelector('.sheet'); ex.innerHTML=`<span class="grab"></span><h3>Укажите адрес доставки</h3><div class="field"><label class="label">Адрес</label><input value="${v}" readonly style="font-size:17px"></div>
+      <p>Мы пока не доставляем на этот адрес, давайте пришлём СМС, когда начнём!</p>
+      <button class="btn block" onclick="S.notify.push('${v.replace(/'/g,'')}');save();closeSheet();toast('Готово: напишем по СМС, когда начнём доставлять на этот адрес.')">Да, сообщите мне</button>
+      <button class="btn ghost block" onclick="addrInput='';drawMode()">Другой адрес</button>`; return; }
+  S.addrs.push({t:v,d,zone:'center'}); S.addr=S.addrs.length-1; S.mode='delivery'; save(); closeSheet(); render(); toast(`Адрес сохранён. Доставим за ${ZONES.center.eta}.`);
+}
+
+/* ---------- Корзина и оформление ---------- */
+let co={bonus:false,wallet:false,when:'asap',comment:''};
+function cart(){
+  if(!S.basket.length) return `<section class="screen">${back('menu','Меню')}<h1>Корзина</h1><p class="empty-note">Пока пусто. Загляните в меню — там ваши цены недели и предложение дня.</p><button class="btn block" onclick="go('menu')">Открыть меню</button></section>`;
+  const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
+  const del=S.mode==='delivery', minLeft=del?Math.max(0,DELIVERY.min-qt.paid):0, freeLeft=del?Math.max(0,DELIVERY.z.free-qt.paid):0;
+  // распределяем скидки по строкам корзины для показа
+  const per={}; qt.lines.forEach(l=>{ (per[l.id]=per[l.id]||[]).push(l) });
+  const ups=[ID.cookie,findN('Орешек со сгущенкой'),findN('Пирожное картошка'),ID.muffin].filter(id=>!qtyOf(id)).slice(0,3);
+  const slots=['asap','12:30–12:45','13:00–13:15','13:30–13:45','18:00–18:15'];
+  return `<section class="screen">${back('menu','Меню')}
+    <div class="row between"><h1>Корзина</h1><button class="link" onclick="S.basket=[];save();render()">Очистить</button></div>
+    <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
+    <div>${S.basket.map(l=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
+      return `<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}
+        <span class="money">${sum<reg?`<s class="muted">${rub(reg)}</s> `:''}${rub(sum)}</span></div>
+        <div class="qty"><button aria-label="Меньше" onclick="changeLine('${l.k.replace(/'/g,"\\'")}',-1);render()">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="changeLine('${l.k.replace(/'/g,"\\'")}',1);render()">+</button></div></div>` }).join('')}</div>
+    ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
+    ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
+    <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow">${slots.map(s=>`<button class="optbtn ${co.when===s?'on':''}" onclick="co.when='${s}';render()">${s==='asap'?(S.mode==='delivery'?'Как можно скорее · '+DELIVERY.eta:'Как можно скорее · '+(S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин')):'Сегодня, '+s}</button>`).join('')}</div></div>
+    <div class="panel" style="gap:0">
+      ${S.bonus>0?`<label class="opt" for="c-bonus"><span>Списать бонусы <span class="small muted">(до 30%, есть ${S.bonus})</span></span><input type="checkbox" id="c-bonus" ${co.bonus?'checked':''} onchange="co.bonus=this.checked;render()"></label>`:''}
+      ${walletTotal()>0?`<label class="opt" for="c-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="c-wallet" ${co.wallet?'checked':''} onchange="co.wallet=this.checked;render()"></label>`:''}
+      <div class="opt"><span>Оплата</span><span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
+    </div>
+    <div class="field"><label class="label" for="cmt">Комментарий</label><input id="cmt" style="font-size:16px" placeholder="${S.mode==='delivery'?'Например: позвонить за 10 минут':'Например: без сахара'}" value="${co.comment}" oninput="co.comment=this.value"></div>
+    <div class="sum panel">
+      <div class="r"><span>Товары</span><span class="money">${rub(qt.regular)}</span></div>
+      ${qt.saved?`<div class="r save"><span>Ваши скидки</span><span class="money">−${rub(qt.saved)}</span></div>`:''}
+      ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
+      ${del?`<div class="r"><span>Доставка</span><span class="money">${qt.fee?rub(qt.fee):'бесплатно'}</span></div>`:''}
+      ${qt.walletSpend?`<div class="r"><span>С баланса</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
+      <div class="r"><span>Начислим бонусов (${effLevel().p}%)</span><span class="money">+${qt.bonus}</span></div>
+      <div class="r tot"><span>К оплате</span><span class="money">${rub(qt.card)}</span></div>
+    </div>
+    <div class="row between" style="position:sticky;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0;border-top:1px solid var(--line)"><div class="stack" style="gap:0"><span class="small muted">К оплате</span><strong style="font-size:22px" class="money">${rub(qt.card)}</strong></div><button class="btn" ${minLeft||(S.mode==='table'&&!S.table)?'disabled':''} onclick="checkout()">${minLeft?`Минимум ${rub(DELIVERY.min)}`:co.when==='asap'?'Оформить заказ':'Оформить предзаказ'}</button></div>
+    <p class="hint" style="text-align:center">Демо: оплата не списывается. Скидки посчитаны до оплаты — это главное требование к интеграции со Starter.</p>
+  </section>`;
+}
+function checkout(){
+  const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
+  const ch = S.mode==='delivery'?'Доставка':S.mode==='pickup'?'Самовывоз':'За столиком';
+  const msg=applyPurchase(qt, ch, false);
+  const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
+  S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when, code:String(10+Math.floor(Math.random()*89))});
+  S.basket=[]; co={bonus:false,wallet:false,when:'asap',comment:''}; save();
+  curOrder=0; go('order'); toast(msg,4500);
+}
+let curOrder=0;
+const STEPS = {
+  delivery:[['Заказ принят','Кофейня получила заказ'],['Готовим','Обычно 15–20 минут'],['Курьер в пути','Приедет за 30–40 минут'],['Доставлен','Приятного аппетита!']],
+  pickup:[['Заказ принят','Кофейня получила заказ'],['Готовим','Обычно 10–15 минут'],['Готов к выдаче','Назовите код на стойке'],['Выдан','Приятного аппетита!']],
+  table:[['Заказ принят','Кофейня получила заказ'],['Готовим','Обычно 10–15 минут'],['Несём к столику','Уже идём'],['На столе','Приятного аппетита!']],
+};
+function order(){
+  const o=S.myOrders[curOrder]; if(!o) return home();
+  const steps=STEPS[o.mode];
+  return `<section class="screen">${back('home','Главная')}
+    <div class="stack" style="gap:4px"><span class="label">Заказ ${o.id} · ${MODES[o.mode]}</span><h1>${steps[Math.min(o.status,3)][0]}</h1><span class="muted">${o.place}${o.when&&o.when!=='asap'?` · к ${o.when}`:''}</span></div>
+    ${o.mode==='pickup'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Код выдачи</span><span class="bigcode">${o.code}</span><span class="small muted">Назовите его бариста</span></div>`:''}
+    ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
+    <div class="panel"><div class="statusline">${steps.map((s,i)=>`<div class="st ${i<o.status?'done':i===o.status?'cur':''}"><span class="b"></span><span class="tx"><strong>${s[0]}</strong><small>${s[1]}</small></span></div>`).join('')}</div></div>
+    ${o.status<3?`<button class="btn ghost block" onclick="S.myOrders[curOrder].status++;save();render()">Демо: следующий статус</button>`:''}
+    <div class="panel"><h3>Состав</h3>${o.lines.map(l=>`<div class="row between small"><span>${byId(l.id).n} × ${l.qty}</span><span class="money">${rub(l.unit*l.qty)}</span></div>`).join('')}<div class="row between"><strong>Оплачено</strong><strong class="money">${rub(o.total)}</strong></div></div>
+    <div class="notice">${IC.star}<span>Заказ в приложении засчитан в цель недели — так же, как покупка на кассе.</span></div>
+  </section>`;
+}
+function myorders(){
+  return `<section class="screen">${back('profile','Профиль')}<h1>Мои заказы</h1>
+    ${S.myOrders.length?S.myOrders.map((o,i)=>`<div class="panel"><div class="row between"><strong>${o.id} · ${MODES[o.mode]}</strong><span class="muted small">${fmtShort(o.day)}</span></div>
+      <span class="small muted">${o.lines.map(l=>byId(l.id).n+(l.qty>1?' × '+l.qty:'')).join(', ')}</span>
+      <div class="row between"><span class="money">${rub(o.total)}</span><div class="row" style="gap:8px"><button class="btn ghost" style="padding:8px 14px" onclick="curOrder=${i};go('order')">Статус</button><button class="btn" style="padding:8px 14px" onclick="repeatOrder(${i})">Повторить</button></div></div></div>`).join(''):'<p class="empty-note">Заказов в приложении пока нет.</p>'}
+  </section>`;
+}
+function repeatOrder(i){ S.myOrders[i].lines.forEach(l=>{ for(let k=0;k<l.qty;k++) addLine(l.id,l.opts,true) }); save(); go('cart'); toast('Добавили в корзину. Скидки пересчитаны на сегодня.'); }
+
+/* ---------- Прогресс (+ выгода) ---------- */
 function progress(){
   const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
+  const f=S.funnel, mx=Math.max(1,f.shown), weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0);
   return `<section class="screen">
     <div class="stack"><span class="label">Прогресс</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel">
       <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
       <div class="goalbar"><i style="width:${pct}%"></i></div>
       ${weekRow()}
-      <p class="small muted">Засчитывается день с покупкой в любой кофейне. Несколько покупок в один день — это один день.</p>
+      <p class="small muted">Засчитывается день с оплаченной покупкой: на кассе, самовывоз, за столиком или доставка. Несколько покупок в день — один день.</p>
     </div>
-    <div class="panel">
-      <h3>Огоньки</h3>
+    <div class="panel"><h3>Огоньки</h3>
       <div class="flames">${hist.map(h=>flame(h.met,`Неделя ${fmtShort(h.week*7)}: ${h.days} из ${S.goal}`)).join('')}${flame(false,'Текущая неделя', true)}</div>
-      <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, но бонусы на счёте не сгорают.</p>
-    </div>
+      <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, бонусы на счёте не сгорают.</p></div>
     <div class="panel">
       <div class="row between"><h3>Бонусы с каждой покупки</h3><span class="chip">${effLevel().p}%</span></div>
       <div class="ladder">${LEVELS.map(l=>`<div class="step ${l===level()?'cur':''}"><span class="p">${l.p}%${l.p>FREE_CAP&&!S.plus?'<sup>★</sup>':''}</span><span class="w">${l.w===4?'4+ нед.':l.w+' нед.'}</span></div>`).join('')}</div>
-      <p class="small">${capped?`Ваш уровень — ${level().p}%, но без подписки начисляем ${FREE_CAP}%. <button class="link" onclick="go('plus')">Кофейная+</button> открывает до 10%.`:nextLevel()?`Ещё одна неделя в цель — и будет ${nextLevel().p}%${!S.plus&&nextLevel().p>FREE_CAP?' (★ с подпиской)':''}.`:'Максимальный уровень. Держите темп.'}</p>
-    </div>
+      <p class="small">${capped?`Ваш уровень — ${level().p}%, без подписки начисляем ${FREE_CAP}%. <button class="link" onclick="go('plus')">Кофейная+</button> открывает до 10%.`:nextLevel()?`Ещё одна неделя в цель — и будет ${nextLevel().p}%${!S.plus&&nextLevel().p>FREE_CAP?' (★ с подпиской)':''}.`:'Максимальный уровень.'}</p></div>
     <div class="panel"><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(false)}</div>
-    <div class="panel">
-      <h3>Моя цель</h3>
-      <p class="small muted">Сколько дней в неделю вы хотите заходить. Можно менять раз в неделю.</p>
-      <div class="row" style="flex-wrap:wrap;gap:8px">${[2,3,4,5,6].map(g=>`<button class="btn ${g===S.goal?'':'ghost'}" style="padding:10px 16px" onclick="setGoal(${g})">${g} ${plural(g,'день','дня','дней')}</button>`).join('')}</div>
-    </div>
+    <div class="panel"><h3>Моя цель</h3><p class="small muted">Сколько дней в неделю вы хотите заходить.</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px">${[2,3,4,5,6].map(g=>`<button class="btn ${g===S.goal?'':'ghost'}" style="padding:10px 16px" onclick="setGoal(${g})">${g} ${plural(g,'день','дня','дней')}</button>`).join('')}</div></div>
+
+    <div class="stack"><span class="label">Моя выгода</span><h2>Сэкономлено ${rub(S.saved)}</h2>
+      <p class="muted small">Только по оплаченным покупкам: обычная цена минус то, что вы заплатили. Бонусы и баланс — отдельно.</p></div>
+    <div class="stats">
+      <div class="stat"><span class="label">За эту неделю</span><span class="v money">${rub(weekSaved)}</span></div>
+      <div class="stat"><span class="label">Бонусов</span><span class="v money">${S.bonus}</span></div>
+      <div class="stat"><span class="label">Баланс</span><span class="v money">${rub(walletTotal())}</span></div>
+      <div class="stat"><span class="label">Дней с покупкой</span><span class="v">${S.visits.length}</span></div></div>
+    <div class="panel"><h3>Предложения дня</h3><div class="funnel">
+      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div></div>
+    <div class="panel"><h3>История покупок</h3><div class="hist">${S.orders.slice().reverse().slice(0,12).map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
+      <span class="d">${fmt(o.day)} · ${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join('')}</div></div>
   </section>`;
 }
 function flame(lit,title,cur){ return `<svg class="flame ${lit?'lit':''}" viewBox="0 0 30 38" role="img" aria-label="${title}" style="${cur?'opacity:.5':''}"><title>${title}</title><path d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`; }
-function benefit(){
-  const f=S.funnel, mx=Math.max(1,f.shown), mo=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day));
-  const weekSaved=mo.reduce((a,o)=>a+o.saved,0);
-  return `<section class="screen">
-    <div class="stack"><span class="label">Моя выгода</span><h1>Сэкономлено ${rub(S.saved)}</h1>
-    <p class="muted small">Считаем только по оплаченным покупкам: обычная цена минус то, что вы заплатили. Бонусы и баланс — отдельно.</p></div>
-    <div class="stats">
-      <div class="stat"><span class="label">За эту неделю</span><span class="v money">${rub(weekSaved)}</span></div>
-      <div class="stat"><span class="label">Бонусов на счёте</span><span class="v money">${S.bonus}</span></div>
-      <div class="stat"><span class="label">Баланс</span><span class="v money">${rub(walletTotal())}</span></div>
-      <div class="stat"><span class="label">Дней с покупкой</span><span class="v">${S.visits.length}</span></div>
-    </div>
-    <div class="panel">
-      <h3>Предложения дня</h3>
-      <div class="funnel">
-        ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}
-      </div>
-    </div>
-    <div class="panel">
-      <h3>История покупок</h3>
-      <div class="hist">${S.orders.slice().reverse().slice(0,12).map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).name).join(', ')}</span><span class="money">${rub(o.sum)}</span>
-        <span class="d">${fmt(o.day)}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}${o.walletSpend?` · с баланса ${rub(o.walletSpend)}`:''}</span></div>`).join('')}</div>
-    </div>
-  </section>`;
-}
+
+/* ---------- Профиль (как в Starter + лояльность) ---------- */
 function profile(){
-  const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]), mx=Math.max(...cats.map(c=>c[1]));
-  const mechs=Object.entries(S.w.mech).sort((a,b)=>b[1]-a[1]), mm=Math.max(...mechs.map(c=>c[1]));
-  const b=S.birth;
+  const bd=bdInfo();
+  const row=(ic,t,act,extra='')=>`<button class="li" onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row" style="gap:14px"><span class="tile" style="font-size:34px">${S.name[0]}</span>
-      <div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'} · ${S.guestId}</span></div></div>
-    <div class="panel">
-      <button class="row between" style="width:100%" onclick="go('plus')"><span>Подписка</span>${S.plus?PLUS:'<span class="muted">не подключена →</span>'}</button>
-      <button class="row between" style="width:100%" onclick="go('birthday')"><span>Дата рождения</span><span class="muted">${b.d} ${MON[b.m]} ${b.y} · ${b.verified?'подтверждена':'не подтверждена'}</span></button>
-      <button class="row between" style="width:100%" onclick="go('wallet')"><span>Баланс</span><span class="money">${rub(walletTotal())}</span></button>
+    <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
+      <button class="iconbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div>
+    ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
+    <div class="lcard">${blob('rgba(33,34,33,.08)',1)}
+      <div class="row between"><span class="label" style="color:var(--on-color)">Уровень · ${S.streak} ${plural(S.streak,'неделя','недели','недель')} подряд</span>${S.plus?PLUS:''}</div>
+      <span class="bigcode" style="font-size:44px;position:relative">${S.bonus} <span style="font-size:18px;font-family:var(--f-body);font-weight:600">бонусов</span></span>
+      <div class="row"><span class="pct">${effLevel().p}%</span><span style="font-weight:600">с покупки</span><button class="qrb" onclick="openQR()">QR-код</button></div>
+    </div>
+    <div class="list">
+      ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'')}
+      ${row('pin','Мои адреса',"openMode('delivery')")}
+      ${row('user','Мои данные',"go('birthday')",`<small class="muted">ДР ${S.birth.d} ${MON[S.birth.m]}</small>`)}
+      ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
+      ${row('wallet','Баланс',"go('wallet')",`<small class="muted">${rub(walletTotal())}</small>`)}
+      ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`)}
+      ${row('star','Кофейная+',"go('plus')",`<small class="muted">${S.plus?'подключена':'99 ₽/мес'}</small>`)}
+      ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
     <div class="stack"><h2>Достижения</h2>
       <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
-    <div class="panel">
-      <h3>Что приложение о вас узнало</h3>
-      <p class="small muted">По этим данным подбираются предложения дня и цены недели. Растёт, когда вы пользуетесь акцией; немного снижается, когда пропускаете.</p>
-      <span class="label">Что вы любите</span>
-      <div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
-      <span class="label">Какие акции вам ближе</span>
-      <div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>
-    </div>
-    <div class="panel">
-      <h3>Уведомления</h3>
-      ${[['offer','Новое предложение дня'],['streak','Напоминание о цели недели'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}
-    </div>
-    <div class="stack">
-      <button class="btn ghost block" onclick="logout()">Выйти</button>
-      <button class="link" style="align-self:center" onclick="resetDemo()">Сбросить демо-данные</button>
-    </div>
+    <div class="panel"><h3>Что приложение о вас узнало</h3>
+      <p class="small muted">По этим данным подбираются предложения дня, рекомендации и цены недели.</p>
+      ${(()=>{const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]),mx=Math.max(...cats.map(c=>c[1])),mechs=Object.entries(S.w.mech).sort((a,b)=>b[1]-a[1]),mm=Math.max(...mechs.map(c=>c[1]));
+        return `<span class="label">Что вы любите</span><div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
+        <span class="label">Какие акции вам ближе</span><div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>`})()}</div>
+    <div class="panel"><h3>Уведомления</h3>
+      ${[['offer','Новое предложение дня'],['streak','Напоминание о цели недели'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
+    <div class="stack"><button class="btn ghost block" onclick="logout()">Выйти</button>
+      <button class="link" style="align-self:center" onclick="resetDemo()">Сбросить демо-данные</button></div>
   </section>`;
 }
 
-/* ---------- v0.3: новые экраны ---------- */
+/* ---------- Цены недели, баланс, друг, ДР, подписка (из v0.3) ---------- */
+function prices(){
+  const end=weekOf(S.day)*7+6, list=`<div class="prices">${S.prices.map(priceRow).join('')}</div>`;
+  return `<section class="screen">${back()}
+    <div class="stack"><div class="row between"><span class="label">Персональные цены</span>${PLUS}</div><h1>Цены только для вас</h1>
+    <p class="muted">До ${fmt(end)}: на кассе по QR и в заказах в приложении. Обновляются каждый понедельник.</p></div>
+    ${S.plus?list:locked(list,'Цены только для вас')}
+    <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Цена закреплена до воскресенья.</li><li>На одно блюдо — одна скидка, самая выгодная.</li></ul></div>
+  </section>`;
+}
 function wallet(){
   return `<section class="screen">${back()}
     <div class="stack"><span class="label">Баланс</span><h1>${rub(walletTotal())}</h1>
-      <p class="muted small">Деньги ${rub(S.wallet.money)} · подарок ${rub(S.wallet.gift)}. Оплачивайте покупки с баланса — на кассе по QR.</p></div>
+      <p class="muted small">Деньги ${rub(S.wallet.money)} · подарок ${rub(S.wallet.gift)}. Оплачивайте с баланса на кассе по QR и в заказах.</p></div>
     <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span>
-      <span class="n">Подарок ${Math.round(t.gift/t.sum*100)}% · всего на балансе ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
+      <span class="n">Подарок ${Math.round(t.gift/t.sum*100)}% · всего ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
     <p class="hint">Демо: нажатие на сумму имитирует оплату картой.</p>
-    <div class="panel small"><strong>Правила</strong>
-      <ul class="rules"><li>При покупке сначала списываются деньги, потом подарок.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li><li>Бонусы за покупки с баланса начисляются как обычно.</li></ul></div>
+    <div class="panel small"><strong>Правила</strong><ul class="rules"><li>Сначала списываются деньги, потом подарок.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li></ul></div>
   </section>`;
 }
 function invite(){
@@ -717,39 +1157,32 @@ function invite(){
     <div class="stack"><span class="label">Пригласить друга</span><h1>+${REF_REWARD} ₽ вам и другу</h1>
       <p class="muted small">Друг получает ${REF_REWARD} ₽ бонусами на первую покупку. Вы — ${REF_REWARD} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня и пройдёт проверка.</p></div>
     <div class="stack" style="gap:6px"><span class="label">Ваша ссылка</span>
-      <div class="copyrow"><code id="reflink">${refLink()}</code><button class="btn" style="padding:10px 14px" onclick="copyRef()">Копировать</button></div></div>
+      <div class="copyrow"><code id="reflink">${refLink()}</code><button class="btn" style="padding:10px 14px" onclick="copyText(refLink())">Копировать</button></div></div>
     <div class="stack"><h3>Ваши друзья</h3>
       ${fr.map((f,i)=>{ if(f.blocked) return `<div class="friend"><div class="row between"><strong>${f.name}</strong><span class="chip" style="color:var(--warn)">отклонён</span></div><div class="fsteps">${'<span class="bad"></span>'.repeat(5)}</div><span class="small muted">${f.blocked}</span></div>`;
         const steps=[true, f.days.length>=1, f.days.length>=2, f.days.length>=3, f.paid];
         const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_REWARD} начислено</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
-        return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div>
-          <div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
+        return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div><div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
           <span class="small muted">Регистрация по СМС → покупка в 3 разных дня → 7 дней проверки → бонусы вам</span>
-          ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">Демо: ${f.name} купил сегодня</button>`:''}</div>` }).join('')}
-    </div>
-    <div class="panel small"><strong>Чтобы всё было честно</strong>
-      <ul class="rules"><li>Друг — новый гость: его номера ещё нет в базе кофейни.</li><li>Только мобильные номера; виртуальные и одноразовые не засчитываются.</li><li>Покупки друга — в 3 разных дня, с его телефона по QR. Оплата картой пригласившего не засчитывается.</li><li>Бонусы начисляются после проверки: если покупку вернут, шаг откатится.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
+          ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">Демо: ${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
+    <div class="panel small"><strong>Чтобы всё было честно</strong><ul class="rules"><li>Друг — новый гость: его номера ещё нет в базе.</li><li>Только мобильные номера, не виртуальные.</li><li>Покупки друга — в 3 разных дня, с его телефона. Карта пригласившего не засчитывается.</li><li>Бонусы — после проверки; при возврате шаг откатится.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
   </section>`;
 }
 function birthday(){
   const bd=bdInfo(), b=S.birth;
   return `<section class="screen">${back()}
-    <div class="stack"><div class="row between"><span class="label">День рождения</span>${PLUS}</div>
-      <h1>Скидка = ваш возраст</h1>
-      <p class="muted small">7 дней до и 7 дней после дня рождения — на всё меню, сколько угодно раз в день, до ${rub(BD_CAP)} скидки в день.</p></div>
-    ${bd.active?bdBanner():`<div class="panel"><div class="row between"><span>Ближайший день рождения</span><strong>${fmtDate(bd.date)}</strong></div><span class="small muted">Скидка будет действовать с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}.</span></div>`}
-    <div class="panel">
-      <div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Кофейная+</span>
-        <span>Скидка</span><span class="y">${BD_FREE}%</span><span class="y">${bd.age}% (возраст)</span></div>
-    </div>
+    <div class="stack"><div class="row between"><span class="label">День рождения</span>${PLUS}</div><h1>Скидка = ваш возраст</h1>
+      <p class="muted small">7 дней до и 7 дней после — на всё меню, на кассе и в заказах, до ${rub(BD_CAP)} скидки в день.</p></div>
+    ${bd.active?bdBanner():`<div class="panel"><div class="row between"><span>Ближайший день рождения</span><strong>${fmtDate(bd.date)}</strong></div><span class="small muted">Скидка с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}.</span></div>`}
+    <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Кофейная+</span><span>Скидка</span><span class="y">${BD_FREE}%</span><span class="y">${bd.age}% (возраст)</span></div></div>
     <div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
-      <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке'}</span>
-      <ul class="rules"><li>Дату можно указать один раз. Изменить — только через поддержку.</li><li>Дату нужно указать минимум за 30 дней до дня рождения.</li><li>Мы не храним фото и данные документа — бариста только сверяет дату.</li></ul></div>
+      <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
+      <ul class="rules"><li>Дату можно указать один раз. Изменить — через поддержку.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>
     <button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>
   </section>`;
 }
 function plus(){
-  const rows=[['Предложение дня',1,1],['Цель недели и огоньки',1,1],['Каждый 6-й −30%',1,1],['Пригласить друга, баланс',1,1],['Бонусы с покупки',`до ${FREE_CAP}%`,'до 10%'],['Персональные цены недели','—','✓'],['Скидка в день рождения',`${BD_FREE}%`,'= возраст']];
+  const rows=[['Предложение дня',1,1],['Цель недели и огоньки',1,1],['Каждый 6-й −30%',1,1],['Заказ, друг, баланс',1,1],['Бонусы с покупки',`до ${FREE_CAP}%`,'до 10%'],['Персональные цены недели','—','✓'],['Скидка в день рождения',`${BD_FREE}%`,'= возраст']];
   return `<section class="screen">${back()}
     <div class="bday">${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">★ Кофейная+</span>
       <span>99 ₽ в месяц. Первые 6 месяцев после запуска — бесплатно для всех.</span></div>
@@ -762,48 +1195,41 @@ function plus(){
 
 const TABS=[
   ['home','Главная','<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'],
-  ['prices','Цены','<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.6"/>'],
+  ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
+  ['qr','QR',''],
   ['progress','Прогресс','<path d="M12 2c1.5 5 8 8 8 15a8 8 0 0 1-16 0c0-4 2-6 3.5-8 .5 3 2 4 3.5 4-1.5-4-.5-8 1-11z"/>'],
-  ['benefit','Выгода','<circle cx="12" cy="12" r="9"/><path d="M9 8h4a2.5 2.5 0 0 1 0 5H9m0-5v10m-2-3h6"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
-const SCREENS={home,prices,progress,benefit,profile,wallet,invite,birthday,plus};
-function go(t){ tab=t; render(); window.scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
+const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders};
+const TAB_OF={prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
+function go(t){ if(t==='qr'){ openQR(); return; } tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 function setGoal(g){ S.goal=g; save(); render(); toast(`Цель: ${g} ${plural(g,'день','дня','дней')} в неделю.`); }
 
 /* ===================== Вход по СМС (имитация) ===================== */
 let authStep='phone';
 function auth(){
   return `<div class="auth">
-    <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Предложения, цены и бонусы — подобранные под вас.</p></div>
-    ${authStep==='phone' ? `
-      <form class="stack" style="gap:16px" onsubmit="event.preventDefault();sendCode()">
-        <div class="field"><label class="label" for="phone">Номер телефона</label>
-          <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 123-45-67" value="${S.phone||'+7 '}" oninput="maskPhone(this)"></div>
-        <button class="btn block" id="sendBtn" type="submit">Получить код по СМС</button>
-        <p class="hint">Демо: СМС не отправляется, подойдёт любой номер.</p>
-      </form>` : `
-      <form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
+    <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>
+    ${authStep==='phone' ? `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();sendCode()">
+        <div class="field"><label class="label" for="phone">Номер телефона</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 123-45-67" value="${S.phone||'+7 '}" oninput="maskPhone(this)"></div>
+        <button class="btn block" type="submit">Получить код по СМС</button><p class="hint">Демо: СМС не отправляется, подойдёт любой номер.</p></form>`
+    : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
         <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
         <div class="field code"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="4" placeholder="····" aria-label="Код из СМС" oninput="codeIn(this)"></div>
-        <button class="btn block" type="submit">Войти</button>
-        <p class="hint">Демо: подойдёт любой код из 4 цифр.</p>
-      </form>`}
+        <button class="btn block" type="submit">Войти</button><p class="hint">Демо: подойдёт любой код из 4 цифр.</p></form>`}
   </div>`;
 }
 function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) d='7'+d.slice(1); if(!d.startsWith('7')) d='7'+d; d=d.slice(0,11);
-  const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7';
-  if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
+  const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7'; if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
 function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(); toast(`Добро пожаловать! Это демо: данные вымышленные, покупку можно сымитировать кнопкой сверху.`,4200); }
-function logout(){ S.authed=false; authStep='phone'; save(); render(); }
-function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); tab='home'; render(); toast('Демо-данные сброшены.'); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); toast('Добро пожаловать! Это демо: можно заказать из меню или сымитировать покупку на кассе кнопкой сверху.',4200); }
+function logout(){ S.authed=false; authStep='phone'; save(); render(false); }
+function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); tab='home'; render(false); toast('Демо-данные сброшены.'); }
 
-/* ===================== Шторки: QR и покупка ===================== */
+/* ===================== Шторки: QR и касса ===================== */
 function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><span class="grab"></span>${html}</div>`; document.body.appendChild(bg);
-  document.addEventListener('keydown',escClose); }
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><span class="grab"></span>${html}</div>`; document.body.appendChild(bg); document.addEventListener('keydown',escClose); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
 function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
@@ -815,56 +1241,58 @@ function openQR(){
       <div class="row between"><span>Бонусы · баланс</span><strong class="money">${S.bonus} · ${rub(walletTotal())}</strong></div>
       <div class="row between"><span>Предложение дня</span><strong>${o.status==='activated'?o.title:o.status==='used'?'использовано':'не активировано'}</strong></div>
       ${bd.active?`<div class="row between"><span>День рождения</span><strong>−${bd.pct}%</strong></div>`:''}
-      <div class="row between"><span>Цены недели</span><strong>${S.plus?`${S.prices.length} ${plural(S.prices.length,'блюдо','блюда','блюд')}`:'★ с подпиской'}</strong></div>
-    </div>
+      <div class="row between"><span>Цены недели</span><strong>${S.plus?`${S.prices.length} ${plural(S.prices.length,'блюдо','блюда','блюд')}`:'★ с подпиской'}</strong></div></div>
     <p class="hint">Код обновляется каждую минуту — скриншот не сработает. Скидки посчитает касса.</p>
-    <button class="btn block" onclick="openBuy()">Демо: сымитировать покупку</button>`);
+    <button class="btn block" onclick="openKassa()">Демо: сымитировать покупку на кассе</button>`);
   let left=60-new Date().getSeconds();
   const tick=()=>{ const el=$('#qrt'); if(!el) return; el.textContent=`Обновится через ${left} с`; if(--left<0){ left=59; $('#bigqr').firstElementChild.outerHTML=qrSvg(qrToken()); } };
   tick(); qrTimer=setInterval(tick,1000);
 }
-let cart={}, buyOpt={};
-function openBuy(){
-  cart={}; buyOpt={wallet:false,bonus:false,doc:false}; const o=S.offer;
-  if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>cart[i]=(cart[i]||0)+1); else if(o.mech==='gift'){ cart.cap=1; cart.cookie=1 } else cart[o.item]=1; }
-  else cart.cap=1;
-  drawBuy();
+let kc={}, ko={};
+function openKassa(){
+  kc={}; ko={wallet:false,bonus:false,doc:false}; const o=S.offer;
+  if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>kc[i]=(kc[i]||0)+1); else if(o.mech==='gift'){ kc[ID.cap]=1; kc[ID.cookie]=1 } else kc[o.item]=1; }
+  else kc[ID.cap]=1;
+  drawKassa();
 }
-function drawBuy(){
-  const q=quote(cart,buyOpt), pp=S.plus?Object.fromEntries(S.prices.map(p=>[p.item,p.price])):{}, o=S.offer;
-  const opts = [];
-  if(q.bdNeedsDoc) opts.push(`<label class="opt" for="o-doc"><span><strong>День рождения −${bdInfo().pct}%</strong><br><span class="small muted">Бариста: проверьте паспорт или права — дату рождения</span></span><input type="checkbox" id="o-doc" ${buyOpt.doc?'checked':''} onchange="buyOpt.doc=this.checked;drawBuy()"></label>`);
-  if(S.bonus>0) opts.push(`<label class="opt" for="o-bonus"><span>Списать бонусы <span class="small muted">(до 30% чека, есть ${S.bonus})</span></span><input type="checkbox" id="o-bonus" ${buyOpt.bonus?'checked':''} onchange="buyOpt.bonus=this.checked;drawBuy()"></label>`);
-  if(walletTotal()>0) opts.push(`<label class="opt" for="o-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="o-wallet" ${buyOpt.wallet?'checked':''} onchange="buyOpt.wallet=this.checked;drawBuy()"></label>`);
-  const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса</span><h2>Что гость покупает</h2>
+function drawKassa(){
+  const ids=[...new Set([...KASSA, ...Object.keys(kc)])];
+  const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
+  if(qt.bdNeedsDoc) opts.push(`<label class="opt" for="o-doc"><span><strong>День рождения −${bdInfo().pct}%</strong><br><span class="small muted">Бариста: проверьте паспорт или права — дату рождения</span></span><input type="checkbox" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></label>`);
+  if(S.bonus>0) opts.push(`<label class="opt" for="o-bonus"><span>Списать бонусы <span class="small muted">(до 30%, есть ${S.bonus})</span></span><input type="checkbox" id="o-bonus" ${ko.bonus?'checked':''} onchange="ko.bonus=this.checked;drawKassa()"></label>`);
+  if(walletTotal()>0) opts.push(`<label class="opt" for="o-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="o-wallet" ${ko.wallet?'checked':''} onchange="ko.wallet=this.checked;drawKassa()"></label>`);
+  const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса в кофейне</span><h2>Гость показал QR</h2>
     <p class="small muted">${o.status==='activated'?`Активно: «${o.title}».`:o.status==='used'?'Предложение дня уже использовано.':'Предложение дня не активировано.'}</p></div>
-    <div class="menu">${MENU.map(m=>{ const six=SIXTH.includes(m.id)&&S.stamps[m.id]>=5;
-      return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.name}</span>
-      <span class="pr">${pp[m.id]!=null?`<s>${rub(m.price)}</s> <span class="pp">${rub(pp[m.id])}</span>`:rub(m.price)}${six?' · <span class="pp">6-й −30%</span>':''}</span></div>
-      <div class="qty"><button aria-label="Убрать ${m.name}" onclick="chg('${m.id}',-1)">−</button><span>${cart[m.id]||0}</span><button aria-label="Добавить ${m.name}" onclick="chg('${m.id}',1)">+</button></div></div>` }).join('')}</div>
+    <div class="menu">${ids.map(id=>{ const m=byId(id), pp=myPrice(id), six=SIXTH.includes(id)&&S.stamps[id]>=5;
+      return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.n}</span><span class="pr">${pp!=null?`<s>${rub(m.p)}</s> <span class="pp">${rub(pp)}</span>`:rub(m.p)}${six?' · <span class="pp">6-й −30%</span>':''}</span></div>
+      <div class="qty"><button aria-label="Убрать" onclick="kc['${id}']=Math.max(0,(kc['${id}']||0)-1);if(!kc['${id}'])delete kc['${id}'];drawKassa()">−</button><span>${kc[id]||0}</span><button aria-label="Добавить" onclick="kc['${id}']=(kc['${id}']||0)+1;drawKassa()">+</button></div></div>` }).join('')}</div>
     ${opts.length?`<div class="panel" style="gap:0">${opts.join('')}</div>`:''}
     <div class="sum panel">
-      ${q.lines.map(l=>`<div class="r"><span>${l.name}${l.why?` <span class="muted small">· ${l.why}</span>`:''}</span><span class="money">${l.price<l.regular?`<s class="muted">${rub(l.regular)}</s> `:''}${rub(l.price)}</span></div>`).join('') || '<span class="muted small">Корзина пуста</span>'}
-      ${q.saved?`<div class="r save"><span>Экономия</span><span class="money">−${rub(q.saved)}</span></div>`:''}
-      ${q.bonusSpend?`<div class="r"><span>Списано бонусов</span><span class="money">−${q.bonusSpend}</span></div>`:''}
-      ${q.walletSpend?`<div class="r"><span>С баланса</span><span class="money">−${rub(q.walletSpend)}</span></div>`:''}
-      <div class="r"><span>Бонусы за покупку (${effLevel().p}%)</span><span class="money">+${q.bonus}</span></div>
-      <div class="r tot"><span>К оплате картой</span><span class="money">${rub(q.card)}</span></div>
-    </div>
-    <button class="btn block" ${q.lines.length?'':'disabled'} onclick="pay()">Оплатить (имитация)</button>`;
-  const ex=document.querySelector('.sheet'); if(ex){ const st=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=st; } else sheet(html);
+      ${qt.lines.map(l=>`<div class="r"><span>${l.name}${l.why?` <span class="muted small">· ${l.why}</span>`:''}</span><span class="money">${l.price<l.regular?`<s class="muted">${rub(l.regular)}</s> `:''}${rub(l.price)}</span></div>`).join('') || '<span class="muted small">Чек пуст</span>'}
+      ${qt.saved?`<div class="r save"><span>Экономия</span><span class="money">−${rub(qt.saved)}</span></div>`:''}
+      ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
+      ${qt.walletSpend?`<div class="r"><span>С баланса</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
+      <div class="r"><span>Бонусы за покупку (${effLevel().p}%)</span><span class="money">+${qt.bonus}</span></div>
+      <div class="r tot"><span>К оплате картой</span><span class="money">${rub(qt.card)}</span></div></div>
+    <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML='<span class="grab"></span>'+html; ex.scrollTop=st; } else sheet(html);
 }
-function chg(id,d){ cart[id]=Math.max(0,(cart[id]||0)+d); if(!cart[id]) delete cart[id]; drawBuy(); }
+function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); }
 
 /* ===================== Рендер ===================== */
-function render(){
-  const app=$('#app');
-  if(!S.authed){ app.innerHTML=auth(); return; }
+function render(keep=true){
+  const app=$('#app'), y=scrollY;
+  if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
-  const body=(SCREENS[tab]||home)();
-  app.innerHTML = demoBar() + `<main>${body}</main>` +
-    `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=>`<button onclick="go('${id}')" ${tab===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
+  const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
+  app.className='app'+(basketCount()&&['home','menu','prices'].includes(tab)?' has-cart':'');
+  app.innerHTML = demoBar() + `<main>${body}</main>` + cartbarHtml() +
+    `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='qr'
+      ? `<button class="qrtab" onclick="openQR()" aria-label="Показать QR на кассе"><span class="ring">${IC.qr.replace('<svg','<svg width="26" height="26" fill="none" stroke-width="2"')}</span>QR</button>`
+      : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
+  if(keep) scrollTo(0,y);
+  if(tab==='menu') spy();
 }
-try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t]) tab=t; }catch(e){}
-render();
+try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
+render(false);
 </script>
