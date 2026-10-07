@@ -385,9 +385,12 @@ p{margin:0}
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
-.offer.me{background:var(--pink);min-height:240px}
-.offer.me .title,.offer.me .meta,.offer.me .why,.offer.me .kicker{max-width:72%;position:relative}
-.offer .stars{position:absolute;right:-6px;top:10px;width:120px;height:150px;pointer-events:none}
+.offer.me{min-height:250px}
+.offer.me .title,.offer.me .meta,.offer.me .why{max-width:64%;position:relative}
+.offer.me .kicker{position:relative}
+.offer .art{position:absolute;right:-6px;top:34px;width:150px;height:170px;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.offer .art{animation:bob 3.2s ease-in-out infinite}}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-3deg)}}
 :root{--star:#f2c230}
 .perk{width:150px;min-height:150px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
 .perk .pi{margin-bottom:auto;display:grid;place-items:center;min-height:34px}
@@ -395,6 +398,33 @@ p{margin:0}
 .perk .pi .tile{font-size:22px;background:#212221;color:#f9f9f9}
 .perk strong{font-size:17px;line-height:1.15}
 .perk span:last-child{font-size:13px;opacity:.8;line-height:1.25}
+.goalnum{font-family:var(--f-num);font-size:26px;line-height:1}
+.goalnum small{font-family:var(--f-body);font-size:15px;color:var(--muted)}
+.gtrack{display:flex;align-items:flex-start;padding:6px 0 0}
+.gtrack .gl{flex:1;height:8px;margin-top:20px;border-radius:4px;background:var(--line);min-width:8px}
+.gtrack .gl.on{background:linear-gradient(90deg,var(--sage),#3fae79)}
+.gtrack .gs{display:flex;flex-direction:column;align-items:center;gap:4px;width:48px;flex:none}
+.gtrack .c{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-num);font-size:18px;background:var(--surface);border:3px solid var(--line);color:var(--muted)}
+.gtrack .ok .c{background:linear-gradient(135deg,var(--sage),#3fae79);border-color:transparent;color:#173f2c}
+.gtrack .cur .c{border:3px dashed var(--ink);color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.gtrack .cur .c{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.gtrack.tight .gs{width:36px}.gtrack.tight .c{width:36px;height:36px;font-size:14px;border-width:2px}.gtrack.tight .gl{margin-top:14px;height:6px}.gtrack.tight small{font-size:11px}
+.gtrack .prize .c{background:var(--cream);border-color:var(--cream)}
+.gtrack .prize.ok .c{background:linear-gradient(135deg,#f2c230,var(--warn))}
+.gtrack .prize svg{width:24px;height:30px}
+.gtrack small{font-size:12px;color:var(--muted);white-space:nowrap;height:15px}
+.gtrack .ok small{color:var(--ink);font-weight:600}
+.wline{position:relative;height:56px;margin:14px 6px 0}
+.wline .bar{position:absolute;left:0;right:0;top:22px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.wline .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cream),var(--sage))}
+.wline .tk{position:absolute;top:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.wline .tk b{width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+.wline .tk.v b{background:#3fae79;border-color:#3fae79}
+.wline .tk em{font-style:normal;font-size:12px;color:var(--muted)}
+.wline .tk.now em{color:var(--ink);font-weight:700}
+.wline .nowflag{position:absolute;top:-6px;transform:translateX(-50%);font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--ink);color:var(--bg);white-space:nowrap}
+.wline .nowflag::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--ink)}
 </style>
 
 <div class="app" id="app"></div>
@@ -534,7 +564,7 @@ function makeOffer(){
     const full=byId(c).p+byId(p).p; o.comboPrice=Math.round(full*0.85/10)*10;
     o.title=`${byId(c).n} + ${byId(p).n.toLowerCase()}`; o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
   o.why = explore ? 'Пробуем новое: так приложение узнаёт, что вам нравится.' : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
-  o.bg = rnd(OFFER_BG); S.funnel.shown++;
+  o.art = S.day % ARTS.length; o.bg = ARTS[o.art].bg; S.funnel.shown++;
   return o;
 }
 function makePrices(){
@@ -813,8 +843,8 @@ function home(){
     <div class="stack" style="gap:6px"><h1>Привет, ${S.name}</h1>
       <div class="optrow"><span class="chip">Сэкономлено ${rub(S.saved)}</span><span class="chip">Бонусы ${S.bonus}</span><span class="chip">${effLevel().p}% с покупки</span>${S.plus?PLUS:''}</div></div>
 
-    <article class="offer me" onclick="openOffer()">
-      ${STARS}
+    <article class="offer me" style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
+      ${artSvg(o.art??S.day%ARTS.length)}
       <div class="row between" style="position:relative"><span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}</div>
       <div class="title">${o.title}</div>
       <div class="meta">${o.meta}</div>
@@ -831,9 +861,8 @@ function home(){
       <div class="hscroll">${perks.map(k=>`<button class="perk" style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
 
     <div class="panel">
-      <div class="row between"><h3>Цель недели</h3><span class="muted small">${wd} из ${S.goal} дней</span></div>
-      ${weekRow()}
-      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Закажите или зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк и выше уровень бонусов.`}</p>
+      <div class="row between"><h3>Цель недели</h3><span class="goalnum">${wd} <small>из ${S.goal}</small></span></div>
+      ${goalTrack()}
     </div>
 
     <div class="panel"><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(true)}<p class="small muted">Одна отметка на позицию в день — на кассе и в заказах.</p></div>
@@ -844,8 +873,26 @@ function home(){
     </div>
   </section>`;
 }
-const STARS = `<svg class="stars" viewBox="0 0 120 150" aria-hidden="true">${[[78,22,22],[38,58,12],[96,70,15],[62,104,26],[22,124,9],[104,124,10]].map(([x,y,r])=>`<path fill="var(--star)" d="M${x} ${y-r}L${x+r*.29} ${y-r*.4}L${x+r} ${y-r*.31}L${x+r*.47} ${y+r*.15}L${x+r*.59} ${y+r*.81}L${x} ${y+r*.5}L${x-r*.59} ${y+r*.81}L${x-r*.47} ${y+r*.15}L${x-r} ${y-r*.31}L${x-r*.29} ${y-r*.4}Z"/>`).join('')}</svg>`;
+const ARTS = [{"t": "Звёзды", "bg": "var(--pink)", "svg": "<path fill=\"#f2c230\" d=\"M82 2L89.0 16.4L106 18.6L93.3 29.6L96.2 45.4L82 38.0L67.8 45.4L70.7 29.6L58 18.6L75.0 16.4Z\"/><path fill=\"#f2c230\" d=\"M40 49L43.8 56.8L53 58.0L46.1 64.0L47.7 72.5L40 68.5L32.3 72.5L33.9 64.0L27 58.0L36.2 56.8Z\"/><path fill=\"#f2c230\" d=\"M110 62L114.6 71.6L126 73.0L117.5 80.4L119.4 91.0L110 86.0L100.6 91.0L102.5 80.4L94 73.0L105.4 71.6Z\"/><path fill=\"#f2c230\" d=\"M68 84L76.1 100.8L96 103.3L81.2 116.2L84.5 134.7L68 126.0L51.5 134.7L54.8 116.2L40 103.3L59.9 100.8Z\"/><path fill=\"#f2c230\" d=\"M22 118L24.9 124.0L32 124.9L26.7 129.5L27.9 136.1L22 133.0L16.1 136.1L17.3 129.5L12 124.9L19.1 124.0Z\"/><path fill=\"#f2c230\" d=\"M118 129L121.2 135.6L129 136.6L123.2 141.7L124.5 148.9L118 145.5L111.5 148.9L112.8 141.7L107 136.6L114.8 135.6Z\"/>"}, {"t": "Солнышко", "bg": "var(--aqua)", "svg": "<line x1=\"114.0\" y1=\"74.0\" x2=\"130.0\" y2=\"74.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"108.1\" y1=\"96.0\" x2=\"122.0\" y2=\"104.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"92.0\" y1=\"112.1\" x2=\"100.0\" y2=\"126.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"70.0\" y1=\"118.0\" x2=\"70.0\" y2=\"134.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"48.0\" y1=\"112.1\" x2=\"40.0\" y2=\"126.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"31.9\" y1=\"96.0\" x2=\"18.0\" y2=\"104.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"26.0\" y1=\"74.0\" x2=\"10.0\" y2=\"74.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"31.9\" y1=\"52.0\" x2=\"18.0\" y2=\"44.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"48.0\" y1=\"35.9\" x2=\"40.0\" y2=\"22.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"70.0\" y1=\"30.0\" x2=\"70.0\" y2=\"14.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"92.0\" y1=\"35.9\" x2=\"100.0\" y2=\"22.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><line x1=\"108.1\" y1=\"52.0\" x2=\"122.0\" y2=\"44.0\" stroke=\"#f2c230\" stroke-width=\"8\" stroke-linecap=\"round\"/><circle cx=\"70\" cy=\"74\" r=\"38\" fill=\"#f2c230\"/><circle cx=\"60\" cy=\"72\" r=\"3.5\" fill=\"#212221\"/><circle cx=\"80\" cy=\"72\" r=\"3.5\" fill=\"#212221\"/><path d=\"M59 84 Q70 96 81 84\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"52\" cy=\"84\" r=\"5\" fill=\"#ef8a9a\" opacity=\".8\"/><circle cx=\"88\" cy=\"84\" r=\"5\" fill=\"#ef8a9a\" opacity=\".8\"/>"}, {"t": "Месяц", "bg": "var(--cream)", "svg": "<path fill=\"#f2c230\" d=\"M88 22a52 52 0 1 0 30 92a44 44 0 0 1-30-92z\"/><path d=\"M58 70 q6 6 12 0\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M52 90 Q64 100 76 90\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"50\" cy=\"84\" r=\"5\" fill=\"#ef8a9a\"/><path fill=\"#2b2b93\" d=\"M116 27L118.6 32.4L125 33.2L120.2 37.4L121.3 43.3L116 40.5L110.7 43.3L111.8 37.4L107 33.2L113.4 32.4Z\"/><path fill=\"#2b2b93\" d=\"M124 89L126.0 93.2L131 93.8L127.3 97.0L128.1 101.7L124 99.5L119.9 101.7L120.7 97.0L117 93.8L122.0 93.2Z\"/><path fill=\"#2b2b93\" d=\"M104 132L106.3 136.8L112 137.5L107.8 141.2L108.7 146.5L104 144.0L99.3 146.5L100.2 141.2L96 137.5L101.7 136.8Z\"/>"}, {"t": "Мандарины", "bg": "var(--aqua)", "svg": "<circle cx=\"56\" cy=\"104\" r=\"36\" fill=\"#f28c28\"/><circle cx=\"100\" cy=\"78\" r=\"30\" fill=\"#f7a23b\"/><path d=\"M100 48 q14-18 30-12 q-10 18-30 12z\" fill=\"#3a8f4b\"/><path d=\"M56 68 q-6-20 -26-18 q4 20 26 18z\" fill=\"#3a8f4b\"/><path d=\"M98 50 v-8 M56 70 v-8\" stroke=\"#5b3a1e\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"44\" cy=\"92\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"60\" cy=\"86\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"70\" cy=\"108\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"48\" cy=\"118\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"92\" cy=\"70\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"108\" cy=\"86\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/><circle cx=\"98\" cy=\"96\" r=\"2.2\" fill=\"#fff\" opacity=\".55\"/>"}, {"t": "Пупсик", "bg": "var(--sage)", "svg": "<circle cx=\"30\" cy=\"80\" r=\"11\" fill=\"#f6b8c4\"/><circle cx=\"110\" cy=\"80\" r=\"11\" fill=\"#f6b8c4\"/><circle cx=\"70\" cy=\"82\" r=\"44\" fill=\"#f6b8c4\"/><path d=\"M62 40 q8-18 18-6 q-10 2-8 10\" stroke=\"#c8506a\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M50 74 q8-8 16 0 M74 74 q8-8 16 0\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"46\" cy=\"92\" r=\"8\" fill=\"#ee8fa3\"/><circle cx=\"94\" cy=\"92\" r=\"8\" fill=\"#ee8fa3\"/><circle cx=\"70\" cy=\"106\" r=\"13\" fill=\"#7fc8e8\"/><circle cx=\"70\" cy=\"106\" r=\"6\" fill=\"#fff\"/><circle cx=\"70\" cy=\"124\" r=\"5\" fill=\"none\" stroke=\"#7fc8e8\" stroke-width=\"4\"/>"}, {"t": "Избушка на курьих ножках", "bg": "var(--cream)", "svg": "<path d=\"M54 116 l-6 30 m0 0 l-12 4 m12-4 l-2 10 m2-10 l10 6 M88 116 l6 30 m0 0 l12 4 m-12-4 l2 10 m-2-10 l-10 6\" stroke=\"#e8892b\" stroke-width=\"6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"28\" y=\"60\" width=\"86\" height=\"60\" rx=\"6\" fill=\"#c8402f\"/><path d=\"M28 76h86M28 92h86M28 108h86\" stroke=\"#9a2c20\" stroke-width=\"3\"/><path d=\"M18 64 L71 22 L124 64 Z\" fill=\"#7d241a\"/><rect x=\"104\" y=\"28\" width=\"10\" height=\"22\" fill=\"#7d241a\"/><circle cx=\"112\" cy=\"18\" r=\"6\" fill=\"#d9d9d9\"/><circle cx=\"122\" cy=\"8\" r=\"4\" fill=\"#d9d9d9\"/><rect x=\"58\" y=\"72\" width=\"26\" height=\"22\" rx=\"3\" fill=\"#f2c230\"/><path d=\"M71 72v22M58 83h26\" stroke=\"#c8402f\" stroke-width=\"3\"/><circle cx=\"66\" cy=\"80\" r=\"2.5\" fill=\"#212221\"/><circle cx=\"77\" cy=\"80\" r=\"2.5\" fill=\"#212221\"/>"}, {"t": "Змей Горыныч", "bg": "var(--pink)", "svg": "<path d=\"M30 124 q-24 6 -20 -14\" stroke=\"#4caf6a\" stroke-width=\"10\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"72\" cy=\"124\" rx=\"44\" ry=\"26\" fill=\"#4caf6a\"/><ellipse cx=\"72\" cy=\"130\" rx=\"26\" ry=\"14\" fill=\"#bfe6c7\"/><path d=\"M56 106 L34 58 M72 102 L72 40 M88 106 L110 58\" stroke=\"#4caf6a\" stroke-width=\"13\" stroke-linecap=\"round\"/><circle cx=\"34\" cy=\"52\" r=\"15\" fill=\"#3d9a5a\"/><circle cx=\"29\" cy=\"48\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"39\" cy=\"48\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"29.5\" cy=\"48.5\" r=\"2\" fill=\"#212221\"/><circle cx=\"39.5\" cy=\"48.5\" r=\"2\" fill=\"#212221\"/><path d=\"M28 58 q6 5 12 0\" stroke=\"#212221\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"72\" cy=\"34\" r=\"15\" fill=\"#3d9a5a\"/><circle cx=\"67\" cy=\"30\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"77\" cy=\"30\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"67.5\" cy=\"30.5\" r=\"2\" fill=\"#212221\"/><circle cx=\"77.5\" cy=\"30.5\" r=\"2\" fill=\"#212221\"/><path d=\"M66 40 q6 5 12 0\" stroke=\"#212221\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"110\" cy=\"52\" r=\"15\" fill=\"#3d9a5a\"/><circle cx=\"105\" cy=\"48\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"115\" cy=\"48\" r=\"4.5\" fill=\"#fff\"/><circle cx=\"105.5\" cy=\"48.5\" r=\"2\" fill=\"#212221\"/><circle cx=\"115.5\" cy=\"48.5\" r=\"2\" fill=\"#212221\"/><path d=\"M104 58 q6 5 12 0\" stroke=\"#212221\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M80 22 q10 -10 4 -20 q12 4 10 16 q8-6 6-14 q10 12 -4 22z\" fill=\"#f28c28\"/>"}, {"t": "Колобок", "bg": "var(--aqua)", "svg": "<ellipse cx=\"54\" cy=\"128\" rx=\"12\" ry=\"6\" fill=\"#8a5a2b\"/><ellipse cx=\"88\" cy=\"128\" rx=\"12\" ry=\"6\" fill=\"#8a5a2b\"/><circle cx=\"71\" cy=\"84\" r=\"44\" fill=\"#f2b84b\"/><circle cx=\"56\" cy=\"64\" r=\"10\" fill=\"#ffd98a\" opacity=\".7\"/><path d=\"M28 88 l-14 -6 M114 88 l14 -6\" stroke=\"#f2b84b\" stroke-width=\"7\" stroke-linecap=\"round\"/><circle cx=\"60.0\" cy=\"82\" r=\"3.8500000000000005\" fill=\"#212221\"/><circle cx=\"82.0\" cy=\"82\" r=\"3.8500000000000005\" fill=\"#212221\"/><path d=\"M58.9 94 Q71 108.0 83.1 94\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"51.2\" cy=\"94\" r=\"5.5\" fill=\"#ef8a9a\" opacity=\".8\"/><circle cx=\"90.8\" cy=\"94\" r=\"5.5\" fill=\"#ef8a9a\" opacity=\".8\"/>"}, {"t": "Чашка с сердечками", "bg": "var(--sage)", "svg": "<path d=\"M30 78 h72 v34 a26 26 0 0 1 -26 26 h-20 a26 26 0 0 1 -26 -26z\" fill=\"#fff\" stroke=\"#212221\" stroke-width=\"4\"/><path d=\"M102 86 h8 a12 12 0 0 1 0 24 h-8\" fill=\"none\" stroke=\"#212221\" stroke-width=\"4\"/><path d=\"M40 78 h52\" stroke=\"#8a5a2b\" stroke-width=\"8\"/><circle cx=\"58.0\" cy=\"104\" r=\"2.8000000000000003\" fill=\"#212221\"/><circle cx=\"74.0\" cy=\"104\" r=\"2.8000000000000003\" fill=\"#212221\"/><path d=\"M57.2 116 Q66 124.0 74.8 116\" stroke=\"#212221\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"51.6\" cy=\"116\" r=\"4.0\" fill=\"#ef8a9a\" opacity=\".8\"/><circle cx=\"80.4\" cy=\"116\" r=\"4.0\" fill=\"#ef8a9a\" opacity=\".8\"/><path fill=\"#e85d75\" d=\"M56 56 l-12 -12 a7.2 7.2 0 0 1 12 -10.8 a7.2 7.2 0 0 1 12 10.8z\"/><path fill=\"#e85d75\" d=\"M84 38 l-10 -10 a6.0 6.0 0 0 1 10 -9.0 a6.0 6.0 0 0 1 10 9.0z\"/><path fill=\"#e85d75\" d=\"M66 22 l-7 -7 a4.2 4.2 0 0 1 7 -6.3 a4.2 4.2 0 0 1 7 6.3z\"/>"}];
+// Герой дня: у персонального предложения каждый день свой персонаж и цвет — чтобы карточку замечали и запоминали
+const artSvg = i => `<svg class="art" viewBox="0 0 140 160" role="img" aria-label="${ARTS[i].t}">${ARTS[i].svg}</svg>`;
 const flameSvg = lit => `<svg viewBox="0 0 30 38" width="26" height="32"><path fill="${lit?'var(--warn)':'currentColor'}" d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`;
+
+/* Шкала цели недели: «кружок — линия — кружок», чтобы понял любой — и ребёнок, и бабушка */
+function goalTrack(){
+  const w=weekOf(S.day), days=S.visits.filter(v=>weekOf(v)===w).sort((a,b)=>a-b), done=days.length, today=S.visits.includes(S.day);
+  const steps=[]; for(let i=0;i<S.goal;i++){
+    const ok=i<done, cur=i===done;
+    steps.push(`${i?`<span class="gl ${i<=done-1?'on':''}"></span>`:''}<span class="gs ${ok?'ok':cur?'cur':''}"><span class="c">${ok?'✓':i+1}</span><small>${ok?WD[days[i]%7]:cur?(today?'дальше':'сегодня?'):''}</small></span>`);
+  }
+  const reached=done>=S.goal;
+  steps.push(`<span class="gl ${reached?'on':''}"></span><span class="gs prize ${reached?'ok':''}"><span class="c">${flameSvg(reached)}</span><small>${reached?'огонёк!':'награда'}</small></span>`);
+  const dow=S.day%7, pct=(dow+0.5)/7*100;
+  const line=`<div class="wline"><div class="bar"><i style="width:${pct}%"></i></div>${WD.map((d,i)=>`<span class="tk ${days.some(x=>x%7===i)?'v':''} ${i===dow?'now':''}" style="left:${(i+0.5)/7*100}%"><b></b><em>${d}</em></span>`).join('')}<span class="nowflag" style="left:${pct}%">Сегодня</span></div>`;
+  const left=Math.max(0,S.goal-done), daysLeft=6-dow+(today?0:1);
+  return `<div class="gtrack ${S.goal>4?'tight':''}">${steps.join('')}</div>${line}
+    <p class="small" style="text-align:center">${reached?'<b>Цель недели выполнена!</b> В понедельник — огонёк и выше уровень бонусов.':`<b>Ещё ${left} ${plural(left,'день','дня','дней')}</b> до огонька · на неделе осталось ${daysLeft} ${plural(daysLeft,'день','дня','дней')}`}</p>`;
+}
 function weekRow(){
   const w=weekOf(S.day);
   return `<div class="week">${WD.map((d,i)=>{ const day=w*7+i; const cls=[S.visits.includes(day)?'done':'', day===S.day?'today':'', day>S.day?'future':''].join(' ');
@@ -1086,8 +1133,7 @@ function progress(){
     <div class="stack"><span class="label">Награды</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel">
       <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
-      <div class="goalbar"><i style="width:${pct}%"></i></div>
-      ${weekRow()}
+      ${goalTrack()}
       <p class="small muted">Засчитывается день с оплаченной покупкой: на кассе, самовывоз, за столиком или доставка. Несколько покупок в день — один день.</p>
     </div>
     <div class="panel"><h3>Огоньки</h3>
