@@ -385,6 +385,16 @@ p{margin:0}
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+.offer.me{background:var(--pink);min-height:240px}
+.offer.me .title,.offer.me .meta,.offer.me .why,.offer.me .kicker{max-width:72%;position:relative}
+.offer .stars{position:absolute;right:-6px;top:10px;width:120px;height:150px;pointer-events:none}
+:root{--star:#f2c230}
+.perk{width:150px;min-height:150px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
+.perk .pi{margin-bottom:auto;display:grid;place-items:center;min-height:34px}
+.perk .pi svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.8}
+.perk .pi .tile{font-size:22px;background:#212221;color:#f9f9f9}
+.perk strong{font-size:17px;line-height:1.15}
+.perk span:last-child{font-size:13px;opacity:.8;line-height:1.25}
 </style>
 
 <div class="app" id="app"></div>
@@ -786,17 +796,26 @@ function openStory(i){ const s=STORIES[i]; sheet(`${s.img?`<img src="${s.img}" a
 
 function home(){
   const o=S.offer, wd=weekDays(weekOf(S.day)), visitedToday=S.visits.includes(S.day);
-  const left=Math.max(0,S.goal-wd), daysLeft=6-(S.day%7);
+  const left=Math.max(0,S.goal-wd), daysLeft=6-(S.day%7), bd=bdInfo();
   const status = {shown:'', activated:'<span class="chip on">✓ Активировано</span>', used:'<span class="chip on">Использовано сегодня</span>'}[o.status];
+  const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
+  // ряд «самое выгодное» — все механики лояльности одним взглядом
+  const perks=[
+    {t:`${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель`, s:`${wd} из ${S.goal} дней на этой неделе`, bg:'var(--sage)', go:"go('progress')", big:flameSvg(true)},
+    {t:'Каждый 6-й −30%', s:ready?`Готово к скидке: ${ready}`:'Капучино, Цезарь, круассан, маффин', bg:'var(--cream)', go:"go('progress')", big:`<span class="tile">6</span>`},
+    {t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст · ${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:IC.cake},
+    {t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:IC.gift},
+    {t:'Баланс +10%', s:'Пополните 10 000 — получите 11 000', bg:'var(--cream)', go:"go('wallet')", big:IC.wallet},
+    {t:'★ Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 10%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:IC.star},
+  ];
   return `<section class="screen">
-    <div class="topbar">${modeChip()}<button class="coins" onclick="go('progress')" aria-label="Бонусы">${S.bonus}<i></i></button></div>
-    <div class="hello"><div class="stack" style="gap:2px"><span class="logo" style="width:140px" role="img" aria-label="кофейная"></span><h1>Привет, ${S.name}</h1></div>${S.plus?PLUS:''}</div>
-    ${bdBanner()}
-    <div class="hscroll">${STORIES.map((s,i)=>`<button class="story ${s.img?'pic':''}" style="background:${s.bg||'var(--line)'};color:${s.img?'#fff':s.fg||'var(--on-color)'}" onclick="openStory(${i})">${s.img?`<img src="${s.img}" alt="">`:''}<span>${s.t==='Только в октябре'?'':s.t}</span></button>`).join('')}</div>
+    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span><button class="coins" onclick="go('progress')" aria-label="Бонусы">${S.bonus}<i></i></button></div>
+    <div class="stack" style="gap:6px"><h1>Привет, ${S.name}</h1>
+      <div class="optrow"><span class="chip">Сэкономлено ${rub(S.saved)}</span><span class="chip">Бонусы ${S.bonus}</span><span class="chip">${effLevel().p}% с покупки</span>${S.plus?PLUS:''}</div></div>
 
-    <article class="offer" style="background:${o.bg}" onclick="openOffer()">
-      ${blob('rgba(33,34,33,.12)', S.day)}
-      <div class="row between" style="position:relative"><span class="kicker">Предложение дня</span>${status}</div>
+    <article class="offer me" onclick="openOffer()">
+      ${STARS}
+      <div class="row between" style="position:relative"><span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}</div>
       <div class="title">${o.title}</div>
       <div class="meta">${o.meta}</div>
       <div class="why">${o.why}</div>
@@ -806,14 +825,16 @@ function home(){
       </div>
     </article>
 
+    ${bdBanner()}
+
+    <div class="stack"><h2>Самое выгодное</h2>
+      <div class="hscroll">${perks.map(k=>`<button class="perk" style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
+
     <div class="panel">
       <div class="row between"><h3>Цель недели</h3><span class="muted small">${wd} из ${S.goal} дней</span></div>
       ${weekRow()}
-      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Закажите или зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк.`}</p>
+      <p class="small ${left?'':'save'}">${left ? (visitedToday ? `Сегодня засчитан. Осталось ${left} ${plural(left,'день','дня','дней')} — до конца недели ${daysLeft} ${plural(daysLeft,'день','дня','дней')}.` : `Закажите или зайдите сегодня — останется ${Math.max(0,left-1)} ${plural(Math.max(0,left-1),'день','дня','дней')} до цели.`) : `Цель недели выполнена. В понедельник — огонёк и выше уровень бонусов.`}</p>
     </div>
-
-    <div class="stack"><div class="row between"><h2>Рекомендуем вам</h2><button class="link" onclick="go('menu')">Всё меню</button></div>
-      <div class="hscroll">${recommend().map(m=>`<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`).join('')}</div></div>
 
     <div class="panel"><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(true)}<p class="small muted">Одна отметка на позицию в день — на кассе и в заказах.</p></div>
 
@@ -821,15 +842,10 @@ function home(){
       <div class="row between"><h3>Ваши цены недели</h3>${S.plus?`<button class="link" onclick="go('prices')">Все</button>`:PLUS}</div>
       ${S.plus ? S.prices.map(priceRow).join('') : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
     </div>
-
-    <div class="more">
-      <button style="background:var(--cream)" onclick="go('wallet')">${blob('rgba(33,34,33,.08)',0)}<strong>Баланс ${rub(walletTotal())}</strong><span>Пополните на 10 000 — +1 000 ₽</span></button>
-      <button style="background:var(--sage)" onclick="go('invite')">${blob('rgba(33,34,33,.08)',1)}<strong>Пригласить друга</strong><span>+${REF_REWARD} ₽ бонусами вам и другу</span></button>
-      <button style="background:var(--pink)" onclick="go('birthday')">${blob('rgba(33,34,33,.08)',0)}<strong>День рождения</strong><span>Скидка = ваш возраст ★</span></button>
-      <button style="background:var(--blue);color:#f9f9f9" onclick="go('plus')">${blob('rgba(249,249,249,.1)',1)}<strong>★ Кофейная+</strong><span>${S.plus?'Подключена':'99 ₽ в месяц'}</span></button>
-    </div>
   </section>`;
 }
+const STARS = `<svg class="stars" viewBox="0 0 120 150" aria-hidden="true">${[[78,22,22],[38,58,12],[96,70,15],[62,104,26],[22,124,9],[104,124,10]].map(([x,y,r])=>`<path fill="var(--star)" d="M${x} ${y-r}L${x+r*.29} ${y-r*.4}L${x+r} ${y-r*.31}L${x+r*.47} ${y+r*.15}L${x+r*.59} ${y+r*.81}L${x} ${y+r*.5}L${x-r*.59} ${y+r*.81}L${x-r*.47} ${y+r*.15}L${x-r} ${y-r*.31}L${x-r*.29} ${y-r*.4}Z"/>`).join('')}</svg>`;
+const flameSvg = lit => `<svg viewBox="0 0 30 38" width="26" height="32"><path fill="${lit?'var(--warn)':'currentColor'}" d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`;
 function weekRow(){
   const w=weekOf(S.day);
   return `<div class="week">${WD.map((d,i)=>{ const day=w*7+i; const cls=[S.visits.includes(day)?'done':'', day===S.day?'today':'', day>S.day?'future':''].join(' ');
@@ -848,6 +864,8 @@ function menu(){
   return `<section class="screen" style="gap:16px">
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
     <div class="notice" style="background:var(--surface);color:var(--ink);border:1px solid var(--line)">${IC.clock.replace('width="13" height="13"','width="22" height="22"')}<span><b>Готовим с 8:00 до 23:00.</b> Можно сделать предзаказ ко времени.</span></div>
+    <div class="hscroll">${STORIES.filter(x=>x.img).map(x=>{const i=STORIES.indexOf(x);return `<button class="story pic" style="color:#fff" onclick="openStory(${i})"><img src="${x.img}" alt=""><span>${x.t==='Только в октябре'?'':x.t}</span></button>`}).join('')}</div>
+    <div class="stack"><h2>Рекомендуем вам</h2><div class="hscroll">${recommend().map(m=>`<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`).join('')}</div></div>
     <div class="catbar"><div class="chips" id="chips">${secs.map(s=>`<button class="catchip" data-c="${s.c.id}" onclick="jump('${s.c.id}')">${s.c.name}</button>`).join('')}</div>
       <button class="iconbtn" onclick="openFilter()" aria-label="Фильтр">${IC.filter}${f.length||q?'<span class="dot"></span>':''}</button></div>
     ${S.plus?`<div class="stack"><h3>★ Ваши цены недели</h3><div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div></div>`:''}
@@ -1040,7 +1058,7 @@ const STEPS = {
 function order(){
   const o=S.myOrders[curOrder]; if(!o) return home();
   const steps=STEPS[o.mode];
-  return `<section class="screen">${back('home','Главная')}
+  return `<section class="screen">${back('home','Для вас')}
     <div class="stack" style="gap:4px"><span class="label">Заказ ${o.id} · ${MODES[o.mode]}</span><h1>${steps[Math.min(o.status,3)][0]}</h1><span class="muted">${o.place}${o.when&&o.when!=='asap'?` · к ${o.when}`:''}</span></div>
     ${o.mode==='pickup'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Код выдачи</span><span class="bigcode">${o.code}</span><span class="small muted">Назовите его бариста</span></div>`:''}
     ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
@@ -1065,7 +1083,7 @@ function progress(){
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
   const f=S.funnel, mx=Math.max(1,f.shown), weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0);
   return `<section class="screen">
-    <div class="stack"><span class="label">Прогресс</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
+    <div class="stack"><span class="label">Награды</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel">
       <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
       <div class="goalbar"><i style="width:${pct}%"></i></div>
@@ -1198,10 +1216,10 @@ function plus(){
 }
 
 const TABS=[
-  ['home','Главная','<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'],
-  ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
+  ['home','Для вас','<path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'],
+  ['progress','Награды','<circle cx="12" cy="9" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/>'],
   ['qr','QR',''],
-  ['progress','Прогресс','<path d="M12 2c1.5 5 8 8 8 15a8 8 0 0 1-16 0c0-4 2-6 3.5-8 .5 3 2 4 3.5 4-1.5-4-.5-8 1-11z"/>'],
+  ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
 const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders};
