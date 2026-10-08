@@ -696,6 +696,8 @@ function seed(){
 let S;
 try{ S=JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(!S||!S.w||!S.basket) S=seed();
+// демо (09.10): один раз показать подписку, у которой осталось 3 дня — чтобы увидеть напоминание о продлении
+if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
 const weekOf = d => Math.floor(d/7);
