@@ -201,6 +201,12 @@ html.sheet-open body{position:fixed;left:0;right:0;width:100%}
 /* тост */
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:min(408px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-size:15px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 .toast b{font-weight:700}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:conf 2s cubic-bezier(.25,.6,.4,1) forwards}
+@keyframes conf{to{transform:translate(var(--dx),105vh) rotate(var(--r))}}
+.party{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;color:#212221;background:linear-gradient(120deg,#f2c230,#ff8a65 55%,#ff4f9a);font-size:15px;line-height:1.35;box-shadow:0 8px 24px rgba(255,79,154,.3)}
+.party .pe{font-size:34px;line-height:1}
+.btn-party{background:linear-gradient(100deg,#f2c230,#ff8a65,#ff4f9a)!important;color:#212221!important;border:0!important;font-weight:800}
 body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0px))} /* не закрывать плашку корзины */
 
 /* вход */
@@ -659,6 +665,7 @@ const MECH = {pct:'скидка в процентах', price:'специаль�
 const SWATCH = {coffee:'var(--cream)', tea:'var(--sage)', pastry:'var(--pink)', food:'var(--aqua)'};
 const OFFER_BG = ['var(--sage)','var(--pink)','var(--cream)','var(--aqua)'];
 const ID = {cap:findN('Капучино'), latte:findN('Латте'), flat:findN('Флет Уайт'), caesar:findN('Цезарь с курицей'), croissant:'x01', muffin:findN('Апельсиновый маффин'), cookie:findN('Печенье шоколадное')};
+const SIX_OFF = 0.3; // скидка на 6-й (1 = бесплатно)
 const SIXTH = [ID.cap, ID.caesar, ID.croissant, ID.muffin];
 const KASSA = [ID.cap, ID.latte, ID.flat, findN('Американо'), findN('Эспрессо'), ID.croissant, ID.muffin, ID.cookie, ID.caesar, findN('Нежные сырники с ягодным конфитюром и сметаной'), findN('Ягодный чизкейк'), findN('Матча латте')].filter(Boolean);
 
@@ -831,7 +838,7 @@ function quote(lines, opt={}){
     const cand=(p,why,k)=>{ if(p<best.price) best={price:p,why,k} };
     const pp=myPrice(u.id); if(pp!=null) cand(pp+u.sur,'★ цена недели','pp');
     if(singleLeft && u.id===o.item) cand(o.mech==='pct'?Math.round(full*(1-o.pct/100)):o.newPrice+u.sur,'предложение дня','offer');
-    if(sixLeft[u.id]) cand(Math.round(full*0.7),'6-й −30%','six');
+    if(sixLeft[u.id]) cand(Math.round(full*(1-SIX_OFF)),'6-й −'+Math.round(SIX_OFF*100)+'%','six');
     if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
     if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
@@ -1058,7 +1065,7 @@ function stampsBlock(compact){
     return `<div class="stamp k-${k}${ready?' ready':''}">
       <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
       <div class="srow">${[0,1,2,3,4].map(i=>`<span class="sl ${i<n?'f':''}">${stampIc(k,i<n?'':'e')}</span>`).join('')}<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−30%</i></button></div>
-      ${compact&&!ready?'':`<span class="hint">${ready?`Следующий — на 30% дешевле: <b>${rub(Math.round(m.p*.7))}</b>`:`Ещё ${5-n} ${plural(5-n,'день','дня','дней')} с покупкой — и 6-й со скидкой`}</span>`}</div>` }).join('')}</div>`;
+      ${compact&&!ready?'':`<span class="hint">${ready?`Следующий — на 30% дешевле: <b>${rub(Math.round(m.p*(1-SIX_OFF)))}</b>`:`Ещё ${5-n} ${plural(5-n,'день','дня','дней')} с покупкой — и 6-й со скидкой`}</span>`}</div>` }).join('')}</div>`;
 }
 // Баннеры-истории — с сайта kofeynaya.ru (картинки), плюс две свои — про лояльность
 const STORIES = [
@@ -1225,12 +1232,13 @@ function drawProduct(){
       ${g.v.length>6&&!pd.more[gi]?`<button class="link" style="align-self:flex-start" onclick="pd.more[${gi}]=1;drawProduct()">Показать ещё ${g.v.length-6}</button>`:''}</div>` }).join('');
   const html=`<div class="pd stack"${F(18)} style="gap:16px">${photo(m)}
     <div class="stack" style="gap:4px"><h2>${m.n}</h2><span class="muted small">${wt(m,pd.opts.v)}${m.b?` · ${{new:'Новое',hit:'Хит! :)',chef:'Выбор шефа'}[m.b]}`:''}</span>${m.c?`<p class="small muted">Состав: ${m.c}</p>`:''}</div>
-    ${six?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'Этот — 6-й: скидка 30% применится в корзине и на кассе.':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'день','дня','дней')} с покупкой — и 6-й на 30% дешевле.`}</span></div>`:''}
+    ${six&&st>=5?`<div class="party"><span class="pe">🎉</span><span><b>Ура, ты добежал!</b><br>Это твой 6-й ${m.n.toLowerCase()} — ${SIX_OFF>=1?'бесплатно':`на ${Math.round(SIX_OFF*100)}% дешевле: <b>${rub(Math.round(unit*(1-SIX_OFF)))}</b> вместо ${rub(unit)}`}. Скидка — на одну штуку.</span></div>`:''}
+    ${six&&st<5?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'день','дня','дней')} с покупкой — и 6-й на 30% дешевле.`}</span></div>`:''}
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
     <div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
-      <button class="btn" style="flex:1" onclick="addFromPd()">${rub(unit*pd.qty)} +</button></div></div>`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=s; } else sheet(html);
+      ${(()=>{ const off=six&&st>=5?Math.round(unit*SIX_OFF):0; return `<button class="btn${off?' btn-party':''}" style="flex:1" onclick="addFromPd()">${off?`<s style="opacity:.6;font-weight:400">${rub(unit*pd.qty)}</s> `:''}${rub(unit*pd.qty-off)} +</button>` })()}</div></div>`;
+  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=s; } else { sheet(html); if(six&&st>=5) confetti(); }
 }
 function pickOpt(gi,i){
   const g=byId(pd.id).vars[pd.opts.v].g[gi], a=pd.opts.s[gi]||[];
@@ -1240,7 +1248,13 @@ function pickOpt(gi,i){
   else pd.opts.s[gi]=[...a,i];
   drawProduct();
 }
-function addFromPd(){ for(let i=0;i<pd.qty;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id; closeSheet(); refreshBasket(id); toast(`${byId(id).n} — в корзине.`); }
+function addFromPd(){ for(let i=0;i<pd.qty;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, party=SIXTH.includes(id)&&(S.stamps[id]||0)>=5; closeSheet(); refreshBasket(id);
+  if(party){ confetti(); toast(`🎉 Ура! Твой 6-й ${byId(id).n.toLowerCase()} в корзине — ${SIX_OFF>=1?'бесплатно':`на ${Math.round(SIX_OFF*100)}% дешевле`}.`,4000); } else toast(`${byId(id).n} — в корзине.`); }
+/* Конфетти — праздник на 6-й позиции */
+function confetti(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box=document.createElement('div'); box.className='confetti'; const C=['#f2c230','#ff4f9a','#9bd9d9','#a7d2b9','#ff6d00','#5e35b1','#e53935'];
+  for(let i=0;i<90;i++){ const p=document.createElement('i'); p.style.left=Math.random()*100+'%'; p.style.background=C[i%C.length]; p.style.animationDelay=(Math.random()*.4)+'s'; p.style.animationDuration=(1.6+Math.random()*1.2)+'s'; p.style.setProperty('--dx',(Math.random()*160-80)+'px'); p.style.setProperty('--r',(Math.random()*720-360)+'deg'); if(i%3===0) p.style.borderRadius='50%'; box.appendChild(p); }
+  document.body.appendChild(box); setTimeout(()=>box.remove(),3200); }
 
 /* ---------- Способ получения: доставка / самовывоз / за столик ---------- */
 let modeTab=null, addrInput=null;
