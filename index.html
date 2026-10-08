@@ -527,6 +527,10 @@ p{margin:0}
 @keyframes wowsteam{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
 .hscroll{scroll-padding-inline:16px}
 .privi h3{font-size:19px;line-height:1.2}
+/* статус предложения дня — одна строка, под подписью */
+.ostat{position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:5px 12px 5px 6px;border-radius:999px;background:#0d553f;color:#f9f9f9;font-size:13px;font-weight:700;line-height:1;box-shadow:0 2px 8px rgba(13,85,63,.3)}
+.ostat svg{width:18px;height:18px;padding:3px;border-radius:50%;background:#a7d2b9;fill:none;stroke:#0d553f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.ostat.used{background:#212221;box-shadow:none}.ostat.used svg{background:#f9f9f9;stroke:#212221}
 .privi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .privi-name{font-family:'Dela Gothic One',sans-serif;font-size:30px;line-height:1.05;color:#f9f9f9}
 .privi .plus-on{flex:none;max-width:118px;white-space:normal;font-size:11px;line-height:1.2;text-align:left}
@@ -939,7 +943,7 @@ function openStory(i){ const s=STORIES[i]; sheet(`${s.img?`<img src="${s.img}" a
 function home(){
   const o=S.offer, wd=weekDays(weekOf(S.day)), visitedToday=S.visits.includes(S.day);
   const left=Math.max(0,S.goal-wd), daysLeft=6-(S.day%7), bd=bdInfo();
-  const status = {shown:'', activated:'<span class="chip on">✓ Активировано</span>', used:'<span class="chip on">Использовано сегодня</span>'}[o.status];
+  const status = {shown:'', activated:'<span class="ostat"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>Активировано</span>', used:'<span class="ostat used"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>Использовано сегодня</span>'}[o.status];
   const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
@@ -954,7 +958,7 @@ function home(){
 
     <article class="offer me"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
-      <div class="row between" style="position:relative"><span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}</div>
+      <span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}
       <div class="title">${o.title}</div>
       <div class="meta">${o.meta}</div>
       <div class="actions">
