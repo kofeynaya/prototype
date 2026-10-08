@@ -173,6 +173,9 @@ p{margin:0}
 .sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,12,11,.5);display:flex;align-items:flex-end;justify-content:center;overscroll-behavior:contain;touch-action:none}
 /* пока открыто окно, страница под ним не прокручивается */
 html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
+html.sheet-open body{position:fixed;left:0;right:0;width:100%}
+/* низ шторки (кол-во и цена) прилипает к самому краю экрана — без щели, сквозь которую видно содержимое */
+.sheet-foot{position:sticky;z-index:4;--pb:calc(20px + env(safe-area-inset-bottom,0px));bottom:calc(-1 * var(--pb));margin:0 -16px calc(-1 * var(--pb));padding:10px 16px var(--pb);background:var(--bg);border-top:1px solid var(--line)}
 .sheet{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .sheet{width:100%;max-width:440px;max-height:88%;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
@@ -1167,7 +1170,7 @@ function drawProduct(){
     ${six?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'Этот — 6-й: скидка 30% применится в корзине и на кассе.':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'день','дня','дней')} с покупкой — и 6-й на 30% дешевле.`}</span></div>`:''}
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
-    <div class="qtyrow" style="position:sticky;bottom:0;background:var(--bg);padding-top:8px"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
+    <div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
       <button class="btn" style="flex:1" onclick="addFromPd()">${rub(unit*pd.qty)} +</button></div></div>`;
   const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=s; } else sheet(html);
 }
@@ -1624,9 +1627,13 @@ function openLegend(){
 /* ===================== Шторки: QR и касса ===================== */
 const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
 function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); document.documentElement.classList.add('sheet-open'); document.addEventListener('keydown',escClose); }
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); lockScroll(); document.addEventListener('keydown',escClose); }
+/* Пока открыта шторка — страница под ней замирает на месте, а после закрытия остаётся там же, где была */
+let sheetY=0;
+function lockScroll(){ const h=document.documentElement; if(h.classList.contains('sheet-open')) return; sheetY=scrollY; h.classList.add('sheet-open'); document.body.style.top=-sheetY+'px'; }
+function unlockScroll(){ const h=document.documentElement; if(!h.classList.contains('sheet-open')) return; h.classList.remove('sheet-open'); document.body.style.top=''; scrollTo(0,sheetY); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
-function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); document.documentElement.classList.remove('sheet-open'); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
+function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); unlockScroll(); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
   const o=S.offer, bd=bdInfo();
   sheet(`<h2>Покажите кассиру</h2>
@@ -1676,7 +1683,7 @@ function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,
 
 /* ===================== Рендер ===================== */
 function render(keep=true){
-  const app=$('#app'), y=scrollY;
+  const app=$('#app'), locked=document.documentElement.classList.contains('sheet-open'), y=locked?sheetY:scrollY;
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
@@ -1685,7 +1692,7 @@ function render(keep=true){
     `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='qr'
       ? `<button class="qrtab"${F(10)} onclick="openQR()" aria-label="Показать QR на кассе"><span class="ring">${IC.qr.replace('<svg','<svg width="26" height="26" fill="none" stroke-width="2"')}</span>QR</button>`
       : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
-  if(keep) scrollTo(0,y);
+  if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
 }
 try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
