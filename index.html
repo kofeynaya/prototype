@@ -488,6 +488,21 @@ p{margin:0}
 .s3 b{font-family:var(--f-num);font-size:18px;line-height:1.15;white-space:nowrap}
 .s3 small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .s3.g b{color:var(--ok)}
+/* депозит в стиле банковского приложения */
+.bank{background:radial-gradient(120% 90% at 85% 10%,rgba(167,210,185,.45) 0%,rgba(167,210,185,0) 55%),linear-gradient(160deg,#0d553f 0%,#172f28 55%,#0f3d4a 100%);border-radius:26px;padding:20px 18px 18px;gap:12px;box-shadow:0 14px 30px rgba(13,85,63,.35)}
+.bank .bk-l{font-size:15px;letter-spacing:0;text-transform:none;opacity:.85;font-weight:500}
+.bank .bk-sum{font-family:var(--f-num);font-size:46px;line-height:1;letter-spacing:-.5px}
+.bank .bk-sum .kop{opacity:.42;font-size:46px}
+.bank .bk-sum .cur{opacity:.6;font-size:26px}
+.bk-pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill-g{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;font-size:12.5px!important;border-radius:999px;background:rgba(249,249,249,.12);border:1px solid rgba(249,249,249,.16);font-size:13px;font-weight:600;white-space:nowrap}
+.pill-g svg{width:16px;height:16px;fill:none;stroke:#a7d2b9;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.bk-act3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.bk-act3 button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px 12px;border-radius:16px;background:rgba(249,249,249,.1);border:1px solid rgba(249,249,249,.18);color:#f9f9f9;font-weight:600;font-size:15px;backdrop-filter:blur(6px)}
+.bk-act3 button:first-child{background:#f9f9f9;color:#172f28;border-color:#f9f9f9}
+.bk-act3 svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.softbtn{width:46px;height:46px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.softbtn svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.9}
 </style>
 
 <div class="app" id="app"></div>
@@ -1248,7 +1263,7 @@ function profile(){
   const row=(ic,t,act,extra='',f=0)=>`<button class="li"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
-      <button class="iconbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div>
+      <div class="row" style="gap:8px"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button><button class="softbtn" onclick="openQR()" aria-label="QR-код">${IC.qr}</button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="list">
@@ -1300,12 +1315,18 @@ function wallet(){
 }
 function bankCard(big){
   const w=S.wallet, t=walletTotal(), [r,k]=t.toFixed(2).split('.');
+  const gifts=(S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0);
+  const ic={top:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',pay:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>',
+    st:'<svg viewBox="0 0 24 24"><path d="M7 4h10a1 1 0 0 1 1 1v15l-3-2-3 2-3-2-3 2V5a1 1 0 0 1 1-1z"/><path d="M9 9h6M9 13h6"/></svg>'};
   return `<div class="bank"${F(14)} onclick="go('wallet')" role="button" tabindex="0">
-    <div class="row between"><span class="bk-l">Баланс · депозит</span><span class="mark" style="width:30px;color:#f9f9f9"></span></div>
-    <div class="bk-sum money">${(+r).toLocaleString('ru-RU')}<small>,${k} ₽</small></div>
-    <div class="bk-parts"><span>Деньги <b class="money">${rubk(w.money)}</b></span><span>Подарок за пополнение <b class="money">${rubk(w.gift)}</b></span></div>
-    <div class="bk-act"><button onclick="event.stopPropagation();openTopup()">+ Пополнить</button><button onclick="event.stopPropagation();openQR()">Оплатить</button>${big?'':`<button onclick="event.stopPropagation();go('wallet')">Выписка</button>`}</div>
-    <span class="bk-no">•• ${((S.phone||"").replace(/\D/g,"").slice(-4))||"4821"}</span>
+    <div class="row between"><span class="bk-l">Ваш депозит</span><span class="mark" style="width:26px;color:#f9f9f9;opacity:.9"></span></div>
+    <div class="bk-sum money">${(+r).toLocaleString('ru-RU')}<span class="kop">,${k}</span><span class="cur"> ₽</span></div>
+    <div class="bk-pills"><span class="pill-g"><svg viewBox="0 0 24 24"><path d="M4 16l5-5 4 4 7-7M14 8h6v6"/></svg>+${rub(gifts)} за пополнения</span><span class="pill-g">Деньги ${rub(w.money)}</span></div>
+    <div class="bk-act3">
+      <button onclick="event.stopPropagation();openTopup()">${ic.top}<span>Пополнить</span></button>
+      <button onclick="event.stopPropagation();openQR()">${ic.pay}<span>Оплатить</span></button>
+      <button onclick="event.stopPropagation();go('wallet')">${ic.st}<span>Выписка</span></button>
+    </div>
   </div>`;
 }
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше подарок.</p>
