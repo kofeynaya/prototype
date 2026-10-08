@@ -201,6 +201,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:100%}
 /* тост */
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:min(408px,calc(100% - 32px));background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-size:15px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 .toast b{font-weight:700}
+body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0px))} /* не закрывать плашку корзины */
 
 /* вход */
 .auth{flex:1;display:flex;flex-direction:column;gap:24px;padding:40px 16px 24px}
@@ -971,8 +972,9 @@ function pillHtml(m){
   const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : `${m.o?'от ':''}${rub(m.p)}`;
   return `<button class="pill" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')">${price} ${o?'→':'+'}${q>0?` · ${q}`:''}</button>`;
 }
+const CART_TABS=['home','progress','menu','prices']; // где видна плашка корзины
 function cartbarHtml(){
-  const n=basketCount(); if(!n || !['home','menu','prices'].includes(tab)) return '<div id="cartbar"></div>';
+  const n=basketCount(); if(!n || !CART_TABS.includes(tab)) return '<div id="cartbar"></div>';
   const q=basketQuote();
   return `<div class="cartbar" id="cartbar"><button${F(19)} onclick="go('cart')"><span class="q">${n}</span><span class="t">Корзина · ${MODES[S.mode].toLowerCase()}</span><span class="s">${q.saved?`<s style="opacity:.6;font-weight:400">${rub(q.regular)}</s> `:''}${rub(q.paid)}</span></button></div>`;
 }
@@ -1701,7 +1703,7 @@ function render(keep=true){
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
-  app.className='app'+(basketCount()&&['home','menu','prices'].includes(tab)?' has-cart':'');
+  app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'');
   app.innerHTML = demoBar() + `<main>${body}</main>` + cartbarHtml() +
     `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='qr'
       ? `<button class="qrtab"${F(10)} onclick="openQR()" aria-label="Показать QR на кассе"><span class="ring">${IC.qr.replace('<svg','<svg width="26" height="26" fill="none" stroke-width="2"')}</span>QR</button>`
