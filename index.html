@@ -985,12 +985,15 @@ function menu(){
   const secs = CATS.map(c=>({c, items:MENU.filter(m=>m.cat===c.id && ok(m))})).filter(s=>s.items.length);
   return `<section class="screen" style="gap:16px">
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
+    <div class="panel"${F(8)}>
+      <div class="row between" style="align-items:flex-start;gap:8px"><h3>Ваши цены недели</h3>${S.plus?PLUS_ON:PLUS}</div>
+      ${S.plus ? `<div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
+    </div>
     <div class="notice" style="background:var(--surface);color:var(--ink);border:1px solid var(--line)">${IC.clock.replace('width="13" height="13"','width="22" height="22"')}<span><b>Готовим с 8:00 до 23:00.</b> Можно сделать предзаказ ко времени.</span></div>
     <div class="hscroll">${STORIES.filter(x=>x.img).map(x=>{const i=STORIES.indexOf(x);return `<button class="story pic" style="color:#fff" onclick="openStory(${i})"><img src="${x.img}" alt=""><span>${x.t==='Только в октябре'?'':x.t}</span></button>`}).join('')}</div>
     <div class="stack"><h2>Рекомендуем вам</h2><div class="hscroll">${recommend().map(m=>`<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`).join('')}</div></div>
     <div class="catbar"${F(17)}><div class="chips" id="chips">${secs.map(s=>`<button class="catchip" data-c="${s.c.id}" onclick="jump('${s.c.id}')">${s.c.name}</button>`).join('')}</div>
       <button class="iconbtn" onclick="openFilter()" aria-label="Фильтр">${IC.filter}${f.length||q?'<span class="dot"></span>':''}</button></div>
-    ${S.plus?`<div class="stack"${F(8)}><div class="row between" style="gap:8px"><h3>Ваши цены недели</h3>${PLUS_ON}</div><div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div></div>`:''}
     ${secs.length?secs.map(s=>`<div class="stack" style="gap:12px" id="sec-${s.c.id}">
       <div class="section-h" data-sec="${s.c.id}"><h2>${s.c.name}</h2>${s.c.hours?`<span class="hours">${IC.clock}${s.c.hours}</span>`:''}</div>
       <div class="grid">${s.items.map(cardHtml).join('')}</div></div>`).join('') : `<p class="empty-note">Ничего не нашли. <button class="link" onclick="filt={new:false,hit:false,chef:false};q='';render()">Сбросить фильтр</button></p>`}
