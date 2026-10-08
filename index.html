@@ -522,7 +522,15 @@ html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
 .coin{display:inline-block;width:15px;height:15px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#ffe58a 0 25%,#f2c230 26% 60%,#d9a514 61%);box-shadow:inset 0 0 0 1.5px #c99512}
 .subchip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border-radius:14px;background:linear-gradient(135deg,#2b2b93,#5e35b1);color:#f9f9f9;text-align:left;box-shadow:0 4px 14px rgba(43,43,147,.3)}
 .subchip .t{font-weight:700;font-size:14px;white-space:nowrap}
-.subchip .s{font-size:11.5px;opacity:.85;white-space:nowrap}
+.subchip .s{font-size:11.5px;opacity:.85;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.subchip .ystar{color:#f2c230;font-weight:700}
+.subchip.soon{background:linear-gradient(135deg,#e53935,#ff6d00);box-shadow:0 4px 14px rgba(229,57,53,.4)}
+.subchip.soon .s{opacity:1;font-weight:700}
+.pdot{width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block}
+@media (prefers-reduced-motion:no-preference){.subchip.soon .pdot{animation:pdot 1s ease-in-out infinite}}
+@keyframes pdot{50%{opacity:.25;transform:scale(.6)}}
+.renew{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#e53935,#ff6d00);color:#fff}
+.renew b{font-size:18px}.renew .btn{background:#fff;color:#c62828;border-color:#fff}
 /* депозит в стиле банковского приложения */
 .bank{background:radial-gradient(120% 90% at 85% 10%,rgba(167,210,185,.45) 0%,rgba(167,210,185,0) 55%),linear-gradient(160deg,#0d553f 0%,#172f28 55%,#0f3d4a 100%);border-radius:26px;padding:20px 18px 18px;gap:12px;box-shadow:0 14px 30px rgba(13,85,63,.35)}
 .bank .bk-l{font-size:15px;letter-spacing:0;text-transform:none;opacity:.85;font-weight:500}
@@ -825,7 +833,7 @@ function nextDay(){
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
-function togglePlus(){ S.plus=!S.plus; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 10% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
+function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 10% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
 function topUp(i){ const t=TOPUPS[i]; S.wallet.money+=t.sum; S.wallet.gift+=t.gift; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:'Пополнение с карты '+S.card,sum:t.sum},{day:S.day,k:'gift',t:`Подарок за пополнение +${Math.round(t.gift/t.sum*100)}%`,sum:t.gift}); closeSheet(); save(); render(); toast(`Баланс пополнен на ${rub(t.sum)} и подарок ${rub(t.gift)} (имитация оплаты).`); }
 function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
@@ -1331,10 +1339,16 @@ function flame(lit,title,cur){ return `<svg class="flame ${lit?'lit':''}" viewBo
 /* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
 const COIN='<i class="coin" aria-hidden="true"></i>';
 /* Подписка активна — компактно в шапке профиля: сколько дней до следующего списания */
+function plusEnd(){ const d=dateOf(S.day); return S.plusSoon ? new Date(d.getFullYear(),d.getMonth(),d.getDate()+3) : new Date(d.getFullYear(), d.getMonth()+(d.getDate()>=8?1:0), 8); }
+const plusLeft=()=>Math.round((plusEnd()-dateOf(S.day))/864e5);
+const plusEndTxt=()=>{ const e=plusEnd(); return `${e.getDate()} ${MON[e.getMonth()]}`; };
+const SOON=5; // за сколько дней до конца подписки начинаем напоминать
 function subChip(){
-  const d=dateOf(S.day), n=new Date(d.getFullYear(), d.getMonth()+(d.getDate()>=8?1:0), 8), left=Math.round((n-d)/864e5);
-  return `<button class="subchip"${F(13)} onclick="go('plus')"><span class="t">★ Кофейная+</span><span class="s">активна · ещё ${left} ${plural(left,'день','дня','дней')}</span></button>`;
+  const left=plusLeft(), soon=left<=SOON;
+  return `<button class="subchip${soon?' soon':''}"${F(13)} onclick="go('plus')"><span class="t"><b class="ystar">★</b> Кофейная+</span><span class="s">${soon?`<i class="pdot"></i>осталось ${left} ${plural(left,'день','дня','дней')} · продлить`:`активна · ещё ${left} ${plural(left,'день','дня','дней')}`}</span></button>`;
 }
+function renewPlus(){ S.plusSoon=false; save(); render(); toast(`Кофейная+ продлена до ${plusEndTxt()} (демо).`); }
+function soonPlus(){ S.plusSoon=true; save(); render(); }
 function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
@@ -1348,7 +1362,7 @@ function dashboard(){
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
         <span class="dv" style="font-size:22px">★ Кофейная+</span>
-        <span class="ds">${S.plus?`Цены недели, бонусы до 10%, ДР −${bd.age}%. Следующее списание 8 ноября — 99 ₽.`:`Откроет цены недели, бонусы до 10% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
+        <span class="ds">${S.plus?`Цены недели, бонусы до 10%, ДР −${bd.age}%. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 10% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="openStatement()">Выписка</button></div>
@@ -1474,13 +1488,14 @@ function plus(){
   const rows=[['Персональное предложение',1,1],['Цель недели, огоньки',1,1],['Каждый 6-й −30%',1,1],['Заказ, друг, баланс',1,1],['Бонусы с покупки',`до ${FREE_CAP}%`,'до 10%'],['Цены недели только для вас','—','✓'],['Скидка в день рождения',`${BD_FREE}%`,'= возраст']];
   return `<section class="screen">${back()}
     <div class="bday"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">★ Кофейная+</span>
-      <span>${S.plus?'Подключена. Следующее списание — 8 ноября, 99 ₽.':'99 ₽ в месяц. Первые 6 месяцев после запуска — бесплатно для всех.'}</span></div>
+      <span>${S.plus?`Подключена до ${plusEndTxt()}.`:'99 ₽ в месяц. Первые 6 месяцев после запуска — бесплатно для всех.'}</span></div>
+    ${S.plus&&plusLeft()<=SOON?`<div class="renew"><b>Подписка закончится через ${plusLeft()} ${plural(plusLeft(),'день','дня','дней')}</b><span class="small">Продлите, чтобы не потерять цены недели, бонусы до 10% и скидку в день рождения.</span><button class="btn" onclick="renewPlus()">Продлить — 99 ₽ за месяц</button></div>`:''}
     <div class="panel"><strong>Как это работает</strong>
       <div class="howto">${[['1','Подключаете в один клик','Оплата картой раз в месяц. Отменить можно в любой момент.'],['2','Сразу открывается ★','Цены недели, бонусы до 10%, скидка в день рождения = ваш возраст.'],['3','Везде, где звёздочка ★','На кассе по QR и в заказах из приложения — без промокодов.']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
     <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Плюс</span>
       ${rows.map(([t,a,b])=>`<span>${t}</span><span class="y">${a===1?'✓':a}</span><span class="y"><strong>${b===1?'✓':b}</strong></span>`).join('')}</div></div>
     <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':'Подключить за 99 ₽/мес (демо)'}</button>
-    <p class="hint" style="text-align:center">В прототипе оплата не списывается.</p>
+    <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
   </section>`;
 }
 function plusBanner(){
