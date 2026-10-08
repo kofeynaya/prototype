@@ -488,6 +488,12 @@ p{margin:0}
 .s3 b{font-family:var(--f-num);font-size:18px;line-height:1.15;white-space:nowrap}
 .s3 small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .s3.g b{color:var(--ok)}
+.s3.y{background:linear-gradient(160deg,rgba(242,194,48,.22),rgba(242,194,48,.06));border-color:rgba(242,194,48,.55)}
+.s3.y b{display:inline-flex;align-items:center;gap:5px}
+.coin{display:inline-block;width:15px;height:15px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#ffe58a 0 25%,#f2c230 26% 60%,#d9a514 61%);box-shadow:inset 0 0 0 1.5px #c99512}
+.subchip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border-radius:14px;background:linear-gradient(135deg,#2b2b93,#5e35b1);color:#f9f9f9;text-align:left;box-shadow:0 4px 14px rgba(43,43,147,.3)}
+.subchip .t{font-weight:700;font-size:14px;white-space:nowrap}
+.subchip .s{font-size:11.5px;opacity:.85;white-space:nowrap}
 /* депозит в стиле банковского приложения */
 .bank{background:radial-gradient(120% 90% at 85% 10%,rgba(167,210,185,.45) 0%,rgba(167,210,185,0) 55%),linear-gradient(160deg,#0d553f 0%,#172f28 55%,#0f3d4a 100%);border-radius:26px;padding:20px 18px 18px;gap:12px;box-shadow:0 14px 30px rgba(13,85,63,.35)}
 .bank .bk-l{font-size:15px;letter-spacing:0;text-transform:none;opacity:.85;font-weight:500}
@@ -1278,22 +1284,28 @@ function flame(lit,title,cur){ return `<svg class="flame ${lit?'lit':''}" viewBo
 
 
 /* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
+const COIN='<i class="coin" aria-hidden="true"></i>';
+/* Подписка активна — компактно в шапке профиля: сколько дней до следующего списания */
+function subChip(){
+  const d=dateOf(S.day), n=new Date(d.getFullYear(), d.getMonth()+(d.getDate()>=8?1:0), 8), left=Math.round((n-d)/864e5);
+  return `<button class="subchip"${F(13)} onclick="go('plus')"><span class="t">★ Кофейная+</span><span class="s">активна · ещё ${left} ${plural(left,'день','дня','дней')}</span></button>`;
+}
 function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
     ${bankCard()}
     <div class="stat3">
-      <button class="s3"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money">${S.bonus}</b><small>${effLevel().p}% с покупки</small></button>
+      <button class="s3 y"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money">${COIN}${S.bonus}</b><small>${effLevel().p}% с покупки</small></button>
       <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money">${rub(S.saved)}</b><small>за всё время</small></div>
       <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money">+${rub((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0))}</b><small>за всё время</small></button>
     </div>
-    <div class="dash">
+    ${S.plus?'':`<div class="dash">
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
         <span class="dv" style="font-size:22px">★ Кофейная+</span>
         <span class="ds">${S.plus?`Цены недели, бонусы до 10%, ДР −${bd.age}%. Следующее списание 8 ноября — 99 ₽.`:`Откроет цены недели, бонусы до 10% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
-    </div>
+    </div>`}
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="go('wallet')">Выписка</button></div>
   </div>`;
 }
@@ -1312,7 +1324,7 @@ function profile(){
   const row=(ic,t,act,extra='',f=0)=>`<button class="li"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
-      <div class="row" style="gap:8px"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
+      <div class="row" style="gap:8px">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="list">
