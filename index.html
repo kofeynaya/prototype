@@ -545,7 +545,9 @@ const BD_FREE = 10, BD_CAP = 1500;
 const REF_REWARD = 500, REF_DAYS = 3, REF_HOLD = 7;
 const TOPUPS = [{sum:3000,gift:150},{sum:5000,gift:400},{sum:10000,gift:1000}];
 const BONUS_MAX_SHARE = 0.3;
-const DAY0 = new Date(2026,8,28);
+const _NOW = new Date(), _DOW = (_NOW.getDay()+6)%7; // пн=0
+const DAY0 = new Date(_NOW.getFullYear(), _NOW.getMonth(), _NOW.getDate()-_DOW-7); // понедельник прошлой недели
+const TODAY0 = 7+_DOW; // индекс реального «сегодня» в демо-календаре
 const WD = ['пн','вт','ср','чт','пт','сб','вс'];
 const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const rub = n => Math.round(n).toLocaleString('ru-RU')+' ₽';
@@ -556,21 +558,21 @@ const fmtShort = d => { const x=dateOf(d); return x.getDate()+' '+MON[x.getMonth
 const fmtDate = x => x.getDate()+' '+MON[x.getMonth()];
 
 /* ===================== Состояние ===================== */
-const KEY='coffee-loyalty-proto-v5';
+const KEY='coffee-loyalty-proto-v6';
 function seed(){
   const s = {
     authed:false, phone:'', name:'Аня', guestId:'G-'+Math.random().toString(36).slice(2,8).toUpperCase(),
-    day:9, goal:4, streak:1, bonus:64, saved:0,
-    visits:[0,1,3,5,7,8], orders:[], weekHist:[{week:0,days:4,met:true}],
+    day:TODAY0, goal:4, streak:1, bonus:64, saved:0,
+    visits:[0,1,3,5,...[7,8].filter(d=>d<TODAY0)], orders:[], weekHist:[{week:0,days:4,met:true}],
     w:{cat:{coffee:1.4,tea:.8,pastry:1.2,food:.7}, mech:{pct:1,price:1,gift:1,combo:1}},
     funnel:{shown:6,opened:4,activated:3,used:2}, mechTried:{pct:1,price:1},
     pastryCount:3, offer:null, prices:null, pricesWeek:-1,
     notif:{offer:true,streak:true,savings:false}, ach:{},
     plus:false, wallet:{money:2780,gift:150,ops:[{day:2,k:'top',t:'Пополнение с карты •• 4242',sum:3000},{day:2,k:'gift',t:'Подарок за пополнение +5%',sum:150},{day:5,k:'pay',t:'Кофейная 5 · Латте',sum:-220}]},
     stamps:{[ID.cap]:4,[ID.caesar]:1,[ID.croissant]:2,[ID.muffin]:5}, stampDay:{},
-    birth:{y:1993,m:9,d:10,verified:false}, bdUsed:{},
+    birth:(()=>{ const b=dateOf(TODAY0+3); return {y:1993,m:b.getMonth(),d:b.getDate(),verified:false} })(), bdUsed:{},
     ref:{code:'ANYA-7K2Q', friends:[
-      {name:'Миша', phone:'+7 9•• •••-41-08', days:[8], hold:null, paid:false},
+      {name:'Миша', phone:'+7 9•• •••-41-08', days:[TODAY0>7?7:5], hold:null, paid:false},
       {name:'+7 900 •••-00-01', phone:'', blocked:'Номер виртуальный — не мобильный оператор. Приглашение не засчитано.'},
     ]},
     // заказ
@@ -580,10 +582,10 @@ function seed(){
   };
   const cake=findN('Ягодный чизкейк'), amer=findN('Американо');
   const mk=(d,items,sv,ch)=>({day:d,items,sum:items.reduce((a,i)=>a+byId(i).p,0)-sv,saved:sv,bonus:0,ch});
-  s.orders=[mk(0,[ID.cap,ID.croissant],0,'Касса'),mk(1,[ID.flat],0,'Касса'),mk(3,[ID.cap,cake],29,'Самовывоз'),mk(5,[ID.latte],0,'Касса'),mk(7,[ID.cap,ID.muffin,cake],45,'Доставка'),mk(8,[amer,ID.cookie],0,'Касса')];
+  s.orders=[mk(0,[ID.cap,ID.croissant],0,'Касса'),mk(1,[ID.flat],0,'Касса'),mk(3,[ID.cap,cake],29,'Самовывоз'),mk(5,[ID.latte],0,'Касса'),mk(7,[ID.cap,ID.muffin,cake],45,'Доставка'),mk(8,[amer,ID.cookie],0,'Касса')].filter(o=>o.day<TODAY0);
   s.orders.forEach(o=>o.bonus=Math.floor(o.sum*0.02));
   s.saved = s.orders.reduce((a,o)=>a+o.saved,0);
-  s.myOrders=[{id:'K-2481',day:7,mode:'delivery',place:'Советская улица, 81А',lines:[{id:ID.cap,qty:1,opts:defOpts(byId(ID.cap)),unit:220},{id:ID.muffin,qty:1,opts:defOpts(byId(ID.muffin)),unit:190},{id:cake,qty:1,opts:defOpts(byId(cake)),unit:390}],total:800,status:3}];
+  s.myOrders=[{id:'K-2481',day:5,mode:'delivery',place:'Советская улица, 81А',lines:[{id:ID.cap,qty:1,opts:defOpts(byId(ID.cap)),unit:220},{id:ID.muffin,qty:1,opts:defOpts(byId(ID.muffin)),unit:190},{id:cake,qty:1,opts:defOpts(byId(cake)),unit:390}],total:800,status:3}];
   s.ach={first:true,week1:true};
   return s;
 }
@@ -1195,7 +1197,8 @@ function progress(){
       <p class="small muted">Засчитывается день с оплаченной покупкой: на кассе, самовывоз, за столиком или доставка. Несколько покупок в день — один день.</p>
     </div>
     <div class="panel"${F(4)}><h3>Огоньки</h3>
-      <div class="flames">${hist.map(h=>flame(h.met,`Неделя ${fmtShort(h.week*7)}: ${h.days} из ${S.goal}`)).join('')}${flame(false,'Текущая неделя', true)}</div>
+      <div class="flames">${hist.map(h=>flame(h.met,`Неделя ${fmtShort(h.week*7)}: ${h.days} из ${S.goal}`)).join('')}${(()=>{const cw=weekDays(weekOf(S.day)),ok=cw>=S.goal;return flame(ok,ok?'Эта неделя: цель выполнена!':`Эта неделя: ${cw} из ${S.goal}`,!ok)})()}</div>
+      <p class="small">${weekDays(weekOf(S.day))>=S.goal?'<b>Огонёк этой недели уже ваш!</b> В понедельник он засчитается в серию и поднимет уровень бонусов.':`Эта неделя: <b>${weekDays(weekOf(S.day))} из ${S.goal}</b> — огонёк загорится, когда наберёте ${S.goal}.`}</p>
       <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, бонусы на счёте не сгорают.</p></div>
     <div class="panel"${F(5)}>
       <div class="row between"><h3>Бонусы с каждой покупки</h3><span class="chip">${effLevel().p}%</span></div>
