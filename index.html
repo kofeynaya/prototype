@@ -1425,9 +1425,9 @@ function rhythm(){
   else if(cur===rec && left===0){ msg=`<b>Ты повторил рекорд — ${rec} ${D(rec)}!</b> На следующей неделе побьёшь — и +${REC_BONUS} бонусов.`; mood='hot'; }
   else if(cur===rec){ msg=`<b>Ты повторил рекорд!</b> Ещё один день на этой неделе — и он твой, плюс +${REC_BONUS} бонусов.`; mood='hot'; }
   else if(canMax>rec){ const need=rec+1-cur; msg=cur>=avgR&&cur>0?`<b>${cur} ${D(cur)} — это уже больше, чем обычно.</b> До нового рекорда ${need} ${D(need)}, награда +${REC_BONUS} бонусов. Поднажми!`:`Обычно ты заходишь <b>${String(avg).replace('.',',')}</b> ${plural(avgR,'день','дня','дней')} в неделю, а твой рекорд — <b>${rec} ${D(rec)}</b>. Побей его — получишь +${REC_BONUS} бонусов.`; }
-  else { msg=`Рекорд в ${rec} ${D(rec)} на этой неделе уже не догнать — но можно обойти своё обычное: ${String(avg).replace('.',',')}.`; }
+  else { const toAvg=Math.max(0,avgR+1-cur); msg=toAvg&&toAvg<=left?`<b>Каждый день с покупкой — в копилку.</b> Ещё ${toAvg} ${D(toAvg)} — и эта неделя будет лучше обычной. Чем чаще заходишь, тем больше бонусов!`:`<b>Заходи, когда удобно — каждый день считается.</b> Чем чаще заходишь, тем выше уровень и больше бонусов с каждой покупки.`; }
   return `<div class="rhythm ${mood}"${F(3)}>
-    <div class="rh-top"><span class="label">Твой ритм · эта неделя</span><span class="rh-rec">👑 Рекорд: ${rec} ${D(rec)}</span></div>
+    <div class="rh-top"><span class="label">Твой ритм</span><span class="rh-rec">👑 Рекорд: ${rec} ${D(rec)} в неделю</span></div>
     <div class="rh-big"><b class="money">${cur}</b><span>${plural(cur,'день','дня','дней')} с покупкой<br>на этой неделе</span></div>
     <div class="rh-cells">${[1,2,3,4,5,6,7].map(n=>`<span class="c ${n<=cur?'f':''} ${n===rec?'rc':''} ${n===rec+1&&cur<=rec?'nx':''}">${n===rec?'<i class="cr">👑</i>':''}${n}${n===avgR?'<i class="avg">обычно</i>':''}</span>`).join('')}</div>
     <p class="rh-msg">${msg}</p>
