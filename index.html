@@ -574,6 +574,9 @@ html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
 .ostat{position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:5px 12px 5px 6px;border-radius:999px;background:#0d553f;color:#f9f9f9;font-size:13px;font-weight:700;line-height:1;box-shadow:0 2px 8px rgba(13,85,63,.3)}
 .ostat svg{width:18px;height:18px;padding:3px;border-radius:50%;background:#a7d2b9;fill:none;stroke:#0d553f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .ostat.used{background:#212221;box-shadow:none}.ostat.used svg{background:#f9f9f9;stroke:#212221}
+.hello{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px}
+.hello .hname{font-family:var(--f-num);font-size:40px;line-height:1;color:var(--ink)}
+.hello .hsub{font-size:19px;line-height:1.25;font-weight:600;max-width:330px}
 .privi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .privi-name{font-family:'Dela Gothic One',sans-serif;font-size:30px;line-height:1.05;color:#f9f9f9}
 .privi .plus-on{flex:none;max-width:118px;white-space:normal;font-size:11px;line-height:1.2;text-align:left}
@@ -997,11 +1000,11 @@ function home(){
   ];
   return `<section class="screen">
     <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
-    <div class="stack" style="gap:6px"><h1>Привет, ${S.name}</h1></div>
+    <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение на сегодня. Завтра будет новое</span></div>
 
     <article class="offer me"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
-      <span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}
+      ${status}
       <div class="title">${o.title}</div>
       <div class="meta">${o.meta}</div>
       <div class="actions">
