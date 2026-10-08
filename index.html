@@ -849,7 +849,7 @@ const PLUS = '<span class="plus-tag">★ Кофейная+</span>';
 const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Привилегия подписчиков Премиум</span>`;
 
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
-const locked = (inner, what) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">Доступно с подпиской Кофейная+</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подробнее</button></div></div>`;
+const locked = (inner, what, sub) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">${sub||'Доступно только с подпиской&nbsp;★&nbsp;Кофейная+'}</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подключить Кофейная+</button></div></div>`;
 const IC = {
   chev:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
   filter:'<svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
@@ -1038,7 +1038,7 @@ function menu(){
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
     <div class="panel privi"${F(8)}>
       <div class="privi-head"><div class="stack" style="gap:2px"><span class="privi-name">${S.name},</span><h3>это твои персональные цены этой недели</h3></div>${PLUS_ON}</div>
-      ${S.plus ? `<div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
+      ${S.plus ? `<div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Сниженные цены — только для вас',`Ниже обычной цены на ${S.prices.length} ${plural(S.prices.length,'ваше любимое блюдо','ваших любимых блюда','ваших любимых блюд')}. Доступно только с подпиской&nbsp;★&nbsp;Кофейная+`)}
     </div>
     <div class="notice" style="background:var(--surface);color:var(--ink);border:1px solid var(--line)">${IC.clock.replace('width="13" height="13"','width="22" height="22"')}<span><b>Готовим с 8:00 до 23:00.</b> Можно сделать предзаказ ко времени.</span></div>
     <div class="hscroll">${STORIES.filter(x=>x.img).map(x=>{const i=STORIES.indexOf(x);return `<button class="story pic" style="color:#fff" onclick="openStory(${i})"><img src="${x.img}" alt=""><span>${x.t==='Только в октябре'?'':x.t}</span></button>`}).join('')}</div>
@@ -1355,7 +1355,7 @@ function prices(){
   return `<section class="screen">${back()}
     <div class="stack"><div class="row between"><span class="label">Персональные цены</span>${S.plus?PLUS_ON:PLUS}</div><h1>Цены только для вас</h1>
     <p class="muted">До ${fmt(end)}: на кассе по QR и в заказах в приложении. Обновляются каждый понедельник.</p></div>
-    <div${F(8)}>${S.plus?list:locked(list,'Цены только для вас')}</div>
+    <div${F(8)}>${S.plus?list:locked(list,'Сниженные цены — только для вас',`Ниже обычной цены на ${S.prices.length} ${plural(S.prices.length,'ваше любимое блюдо','ваших любимых блюда','ваших любимых блюд')}. Доступно только с подпиской&nbsp;★&nbsp;Кофейная+`)}</div>
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Цена закреплена до воскресенья.</li><li>На одно блюдо — одна скидка, самая выгодная.</li></ul></div>
   </section>`;
 }
