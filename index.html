@@ -477,6 +477,11 @@ p{margin:0}
 .dt.on{border:2px solid var(--blue)}
 .dt .pstat{font-size:13px;font-weight:700}.dt.on .pstat{color:#3fae79}
 .dt .pbtn{margin-top:6px;padding:8px 14px;border-radius:999px;background:#f9f9f9;color:var(--blue);font-weight:700;font-size:14px}.dt.on .pbtn{background:var(--blue);color:#f9f9f9}
+.plus-on{display:inline-flex;align-items:center;gap:6px;padding:6px 10px 6px 8px;border-radius:12px;background:linear-gradient(135deg,#2b2b93,#5e35b1);color:#f9f9f9;font-size:12px;font-weight:700;line-height:1.15;max-width:58%;box-shadow:0 3px 10px rgba(43,43,147,.35)}
+.plus-on svg{width:18px;height:18px;flex:none;fill:#f2c230}
+.dt.gift{background:linear-gradient(135deg,#fef2e9,#f6e1b8);color:#212221;border:0}.dt.gift .dv{color:#0d553f}.dt.gift .ds,.dt.gift .label{color:#5a4a2a}
+.turbo-intro{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff}
+.turbo-intro .label{color:#fff;opacity:.9}.turbo-intro b{font-size:18px;line-height:1.25}.turbo-intro .small{opacity:.92}
 </style>
 
 <div class="app" id="app"></div>
@@ -781,6 +786,8 @@ function toast(html,ms=2900){ document.querySelectorAll('.toast').forEach(t=>t.r
 const tiles = n => `<span class="tiles">${String(n).split('').map(c=>`<span class="tile">${c}</span>`).join('')}</span>`;
 const blob = (fill,seed=0) => `<svg class="blob" viewBox="0 0 200 200" aria-hidden="true"><path fill="${fill}" d="${['M100 18c30-22 74 4 70 42 30 18 30 64-4 76 6 38-40 58-66 34-26 24-72 4-66-34-34-12-34-58-4-76-4-38 40-64 70-42z','M60 30c40-30 110-10 115 45 35 30 10 95-45 95-30 25-95 20-100-30-35-35-15-95 30-110z'][seed%2]}"/></svg>`;
 const PLUS = '<span class="plus-tag">★ Кофейная+</span>';
+const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Премиум-подписка подключена</span>`;
+
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
 const locked = (inner, what) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">Доступно с подпиской Кофейная+</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подробнее</button></div></div>`;
 const IC = {
@@ -900,7 +907,6 @@ function home(){
       <div class="row between" style="position:relative"><span class="kicker">Только для тебя, ${S.name} · сегодня</span>${status}</div>
       <div class="title">${o.title}</div>
       <div class="meta">${o.meta}</div>
-      <div class="why">${o.why}</div>
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
         ${o.status==='shown' ? `<button class="btn ghost" onclick="event.stopPropagation();activate()">На кассе по QR</button>` : o.status==='activated' ? `<button class="btn ghost" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ''}
@@ -913,8 +919,8 @@ function home(){
       <div class="hscroll">${perks.map(k=>`<button class="perk"${F(k.n)} style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
 
     <div class="panel"${F(8)}>
-      <div class="row between"><h3>Ваши цены недели</h3>${S.plus?`<button class="link" onclick="go('prices')">Все</button>`:PLUS}</div>
-      ${S.plus ? S.prices.map(priceRow).join('') : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
+      <div class="row between" style="align-items:flex-start;gap:8px"><h3>Ваши цены недели</h3>${S.plus?PLUS_ON:PLUS}</div>
+      ${S.plus ? S.prices.map(priceRow).join('')+`<button class="link" style="align-self:flex-start" onclick="go('prices')">Все цены недели →</button>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Цены только для вас')}
     </div>
   </section>`;
 }
@@ -960,7 +966,7 @@ function menu(){
     <div class="stack"><h2>Рекомендуем вам</h2><div class="hscroll">${recommend().map(m=>`<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`).join('')}</div></div>
     <div class="catbar"${F(17)}><div class="chips" id="chips">${secs.map(s=>`<button class="catchip" data-c="${s.c.id}" onclick="jump('${s.c.id}')">${s.c.name}</button>`).join('')}</div>
       <button class="iconbtn" onclick="openFilter()" aria-label="Фильтр">${IC.filter}${f.length||q?'<span class="dot"></span>':''}</button></div>
-    ${S.plus?`<div class="stack"${F(8)}><h3>★ Ваши цены недели</h3><div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div></div>`:''}
+    ${S.plus?`<div class="stack"${F(8)}><div class="row between" style="gap:8px"><h3>Ваши цены недели</h3>${PLUS_ON}</div><div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div></div>`:''}
     ${secs.length?secs.map(s=>`<div class="stack" style="gap:12px" id="sec-${s.c.id}">
       <div class="section-h" data-sec="${s.c.id}"><h2>${s.c.name}</h2>${s.c.hours?`<span class="hours">${IC.clock}${s.c.hours}</span>`:''}</div>
       <div class="grid">${s.items.map(cardHtml).join('')}</div></div>`).join('') : `<p class="empty-note">Ничего не нашли. <button class="link" onclick="filt={new:false,hit:false,chef:false};q='';render()">Сбросить фильтр</button></p>`}
@@ -1150,7 +1156,7 @@ const STEPS = {
 function order(){
   const o=S.myOrders[curOrder]; if(!o) return home();
   const steps=STEPS[o.mode];
-  return `<section class="screen">${back('home','Для вас')}
+  return `<section class="screen">${back('home','Сегодня')}
     <div class="stack" style="gap:4px"><span class="label">Заказ ${o.id} · ${MODES[o.mode]}</span><h1>${steps[Math.min(o.status,3)][0]}</h1><span class="muted">${o.place}${o.when&&o.when!=='asap'?` · к ${o.when}`:''}</span></div>
     ${o.mode==='pickup'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Код выдачи</span><span class="bigcode">${o.code}</span><span class="small muted">Назовите его бариста</span></div>`:''}
     ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
@@ -1175,7 +1181,8 @@ function progress(){
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
   const f=S.funnel, mx=Math.max(1,f.shown), weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0);
   return `<section class="screen">
-    <div class="stack"><span class="label">Награды</span><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
+    <div class="turbo-intro"><span class="label">Турбо</span><b>Здесь собрано самое мощное, чтобы каждая покупка была максимально выгодной.</b><span class="small">Выполняйте цель недели — растёт уровень и % бонусами с каждой покупки. Копите отметки — 6-й напиток или блюдо на 30% дешевле.</span></div>
+    <div class="stack"><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel"${F(3)}>
       <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
       ${goalTrack()}
@@ -1202,6 +1209,7 @@ function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
     ${bankCard()}
+    <div class="dt wide gift"${F(14)} onclick="go('wallet')" role="button" tabindex="0"><span class="label">Получено за пополнения депозита · за всё время</span><span class="dv money">+${rubk((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0))}</span><span class="ds">Бонусные рубли, которые вы получили, пополняя депозит. Чем больше пополнение — тем больше подарок: до +10%.</span></div>
     <div class="dash">
       <button class="dt"${F(5)} onclick="go('progress')"><span class="label">Бонусы</span><span class="dv money">${S.bonus}</span><span class="ds">${effLevel().p}% с каждой покупки · ${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель</span></button>
       <div class="dt"${F(6)}><span class="label">Сэкономлено</span><span class="dv money">${rub(S.saved)}</span><span class="ds">за эту неделю ${rub(weekSaved)} · акций использовано ${f.used} из ${f.shown}</span></div>
@@ -1258,7 +1266,7 @@ function profile(){
 function prices(){
   const end=weekOf(S.day)*7+6, list=`<div class="prices">${S.prices.map(priceRow).join('')}</div>`;
   return `<section class="screen">${back()}
-    <div class="stack"><div class="row between"><span class="label">Персональные цены</span>${PLUS}</div><h1>Цены только для вас</h1>
+    <div class="stack"><div class="row between"><span class="label">Персональные цены</span>${S.plus?PLUS_ON:PLUS}</div><h1>Цены только для вас</h1>
     <p class="muted">До ${fmt(end)}: на кассе по QR и в заказах в приложении. Обновляются каждый понедельник.</p></div>
     <div${F(8)}>${S.plus?list:locked(list,'Цены только для вас')}</div>
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Цена закреплена до воскресенья.</li><li>На одно блюдо — одна скидка, самая выгодная.</li></ul></div>
@@ -1282,9 +1290,9 @@ function wallet(){
 function bankCard(big){
   const w=S.wallet, t=walletTotal(), [r,k]=t.toFixed(2).split('.');
   return `<div class="bank"${F(14)} onclick="go('wallet')" role="button" tabindex="0">
-    <div class="row between"><span class="bk-l">Баланс · кофейная</span><span class="mark" style="width:30px;color:#f9f9f9"></span></div>
+    <div class="row between"><span class="bk-l">Баланс · депозит</span><span class="mark" style="width:30px;color:#f9f9f9"></span></div>
     <div class="bk-sum money">${(+r).toLocaleString('ru-RU')}<small>,${k} ₽</small></div>
-    <div class="bk-parts"><span>Деньги <b class="money">${rubk(w.money)}</b></span><span>Подарок <b class="money">${rubk(w.gift)}</b></span></div>
+    <div class="bk-parts"><span>Деньги <b class="money">${rubk(w.money)}</b></span><span>Подарок за пополнение <b class="money">${rubk(w.gift)}</b></span></div>
     <div class="bk-act"><button onclick="event.stopPropagation();openTopup()">+ Пополнить</button><button onclick="event.stopPropagation();openQR()">Оплатить</button>${big?'':`<button onclick="event.stopPropagation();go('wallet')">Выписка</button>`}</div>
     <span class="bk-no">•• ${((S.phone||"").replace(/\D/g,"").slice(-4))||"4821"}</span>
   </div>`;
@@ -1347,8 +1355,8 @@ function plusBanner(){
 }
 
 const TABS=[
-  ['home','Для вас','<path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'],
-  ['progress','Награды','<circle cx="12" cy="9" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/>'],
+  ['home','Сегодня','<path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'],
+  ['progress','Турбо','<circle cx="12" cy="9" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/>'],
   ['qr','QR',''],
   ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
@@ -1384,22 +1392,22 @@ function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.au
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
 const F = n => ` data-f="${n}"`;
 const LEGEND = [
- [1,'#ff1744','Персональное предложение','Каждый день — своё предложение «только для тебя». Приложение учится: чем чаще пользуетесь, тем точнее.','«Для вас», первая карточка',"go('home')"],
- [2,'#ffea00','Герой дня','Каждый день новый персонаж и цвет — чтобы предложение замечали. Нажмите «Завтра →» — герой сменится.','«Для вас», справа на предложении',"go('home')"],
- [3,'#00e676','Цель недели','Сами выбираете, сколько дней в неделю заходить. Шкала: кружок — линия — кружок, засечка «Сегодня».','Награды',"go('progress')"],
- [4,'#ff9100','Огоньки','Огонёк за каждую неделю, когда цель выполнена.','«Награды»',"go('progress')"],
- [5,'#d500f9','Уровни бонусов','Чем больше недель подряд в цель — тем больше % бонусами с покупки (2→10%).','Награды, «Профиль» → Мои выгоды',"go('progress')"],
+ [1,'#ff1744','Персональное предложение','Каждый день — своё предложение «только для тебя». Приложение учится: чем чаще пользуетесь, тем точнее.','«Сегодня», первая карточка',"go('home')"],
+ [2,'#ffea00','Герой дня','Каждый день новый персонаж и цвет — чтобы предложение замечали. Нажмите «Завтра →» — герой сменится.','«Сегодня», справа на предложении',"go('home')"],
+ [3,'#00e676','Цель недели','Сами выбираете, сколько дней в неделю заходить. Шкала: кружок — линия — кружок, засечка «Сегодня».','Турбо',"go('progress')"],
+ [4,'#ff9100','Огоньки','Огонёк за каждую неделю, когда цель выполнена.','«Турбо»',"go('progress')"],
+ [5,'#d500f9','Уровни бонусов','Чем больше недель подряд в цель — тем больше % бонусами с покупки (2→10%).','«Турбо», «Профиль» → Мои выгоды',"go('progress')"],
  [6,'#1de9b6','Моя выгода','Сколько сэкономили по оплаченным покупкам. Бонусы и баланс — отдельно.','«Профиль» → Мои выгоды, «История покупок» по кнопке',"go('profile')"],
  [7,'#c6ff00','Достижения','Значки за визиты, недели в цель, экономию.','«Профиль»',"go('profile')"],
- [8,'#2979ff','Цены недели ★','Персональные цены на любимые блюда на всю неделю (по подписке).','«Для вас», «Меню»',"go('home')"],
+ [8,'#2979ff','Цены недели ★','Персональные цены на любимые блюда на всю неделю (по подписке).','«Сегодня», «Меню»',"go('home')"],
  [9,'#a1887f','Что приложение о вас узнало','Честно показываем, что вы любите — по этому подбираем предложения.','«Профиль»',"go('profile')"],
  [10,'#18ffff','QR на кассе','Покажите кассиру — скидки и бонусы применятся сами. Код меняется каждую минуту.','Кнопка QR внизу по центру',"openQR()"],
- [11,'#ff6d00','Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: 5 дней с покупкой — 6-й на 30% дешевле.','«Награды»',"go('progress')"],
- [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Для вас», «Профиль → Мои данные»',"go('birthday')"],
- [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 10%, ДР = возраст. Первые 6 месяцев бесплатно.','«Профиль» → Мои выгоды (статус), плитка на «Для вас», значки ★',"go('profile')"],
+ [11,'#ff6d00','Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: 5 дней с покупкой — 6-й на 30% дешевле.','«Турбо»',"go('progress')"],
+ [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Сегодня», «Профиль → Мои данные»',"go('birthday')"],
+ [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 10%, ДР = возраст. Первые 6 месяцев бесплатно.','«Профиль» → Мои выгоды (статус), плитка на «Сегодня», значки ★',"go('profile')"],
  [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
- [15,'#f50057','Пригласи друга','По 500 ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Для вас» (плитка), «Профиль»',"go('invite')"],
- [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Для вас»',"go('home')"],
+ [15,'#f50057','Пригласи друга','По 500 ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Сегодня» (плитка), «Профиль»',"go('invite')"],
+ [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Сегодня»',"go('home')"],
  [17,'#3d5afe','Меню как на сайте','Разделы с часами работы, фото, фильтр «Новое / Хит / Выбор шефа».','«Меню»',"go('menu')"],
  [18,'#64dd17','Карточка блюда','Размер, молоко, сиропы, посуда — как на сайте. Закрывается крестиком.','«Меню» → любое блюдо',"openProduct(ID.cap)"],
  [19,'#e040fb','Корзина','Все скидки считаются до оплаты. Время, бонусы, баланс, SberPay.','Плашка корзины внизу',"if(!S.basket.length)addLine(ID.cap,null,true);go('cart')"],
