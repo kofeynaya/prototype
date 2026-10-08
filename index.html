@@ -170,7 +170,10 @@ p{margin:0}
 .tabs button[aria-current="page"]{color:var(--ink);font-weight:600}
 
 /* шторка */
-.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,12,11,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,12,11,.5);display:flex;align-items:flex-end;justify-content:center;overscroll-behavior:contain;touch-action:none}
+/* пока открыто окно, страница под ним не прокручивается */
+html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
+.sheet{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .sheet{width:100%;max-width:440px;max-height:88%;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
@@ -1367,6 +1370,8 @@ function profile(){
       <div class="row" style="gap:8px">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
+    <div class="stack"${F(7)}><h2>Достижения</h2>
+      <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
     <div class="list">
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
@@ -1375,8 +1380,6 @@ function profile(){
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`,15)}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
-    <div class="stack"${F(7)}><h2>Достижения</h2>
-      <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
     <div class="panel"${F(9)}><h3>Что приложение о вас узнало</h3>
       <p class="small muted">По этим данным подбираются предложения дня, рекомендации и цены недели.</p>
       ${(()=>{const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]),mx=Math.max(...cats.map(c=>c[1])),mechs=Object.entries(S.w.mech).sort((a,b)=>b[1]-a[1]),mm=Math.max(...mechs.map(c=>c[1]));
@@ -1403,9 +1406,7 @@ function prices(){
 function openStatement(){
   const ops=(S.wallet.ops||[]).slice().reverse(), byDay={};
   ops.forEach(o=>(byDay[o.day]=byDay[o.day]||[]).push(o));
-  const sum=k=>ops.filter(o=>o.k===k).reduce((a,o)=>a+Math.abs(o.sum),0);
   sheet(`<h2>Выписка</h2><p class="small muted">Все операции по депозиту: пополнения, подарки и оплаты.</p>
-    <div class="stat3"><div class="s3"><span class="l">Пополнено</span><b class="money">${rub(sum('top'))}</b></div><div class="s3 g"><span class="l">Подарки</span><b class="money">+${rub(sum('gift'))}</b></div><div class="s3"><span class="l">Оплачено</span><b class="money">${rub(sum('pay'))}</b></div></div>
     <div class="stack">${ops.length?Object.keys(byDay).sort((a,b)=>b-a).map(d=>`<div class="stmt"><span class="label">${fmt(+d)}</span>${byDay[d].map(o=>`<div class="op"><span class="oi ${o.k}">${o.k==='pay'?'−':o.k==='gift'?'★':'+'}</span><span class="tx">${o.t}<small>${o.k==='gift'?'подарок':o.k==='pay'?'оплата':'пополнение'}</small></span><strong class="money ${o.sum>0?'save':''}">${o.sum>0?'+':'−'}${rubk(Math.abs(o.sum))}</strong></div>`).join('')}</div>`).join(''):'<p class="empty-note">Операций пока нет.</p>'}</div>`);
 }
 function wallet(){
@@ -1577,9 +1578,9 @@ function openLegend(){
 /* ===================== Шторки: QR и касса ===================== */
 const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
 function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); document.addEventListener('keydown',escClose); }
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); document.documentElement.classList.add('sheet-open'); document.addEventListener('keydown',escClose); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
-function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
+function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); document.documentElement.classList.remove('sheet-open'); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
   const o=S.offer, bd=bdInfo();
   sheet(`<h2>Покажите кассиру</h2>
