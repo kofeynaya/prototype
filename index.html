@@ -204,7 +204,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:100%}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
 .confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:conf 2s cubic-bezier(.25,.6,.4,1) forwards}
 @keyframes conf{to{transform:translate(var(--dx),105vh) rotate(var(--r))}}
-.party{margin-top:40px;display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;color:#212221;background:linear-gradient(120deg,#f2c230,#ff8a65 55%,#ff4f9a);font-size:15px;line-height:1.35;box-shadow:0 8px 24px rgba(255,79,154,.3)}
+.party{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:16px;color:#212221;background:linear-gradient(120deg,#f2c230,#ff8a65 55%,#ff4f9a);font-size:15px;line-height:1.35;box-shadow:0 8px 24px rgba(255,79,154,.3)}
 .party .pe{font-size:34px;line-height:1}
 .btn-party{background:linear-gradient(100deg,#f2c230,#ff8a65,#ff4f9a)!important;color:#212221!important;border:0!important;font-weight:800}
 body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0px))} /* не закрывать плашку корзины */
@@ -1230,7 +1230,7 @@ function drawProduct(){
     return `<div class="optgroup"><div class="stack" style="gap:0"><strong>${g.t}</strong>${g.min?`<span class="small muted">Минимум: ${g.min}</span>`:g.max>1&&g.max<g.v.length?`<span class="small muted">Можно выбрать до ${g.max}</span>`:''}</div>
       <div class="list">${g.v.slice(0,lim).map(([n,p],i)=>`<label class="opt" style="border-bottom:1px dashed var(--line)"><span>${n}${p?` <span class="muted">+ ${rub(p)}</span>`:''}</span><input type="${one?'radio':'checkbox'}" name="g${gi}" ${sel.includes(i)?'checked':''} onchange="pickOpt(${gi},${i})"></label>`).join('')}</div>
       ${g.v.length>6&&!pd.more[gi]?`<button class="link" style="align-self:flex-start" onclick="pd.more[${gi}]=1;drawProduct()">Показать ещё ${g.v.length-6}</button>`:''}</div>` }).join('');
-  const html=`<div class="pd stack"${F(18)} style="gap:16px">${six&&st>=5?`<div class="party"><span class="pe">🎉</span><span><b>Ура, ты добежал!</b><br>Это твой 6-й ${m.n.toLowerCase()} — ${SIX_OFF>=1?'бесплатно':`на ${Math.round(SIX_OFF*100)}% дешевле: <b>${rub(Math.round(unit*(1-SIX_OFF)))}</b> вместо ${rub(unit)}`}. Скидка — на одну штуку.</span></div>`:''}${photo(m)}
+  const html=`<div class="pd stack"${F(18)} style="gap:16px">${photo(m)}${six&&st>=5?`<div class="party"><span class="pe">🎉</span><span><b>Ура, ты добежал!</b><br>Это твой 6-й ${m.n.toLowerCase()} — ${SIX_OFF>=1?'бесплатно':`на ${Math.round(SIX_OFF*100)}% дешевле: <b>${rub(Math.round(unit*(1-SIX_OFF)))}</b> вместо ${rub(unit)}`}. Скидка — на одну штуку.</span></div>`:''}
     <div class="stack" style="gap:4px"><h2>${m.n}</h2><span class="muted small">${wt(m,pd.opts.v)}${m.b?` · ${{new:'Новое',hit:'Хит! :)',chef:'Выбор шефа'}[m.b]}`:''}</span>${m.c?`<p class="small muted">Состав: ${m.c}</p>`:''}</div>
     ${six&&st<5?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'день','дня','дней')} с покупкой — и 6-й на 30% дешевле.`}</span></div>`:''}
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
