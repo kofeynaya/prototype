@@ -482,6 +482,12 @@ p{margin:0}
 .dt.gift{background:linear-gradient(135deg,#fef2e9,#f6e1b8);color:#212221;border:0}.dt.gift .dv{color:#0d553f}.dt.gift .ds,.dt.gift .label{color:#5a4a2a}
 .turbo-intro{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff}
 .turbo-intro .label{color:#fff;opacity:.9}.turbo-intro b{font-size:18px;line-height:1.25}.turbo-intro .small{opacity:.92}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.s3{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border-radius:14px;background:var(--surface);border:1px solid var(--line);text-align:left;min-width:0}
+.s3 .l{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.s3 b{font-family:var(--f-num);font-size:18px;line-height:1.15;white-space:nowrap}
+.s3 small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.s3.g b{color:var(--ok)}
 </style>
 
 <div class="app" id="app"></div>
@@ -1209,10 +1215,12 @@ function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
     ${bankCard()}
-    <div class="dt wide gift"${F(14)} onclick="go('wallet')" role="button" tabindex="0"><span class="label">Получено за пополнения депозита · за всё время</span><span class="dv money">+${rubk((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0))}</span><span class="ds">Бонусные рубли, которые вы получили, пополняя депозит. Чем больше пополнение — тем больше подарок: до +10%.</span></div>
+    <div class="stat3">
+      <button class="s3"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money">${S.bonus}</b><small>${effLevel().p}% с покупки</small></button>
+      <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money">${rub(S.saved)}</b><small>неделя ${rub(weekSaved)}</small></div>
+      <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money">+${rub((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0))}</b><small>за всё время</small></button>
+    </div>
     <div class="dash">
-      <button class="dt"${F(5)} onclick="go('progress')"><span class="label">Бонусы</span><span class="dv money">${S.bonus}</span><span class="ds">${effLevel().p}% с каждой покупки · ${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель</span></button>
-      <div class="dt"${F(6)}><span class="label">Сэкономлено</span><span class="dv money">${rub(S.saved)}</span><span class="ds">за эту неделю ${rub(weekSaved)} · акций использовано ${f.used} из ${f.shown}</span></div>
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
         <span class="dv" style="font-size:22px">★ Кофейная+</span>
