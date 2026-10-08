@@ -497,7 +497,7 @@ p{margin:0}
 .bk-pills{display:flex;gap:8px;flex-wrap:wrap}
 .pill-g{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;font-size:12.5px!important;border-radius:999px;background:rgba(249,249,249,.12);border:1px solid rgba(249,249,249,.16);font-size:13px;font-weight:600;white-space:nowrap}
 .pill-g svg{width:16px;height:16px;fill:none;stroke:#a7d2b9;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.bk-act3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.bk-act3{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
 .bk-act3 button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px 12px;border-radius:16px;background:rgba(249,249,249,.1);border:1px solid rgba(249,249,249,.18);color:#f9f9f9;font-weight:600;font-size:15px;backdrop-filter:blur(6px)}
 .bk-act3 button:first-child{background:#f9f9f9;color:#172f28;border-color:#f9f9f9}
 .bk-act3 svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1324,7 +1324,6 @@ function bankCard(big){
     <div class="bk-pills"><span class="pill-g"><svg viewBox="0 0 24 24"><path d="M4 16l5-5 4 4 7-7M14 8h6v6"/></svg>+${rub(gifts)} за пополнения</span><span class="pill-g">Деньги ${rub(w.money)}</span></div>
     <div class="bk-act3">
       <button onclick="event.stopPropagation();openTopup()">${ic.top}<span>Пополнить</span></button>
-      <button onclick="event.stopPropagation();openQR()">${ic.pay}<span>Оплатить</span></button>
       <button onclick="event.stopPropagation();go('wallet')">${ic.st}<span>Выписка</span></button>
     </div>
   </div>`;
@@ -1388,7 +1387,7 @@ function plusBanner(){
 
 const TABS=[
   ['home','Сегодня','<path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'],
-  ['progress','Турбо','<circle cx="12" cy="9" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/>'],
+  ['progress','Турбо','<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'],
   ['qr','QR',''],
   ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
