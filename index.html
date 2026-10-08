@@ -1235,7 +1235,7 @@ function dashboard(){
     ${bankCard()}
     <div class="stat3">
       <button class="s3"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money">${S.bonus}</b><small>${effLevel().p}% с покупки</small></button>
-      <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money">${rub(S.saved)}</b><small>неделя ${rub(weekSaved)}</small></div>
+      <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money">${rub(S.saved)}</b><small>за всё время</small></div>
       <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money">+${rub((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0))}</b><small>за всё время</small></button>
     </div>
     <div class="dash">
