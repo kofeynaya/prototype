@@ -1401,7 +1401,9 @@ function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.au
 
 
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
-const F = n => ` data-f="${n}"`;
+// Владелец убрал из легенды очевидное (09.10): 2, 9, 10, 16–24 — рамок и строк легенды у них нет
+const LEGEND_HIDE = [2,9,10,16,17,18,19,20,21,22,23,24];
+const F = n => LEGEND_HIDE.includes(n) ? '' : ` data-f="${n}"`;
 const LEGEND = [
  [1,'#ff1744','Персональное предложение','Каждый день — своё предложение «только для тебя». Приложение учится: чем чаще пользуетесь, тем точнее.','«Сегодня», первая карточка',"go('home')"],
  [2,'#ffea00','Герой дня','Каждый день новый персонаж и цвет — чтобы предложение замечали. Нажмите «Завтра →» — герой сменится.','«Сегодня», справа на предложении',"go('home')"],
@@ -1428,6 +1430,7 @@ const LEGEND = [
  [23,'#aeea00','Заказ и «Мои заказы»','Статус заказа, код выдачи, «Повторить».','«Профиль → Мои заказы»',"go('myorders')"],
  [24,'#b0bec5','Вход по СМС','Номер телефона → код из СМС.','Экран входа («Профиль → Выйти»)',"logout()"],
 ];
+LEGEND.splice(0, LEGEND.length, ...LEGEND.filter(x=>!LEGEND_HIDE.includes(x[0])));
 let frames=true; try{ frames=localStorage.getItem(KEY+'-frames')!=='0' }catch(e){}
 (function(){ const st=document.createElement('style'); st.textContent=LEGEND.map(([n,c])=>`[data-f="${n}"]{--fc:${c}}`).join('\n'); document.head.appendChild(st); document.body.classList.toggle('frames',frames); })();
 function setFrames(v){ frames=v; try{localStorage.setItem(KEY+'-frames',v?'1':'0')}catch(e){} document.body.classList.toggle('frames',v); }
