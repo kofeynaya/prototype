@@ -513,10 +513,13 @@ p{margin:0}
 .privi .locked .lockbox{color:#f9f9f9}.privi .locked .lockbox .small{color:#f9f9f9;opacity:.85}
 .privi .price{background:rgba(249,249,249,.9);color:#212221}
 .wowhead{display:flex;align-items:flex-end;gap:6px}
-.wow{width:100px;height:78px;flex:none;margin-bottom:-10px;color:var(--ink)}
+.wowwrap{position:relative;display:inline-block;width:100px;height:80px;flex:none;margin-bottom:-12px;color:var(--ink);z-index:3}
+.wow{width:100px;height:80px;display:block}
+.wowarrow{position:absolute;left:4px;top:58px;width:46px;height:62px;color:#ff6d00;pointer-events:none}
+.wowhead{position:relative;z-index:3}
 @media (prefers-reduced-motion:no-preference){
- .wow .eyes{transform-origin:52px 39px;animation:wowpop 1.8s ease-in-out infinite}
- .wow .finger{animation:wowpoint 1.2s ease-in-out infinite}
+ .wow .eyes{transform-origin:48px 41px;animation:wowpop 1.8s ease-in-out infinite}
+ .wowarrow{animation:wowpoint 1.2s ease-in-out infinite}
  .wow .steam{animation:wowsteam 2s ease-in-out infinite}
 }
 @keyframes wowpop{0%,60%,100%{transform:scale(1)}70%{transform:scale(1.25)}80%{transform:scale(1.05)}}
@@ -977,16 +980,16 @@ const PI = {
   crown:`<svg viewBox="0 0 48 48"><path d="M6 36L4 14l11 9 9-15 9 15 11-9-2 22z" fill="#f2c230" stroke="#c99a12" stroke-width="1.5" stroke-linejoin="round"/><rect x="6" y="36" width="36" height="7" rx="2" fill="#e0b13a"/><circle cx="4" cy="13" r="3" fill="#ff4081"/><circle cx="24" cy="7" r="3" fill="#00e5ff"/><circle cx="44" cy="13" r="3" fill="#ff4081"/><circle cx="16" cy="30" r="2.5" fill="#d500f9"/><circle cx="24" cy="29" r="3" fill="#00e676"/><circle cx="32" cy="30" r="2.5" fill="#d500f9"/></svg>`,
 };
 // Персонаж у «Самое выгодное»: обомлевшая чашка показывает вниз
-const WOW = `<svg class="wow" viewBox="0 0 90 70" aria-hidden="true">
-  <path d="M60 18c4-6 2-12-2-14M68 20c6-5 6-12 2-16" stroke="#b0bec5" stroke-width="3" fill="none" stroke-linecap="round" class="steam"/>
-  <path d="M30 22h44v22a20 20 0 0 1-20 20h-4a20 20 0 0 1-20-20z" fill="#fef2e9" stroke="currentColor" stroke-width="3"/>
-  <path d="M74 28h4a8 8 0 0 1 0 16h-4" fill="none" stroke="currentColor" stroke-width="3"/>
-  <path d="M30 22h44" stroke="#8a5a2b" stroke-width="6"/>
-  <g class="eyes"><circle cx="44" cy="38" r="7" fill="#fff" stroke="currentColor" stroke-width="2.5"/><circle cx="60" cy="38" r="7" fill="#fff" stroke="currentColor" stroke-width="2.5"/><circle cx="44" cy="40" r="3.2" fill="#212221"/><circle cx="60" cy="40" r="3.2" fill="#212221"/></g>
-  <ellipse cx="52" cy="53" rx="4.5" ry="5.5" fill="#212221"/>
-  <path d="M38 30l-5-4M66 30l5-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <g class="finger"><path d="M30 46Q16 46 14 56" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M14 52v12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M10 60l4 6 4-6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
-</svg>`;
+const WOW = `<span class="wowwrap"><svg class="wow" viewBox="0 0 90 72" aria-hidden="true">
+  <path d="M46 16c3-5 1-10-2-12M56 16c5-4 5-10 1-14" stroke="#b0bec5" stroke-width="3" fill="none" stroke-linecap="round" class="steam"/>
+  <path d="M24 20h48v26a20 20 0 0 1-20 20h-8a20 20 0 0 1-20-20z" fill="#fef2e9"/>
+  <rect x="25.5" y="21.5" width="45" height="6" fill="#8a5a2b"/>
+  <path d="M24 20h48v26a20 20 0 0 1-20 20h-8a20 20 0 0 1-20-20z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M72 28h4a8 8 0 0 1 0 16h-4" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M33 33.5l7-2.5M63 33.5l-7-2.5" stroke="#212221" stroke-width="2.5" stroke-linecap="round"/>
+  <g class="eyes"><circle cx="40" cy="41" r="6.5" fill="#fff" stroke="#212221" stroke-width="2.2"/><circle cx="56" cy="41" r="6.5" fill="#fff" stroke="#212221" stroke-width="2.2"/><circle cx="40" cy="42.5" r="3" fill="#212221"/><circle cx="56" cy="42.5" r="3" fill="#212221"/></g>
+  <ellipse cx="48" cy="55" rx="4" ry="5" fill="#212221"/>
+</svg><svg class="wowarrow" viewBox="0 0 60 70" aria-hidden="true"><path d="M40 4 C 18 18, 14 40, 26 60" stroke="currentColor" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="1 0"/><path d="M17 52 L26 63 L34 51" stroke="currentColor" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
 const flameSvg = lit => `<svg viewBox="0 0 30 38" width="26" height="32"><path fill="${lit?'var(--warn)':'currentColor'}" d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`;
 
 /* Шкала цели недели: «кружок — линия — кружок», чтобы понял любой — и ребёнок, и бабушка */
