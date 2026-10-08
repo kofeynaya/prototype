@@ -890,6 +890,12 @@ function addLine(id,opts,silent){
   save(); if(!silent) refreshBasket(id);
 }
 function changeLine(k,d){ const l=S.basket.find(x=>x.k===k); if(!l) return; l.qty+=d; if(l.qty<=0) S.basket=S.basket.filter(x=>x!==l); save(); }
+/* Корзина: + и − по номеру строки (в ключе строки есть кавычки — в onclick его передавать нельзя) */
+function cartPlus(i){ const l=S.basket[i]; if(!l) return; l.qty++; save(); render(); }
+function cartMinus(i){ const l=S.basket[i]; if(!l) return;
+  if(l.qty>1){ l.qty--; save(); render(); return; }
+  sheet(`<h2>Удалить из корзины?</h2><p class="muted">«${byId(l.id).n}» полностью уберём из заказа.</p>
+    <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" onclick="closeSheet()">Оставить</button><button class="btn" style="flex:1;background:#e53935;border-color:#e53935;color:#fff" onclick="S.basket.splice(${i},1);save();closeSheet();render()">Удалить</button></div>`); }
 function qtyOf(id){ return S.basket.filter(l=>l.id===id).reduce((a,l)=>a+l.qty,0); }
 function tapAdd(id){ const m=byId(id); if(hasOpts(m)) openProduct(id); else addLine(id); }
 function tapMinus(id){ const ls=S.basket.filter(l=>l.id===id); if(!ls.length) return; changeLine(ls[ls.length-1].k,-1); refreshBasket(id); }
@@ -1275,10 +1281,10 @@ function cart(){
   return `<section class="screen">${back('menu','Меню')}
     <div class="row between"${F(19)}><h1>Корзина</h1><button class="link" onclick="S.basket=[];save();render()">Очистить</button></div>
     <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
-    <div>${S.basket.map(l=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
+    <div>${S.basket.map((l,i)=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
       return `<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}
         <span class="money">${sum<reg?`<s class="muted">${rub(reg)}</s> `:''}${rub(sum)}</span></div>
-        <div class="qty"><button aria-label="Меньше" onclick="changeLine('${l.k.replace(/'/g,"\\'")}',-1);render()">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="changeLine('${l.k.replace(/'/g,"\\'")}',1);render()">+</button></div></div>` }).join('')}</div>
+        <div class="qty"><button aria-label="Меньше" onclick="cartMinus(${i})">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="cartPlus(${i})">+</button></div></div>` }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
     ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow">${slots.map(s=>`<button class="optbtn ${co.when===s?'on':''}" onclick="co.when='${s}';render()">${s==='asap'?(S.mode==='delivery'?'Как можно скорее · '+DELIVERY.eta:'Как можно скорее · '+(S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин')):'Сегодня, '+s}</button>`).join('')}</div></div>
