@@ -468,6 +468,15 @@ p{margin:0}
 .plusb.on{padding:14px 18px}
 .howto{display:flex;flex-direction:column;gap:10px}
 .hw{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left;min-width:0}
+.dt .dv{font-family:var(--f-num);font-size:28px;line-height:1.1}
+.dt .ds{font-size:13px;color:var(--muted);line-height:1.3}
+.dt.wide{grid-column:1/-1}
+.dt.off{background:var(--blue);color:#f9f9f9;border-color:var(--blue)}.dt.off .label,.dt.off .ds{color:#f9f9f9;opacity:.85}
+.dt.on{border:2px solid var(--blue)}
+.dt .pstat{font-size:13px;font-weight:700}.dt.on .pstat{color:#3fae79}
+.dt .pbtn{margin-top:6px;padding:8px 14px;border-radius:999px;background:#f9f9f9;color:var(--blue);font-weight:700;font-size:14px}.dt.on .pbtn{background:var(--blue);color:#f9f9f9}
 </style>
 
 <div class="app" id="app"></div>
@@ -878,16 +887,13 @@ function home(){
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
     {n:4, t:`${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель`, s:`${wd} из ${S.goal} дней на этой неделе`, bg:'var(--sage)', go:"go('progress')", big:flameSvg(true)},
-    {n:11, t:'Каждый 6-й −30%', s:ready?`Готово к скидке: ${ready}`:'Капучино, Цезарь, круассан, маффин', bg:'var(--cream)', go:"go('progress')", big:`<span class="tile">6</span>`},
     {n:12, t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст · ${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:IC.cake},
     {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:IC.gift},
-    {n:14, t:'Баланс +10%', s:'Пополните 10 000 — получите 11 000', bg:'var(--cream)', go:"go('wallet')", big:IC.wallet},
     {n:13, t:'★ Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 10%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:IC.star},
   ];
   return `<section class="screen">
-    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span><button class="coins" onclick="go('progress')" aria-label="Бонусы">${S.bonus}<i></i></button></div>
-    <div class="stack" style="gap:6px"><h1>Привет, ${S.name}</h1>
-      <div class="optrow"><span class="chip"${F(6)}>Сэкономлено ${rub(S.saved)}</span><span class="chip">Бонусы ${S.bonus}</span><span class="chip"${F(5)}>${effLevel().p}% с покупки</span>${S.plus?PLUS:''}</div></div>
+    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
+    <div class="stack" style="gap:6px"><h1>Привет, ${S.name}</h1></div>
 
     <article class="offer me"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
@@ -901,19 +907,10 @@ function home(){
       </div>
     </article>
 
-    ${bankCard()}
     ${bdBanner()}
 
     <div class="stack"${F(16)}><h2>Самое выгодное</h2>
       <div class="hscroll">${perks.map(k=>`<button class="perk"${F(k.n)} style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
-
-    ${plusBanner()}
-    <div class="panel"${F(3)}>
-      <div class="row between"><h3>Цель недели</h3><span class="goalnum">${wd} <small>из ${S.goal}</small></span></div>
-      ${goalTrack()}
-    </div>
-
-    <div class="panel"${F(11)}><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(true)}<p class="small muted">Одна отметка на позицию в день — на кассе и в заказах.</p></div>
 
     <div class="panel"${F(8)}>
       <div class="row between"><h3>Ваши цены недели</h3>${S.plus?`<button class="link" onclick="go('prices')">Все</button>`:PLUS}</div>
@@ -1195,20 +1192,36 @@ function progress(){
     <div class="panel"><h3>Моя цель</h3><p class="small muted">Сколько дней в неделю вы хотите заходить.</p>
       <div class="row" style="flex-wrap:wrap;gap:8px">${[2,3,4,5,6].map(g=>`<button class="btn ${g===S.goal?'':'ghost'}" style="padding:10px 16px" onclick="setGoal(${g})">${g} ${plural(g,'день','дня','дней')}</button>`).join('')}</div></div>
 
-    <div class="stack"${F(6)}><span class="label">Моя выгода</span><h2>Сэкономлено ${rub(S.saved)}</h2>
-      <p class="muted small">Только по оплаченным покупкам: обычная цена минус то, что вы заплатили. Бонусы и баланс — отдельно.</p></div>
-    <div class="stats">
-      <div class="stat"><span class="label">За эту неделю</span><span class="v money">${rub(weekSaved)}</span></div>
-      <div class="stat"><span class="label">Бонусов</span><span class="v money">${S.bonus}</span></div>
-      <div class="stat"><span class="label">Баланс</span><span class="v money">${rub(walletTotal())}</span></div>
-      <div class="stat"><span class="label">Дней с покупкой</span><span class="v">${S.visits.length}</span></div></div>
-    <div class="panel"><h3>Предложения дня</h3><div class="funnel">
-      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div></div>
-    <div class="panel"><h3>История покупок</h3><div class="hist">${S.orders.slice().reverse().slice(0,12).map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
-      <span class="d">${fmt(o.day)} · ${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join('')}</div></div>
   </section>`;
 }
 function flame(lit,title,cur){ return `<svg class="flame ${lit?'lit':''}" viewBox="0 0 30 38" role="img" aria-label="${title}" style="${cur?'opacity:.5':''}"><title>${title}</title><path d="M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z"/></svg>`; }
+
+
+/* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
+function dashboard(){
+  const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
+  return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
+    ${bankCard()}
+    <div class="dash">
+      <button class="dt"${F(5)} onclick="go('progress')"><span class="label">Бонусы</span><span class="dv money">${S.bonus}</span><span class="ds">${effLevel().p}% с каждой покупки · ${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель</span></button>
+      <div class="dt"${F(6)}><span class="label">Сэкономлено</span><span class="dv money">${rub(S.saved)}</span><span class="ds">за эту неделю ${rub(weekSaved)} · акций использовано ${f.used} из ${f.shown}</span></div>
+      <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
+        <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
+        <span class="dv" style="font-size:22px">★ Кофейная+</span>
+        <span class="ds">${S.plus?`Цены недели, бонусы до 10%, ДР −${bd.age}%. Следующее списание 8 ноября — 99 ₽.`:`Откроет цены недели, бонусы до 10% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
+        <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
+    </div>
+    <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn" style="flex:1;padding:11px 12px" onclick="openQR()">QR-код</button></div>
+  </div>`;
+}
+function openHistory(){
+  const f=S.funnel, mx=Math.max(1,f.shown);
+  sheet(`<h2>История покупок</h2><p class="small muted">Только оплаченные покупки. Экономия — обычная цена минус то, что вы заплатили.</p>
+    <div class="hist">${S.orders.slice().reverse().map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
+      <span class="d">${fmt(o.day)} · ${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join('')}</div>
+    <div class="panel"><h3>Предложения дня</h3><div class="funnel">
+      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div></div>`);
+}
 
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
 function profile(){
@@ -1218,19 +1231,13 @@ function profile(){
     <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
       <button class="iconbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
-    <div class="lcard">${blob('rgba(33,34,33,.08)',1)}
-      <div class="row between"><span class="label" style="color:var(--on-color)">Уровень · ${S.streak} ${plural(S.streak,'неделя','недели','недель')} подряд</span>${S.plus?PLUS:''}</div>
-      <span class="bigcode" style="font-size:44px;position:relative">${S.bonus} <span style="font-size:18px;font-family:var(--f-body);font-weight:600">бонусов</span></span>
-      <div class="row"><span class="pct">${effLevel().p}%</span><span style="font-weight:600">с покупки</span><button class="qrb" onclick="openQR()">QR-код</button></div>
-    </div>
+    ${dashboard()}
     <div class="list">
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
       ${row('user','Мои данные',"go('birthday')",`<small class="muted">ДР ${S.birth.d} ${MON[S.birth.m]}</small>`,12)}
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
-      ${row('wallet','Баланс',"go('wallet')",`<small class="muted">${rubk(walletTotal())}</small>`,14)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`,15)}
-      ${row('star','Кофейная+',"go('plus')",`<small class="muted">${S.plus?'подключена':'99 ₽/мес'}</small>`,13)}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
     <div class="stack"${F(7)}><h2>Достижения</h2>
@@ -1379,18 +1386,18 @@ const F = n => ` data-f="${n}"`;
 const LEGEND = [
  [1,'#ff1744','Персональное предложение','Каждый день — своё предложение «только для тебя». Приложение учится: чем чаще пользуетесь, тем точнее.','«Для вас», первая карточка',"go('home')"],
  [2,'#ffea00','Герой дня','Каждый день новый персонаж и цвет — чтобы предложение замечали. Нажмите «Завтра →» — герой сменится.','«Для вас», справа на предложении',"go('home')"],
- [3,'#00e676','Цель недели','Сами выбираете, сколько дней в неделю заходить. Шкала: кружок — линия — кружок, засечка «Сегодня».','«Для вас» и «Награды»',"go('home')"],
+ [3,'#00e676','Цель недели','Сами выбираете, сколько дней в неделю заходить. Шкала: кружок — линия — кружок, засечка «Сегодня».','Награды',"go('progress')"],
  [4,'#ff9100','Огоньки','Огонёк за каждую неделю, когда цель выполнена.','«Награды»',"go('progress')"],
- [5,'#d500f9','Уровни бонусов','Чем больше недель подряд в цель — тем больше % бонусами с покупки (2→10%).','«Награды», чип «% с покупки»',"go('progress')"],
- [6,'#1de9b6','Моя выгода','Сколько сэкономили по оплаченным покупкам. Бонусы и баланс — отдельно.','«Награды», чип «Сэкономлено»',"go('progress')"],
+ [5,'#d500f9','Уровни бонусов','Чем больше недель подряд в цель — тем больше % бонусами с покупки (2→10%).','Награды, «Профиль» → Мои выгоды',"go('progress')"],
+ [6,'#1de9b6','Моя выгода','Сколько сэкономили по оплаченным покупкам. Бонусы и баланс — отдельно.','«Профиль» → Мои выгоды, «История покупок» по кнопке',"go('profile')"],
  [7,'#c6ff00','Достижения','Значки за визиты, недели в цель, экономию.','«Профиль»',"go('profile')"],
  [8,'#2979ff','Цены недели ★','Персональные цены на любимые блюда на всю неделю (по подписке).','«Для вас», «Меню»',"go('home')"],
  [9,'#a1887f','Что приложение о вас узнало','Честно показываем, что вы любите — по этому подбираем предложения.','«Профиль»',"go('profile')"],
  [10,'#18ffff','QR на кассе','Покажите кассиру — скидки и бонусы применятся сами. Код меняется каждую минуту.','Кнопка QR внизу по центру',"openQR()"],
- [11,'#ff6d00','Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: 5 дней с покупкой — 6-й на 30% дешевле.','«Для вас», «Награды»',"go('home')"],
+ [11,'#ff6d00','Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: 5 дней с покупкой — 6-й на 30% дешевле.','«Награды»',"go('progress')"],
  [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Для вас», «Профиль → Мои данные»',"go('birthday')"],
- [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 10%, ДР = возраст. Первые 6 месяцев бесплатно.','«Для вас» (баннер), «Профиль», значки ★',"go('home')"],
- [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Для вас» (карта баланса), «Профиль → Баланс»',"go('home')"],
+ [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 10%, ДР = возраст. Первые 6 месяцев бесплатно.','«Профиль» → Мои выгоды (статус), плитка на «Для вас», значки ★',"go('profile')"],
+ [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
  [15,'#f50057','Пригласи друга','По 500 ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Для вас» (плитка), «Профиль»',"go('invite')"],
  [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Для вас»',"go('home')"],
  [17,'#3d5afe','Меню как на сайте','Разделы с часами работы, фото, фильтр «Новое / Хит / Выбор шефа».','«Меню»',"go('menu')"],
