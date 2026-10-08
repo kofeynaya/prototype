@@ -568,7 +568,21 @@ html.sheet-open body{position:fixed;left:0;right:0;width:100%}
 .privi .plus-on{background:rgba(249,249,249,.16);border:1px solid rgba(249,249,249,.3);box-shadow:none}
 .privi .rec{background:rgba(249,249,249,.94);border-color:transparent;color:#212221}
 .privi .rec .pill{background:#fff;color:#212221;border-color:#212221}
-.privi .locked .lockbox{color:#f9f9f9}.privi .locked .lockbox .small{color:#f9f9f9;opacity:.85}
+.privi .locked{min-height:244px;margin-top:4px}
+.privi .locked .veil{opacity:.55}
+.privi .locked .lockbox{inset:6px 0;color:#f9f9f9;gap:10px;padding:18px 16px;border-radius:18px;background:rgba(24,18,84,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(249,249,249,.18);box-shadow:0 10px 30px rgba(10,6,50,.35)}
+.privi .locked .lockbox strong{font-size:18px;line-height:1.2}
+.privi .locked .lockbox .small{color:#f9f9f9;opacity:.92;line-height:1.35}
+/* «Подключить Кофейная+» — яркая, переливается и подсвечивается бликом */
+.privi .locked .lockbox .btn{position:relative;overflow:hidden;border:0;color:#212221;font-weight:800;padding:12px 20px!important;background:linear-gradient(100deg,#f2c230,#ff8a65,#ff4f9a,#f2c230);background-size:300% 100%;box-shadow:0 6px 20px rgba(255,79,154,.45)}
+.privi .locked .lockbox .btn::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-20deg)}
+@media (prefers-reduced-motion:no-preference){
+ .privi .locked .lockbox .btn{animation:plusflow 4s linear infinite,pluspulse 2s ease-in-out infinite}
+ .privi .locked .lockbox .btn::after{animation:plusshine 2.6s ease-in-out infinite}
+}
+@keyframes plusflow{to{background-position:300% 0}}
+@keyframes pluspulse{50%{transform:scale(1.05)}}
+@keyframes plusshine{0%,40%{left:-60%}80%,100%{left:130%}}
 .privi .price{background:rgba(249,249,249,.9);color:#212221}
 .wowhead{display:flex;align-items:flex-end;gap:6px}
 .wowwrap{position:relative;display:inline-block;width:100px;height:80px;flex:none;margin-bottom:-12px;color:var(--ink);z-index:3}
