@@ -1306,7 +1306,7 @@ function dashboard(){
         <span class="ds">${S.plus?`Цены недели, бонусы до 10%, ДР −${bd.age}%. Следующее списание 8 ноября — 99 ₽.`:`Откроет цены недели, бонусы до 10% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
-    <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="go('wallet')">Выписка</button></div>
+    <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="openStatement()">Выписка</button></div>
   </div>`;
 }
 function openHistory(){
@@ -1359,9 +1359,16 @@ function prices(){
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Цена закреплена до воскресенья.</li><li>На одно блюдо — одна скидка, самая выгодная.</li></ul></div>
   </section>`;
 }
-function wallet(){
+/* Выписка — отдельное окно: только операции по дням, как в банке */
+function openStatement(){
   const ops=(S.wallet.ops||[]).slice().reverse(), byDay={};
   ops.forEach(o=>(byDay[o.day]=byDay[o.day]||[]).push(o));
+  const sum=k=>ops.filter(o=>o.k===k).reduce((a,o)=>a+Math.abs(o.sum),0);
+  sheet(`<h2>Выписка</h2><p class="small muted">Все операции по депозиту: пополнения, подарки и оплаты.</p>
+    <div class="stat3"><div class="s3"><span class="l">Пополнено</span><b class="money">${rub(sum('top'))}</b></div><div class="s3 g"><span class="l">Подарки</span><b class="money">+${rub(sum('gift'))}</b></div><div class="s3"><span class="l">Оплачено</span><b class="money">${rub(sum('pay'))}</b></div></div>
+    <div class="stack">${ops.length?Object.keys(byDay).sort((a,b)=>b-a).map(d=>`<div class="stmt"><span class="label">${fmt(+d)}</span>${byDay[d].map(o=>`<div class="op"><span class="oi ${o.k}">${o.k==='pay'?'−':o.k==='gift'?'★':'+'}</span><span class="tx">${o.t}<small>${o.k==='gift'?'подарок':o.k==='pay'?'оплата':'пополнение'}</small></span><strong class="money ${o.sum>0?'save':''}">${o.sum>0?'+':'−'}${rubk(Math.abs(o.sum))}</strong></div>`).join('')}</div>`).join(''):'<p class="empty-note">Операций пока нет.</p>'}</div>`);
+}
+function wallet(){
   return `<section class="screen">${back()}
     <div class="stack" style="gap:2px"><span class="label">Баланс</span><h1>Ваши деньги в кофейной</h1></div>
     ${bankCard(true)}
@@ -1369,8 +1376,7 @@ function wallet(){
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span>
         <span class="n">Подарок ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
       <p class="hint">Демо: нажатие на сумму имитирует оплату картой.</p></div>
-    <div class="stack"><h3>Выписка</h3>
-      ${ops.length?Object.keys(byDay).sort((a,b)=>b-a).map(d=>`<div class="stmt"><span class="label">${fmt(+d)}</span>${byDay[d].map(o=>`<div class="op"><span class="oi ${o.k}">${o.k==='pay'?'−':o.k==='gift'?'★':'+'}</span><span class="tx">${o.t}<small>${o.k==='gift'?'подарок':o.k==='pay'?'оплата':'пополнение'}</small></span><strong class="money ${o.sum>0?'save':''}">${o.sum>0?'+':'−'}${rubk(Math.abs(o.sum))}</strong></div>`).join('')}</div>`).join(''):'<p class="empty-note">Операций пока нет.</p>'}</div>
+    <button class="btn ghost" style="width:100%" onclick="openStatement()">Выписка по операциям</button>
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Деньги лежат на балансе, как на счёте в банке. Видно до копейки.</li><li>Платите с баланса на кассе по QR и в заказах в приложении.</li><li>Сначала списываются деньги, потом подарок.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li></ul></div>
   </section>`;
 }
