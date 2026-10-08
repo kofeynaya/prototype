@@ -229,7 +229,9 @@ html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
 .stamp.k-drink{--tint:rgba(155,217,217,.14);--acc:#00657f}.stamp.k-food{--tint:rgba(167,210,185,.14);--acc:#0d553f}
 .stamp.k-bake{--tint:rgba(242,177,90,.14);--acc:#b26a00}.stamp.k-cake{--tint:rgba(236,204,206,.16);--acc:#c2185b}
 .stamp .sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.stamp .sh b{font-size:15px}.stamp .sc{font-family:var(--f-num);font-size:14px;color:var(--muted)}
+.stamp .sn{font-size:15px;font-weight:700;color:var(--ink);background:none;border:0;padding:0;text-align:left;display:inline-flex;align-items:center;gap:4px}
+.stamp .sn .chev{color:var(--muted);font-size:18px;line-height:1}
+.stamp .sl.six{cursor:pointer;font:inherit}.stamp .sc{font-family:var(--f-num);font-size:14px;color:var(--muted)}
 .stamp .srow{display:grid;grid-template-columns:repeat(5,1fr) 1.35fr;gap:4px;align-items:center}
 .stamp .sl{display:grid;place-items:center;aspect-ratio:1;border-radius:12px}
 .stamp .sl.f{background:rgba(249,249,249,.08)}
@@ -991,8 +993,8 @@ const stampIc=(k,cls)=>`<svg class="sic ${cls}" viewBox="0 0 32 32" aria-hidden=
 function stampsBlock(compact){
   return `<div class="stamps">${SIXTH.map(id=>{ const n=Math.min(5,S.stamps[id]||0), ready=n>=5, m=byId(id), k=STAMP_KIND[id];
     return `<div class="stamp k-${k}${ready?' ready':''}">
-      <div class="sh"><b>${m.n}</b><span class="sc money">${n}/5</span></div>
-      <div class="srow">${[0,1,2,3,4].map(i=>`<span class="sl ${i<n?'f':''}">${stampIc(k,i<n?'':'e')}</span>`).join('')}<span class="sl six">${stampIc(k,'')}<i>−30%</i></span></div>
+      <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
+      <div class="srow">${[0,1,2,3,4].map(i=>`<span class="sl ${i<n?'f':''}">${stampIc(k,i<n?'':'e')}</span>`).join('')}<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−30%</i></button></div>
       ${compact&&!ready?'':`<span class="hint">${ready?`Следующий — на 30% дешевле: <b>${rub(Math.round(m.p*.7))}</b>`:`Ещё ${5-n} ${plural(5-n,'день','дня','дней')} с покупкой — и 6-й со скидкой`}</span>`}</div>` }).join('')}</div>`;
 }
 // Баннеры-истории — с сайта kofeynaya.ru (картинки), плюс две свои — про лояльность
