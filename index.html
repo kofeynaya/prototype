@@ -530,6 +530,24 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @keyframes wmmouth{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.25)}}
 @keyframes wmspark{0%,100%{opacity:.3}50%{opacity:1}}
 /* «Моя цель» — одной строкой */
+.rhythm{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.rhythm.hot{border-color:#ff6d00;box-shadow:0 0 0 3px rgba(255,109,0,.18)}
+.rhythm.win{border-color:#f2c230;background:linear-gradient(135deg,rgba(242,194,48,.18),var(--surface) 60%)}
+.rh-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rh-rec{font-size:13px;font-weight:700;white-space:nowrap}
+.rh-big{display:flex;align-items:center;gap:10px}
+.rh-big b{font-family:var(--f-num);font-size:44px;line-height:1}
+.rh-big span{font-size:14px;line-height:1.25;color:var(--muted)}
+.rh-cells{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:14px 0 14px}
+.rh-cells .c{position:relative;height:30px;min-width:0;border-radius:9px;background:var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--f-num);font-size:13px;color:var(--muted)}
+.rh-cells .c.f{background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff}
+.rh-cells .c.rc{box-shadow:inset 0 0 0 2px #f2c230}
+.rh-cells .c.nx{border:2px dashed #ff6d00;background:transparent;color:#ff6d00}
+.rh-cells .cr{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:13px}
+.rh-cells .avg{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);font-style:normal;font-family:var(--f-text,inherit);font-size:10px;color:var(--muted);white-space:nowrap}
+.rh-msg{margin:0;font-size:14px;line-height:1.35}
+@media (prefers-reduced-motion:no-preference){.rh-cells .c.nx{animation:rhnext 1.2s ease-in-out infinite}}
+@keyframes rhnext{50%{transform:scale(1.08)}}
 .goalpick{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 .goalpick .gl{font-weight:700;font-size:15px;white-space:nowrap}
 .goalpick .seg{display:flex;flex:1;gap:4px;padding:3px;border-radius:12px;background:var(--line)}
@@ -729,6 +747,7 @@ let S;
 try{ S=JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(!S||!S.w||!S.basket) S=seed();
 // демо (09.10): один раз показать подписку, у которой осталось 3 дня — чтобы увидеть напоминание о продлении
+if(!S.past2){ S.past=[3,4,2,5,3,4,3]; S.past2=1; } // демо: дни с покупкой в прошлые недели (до календаря прототипа) — для «обычно» и рекорда
 if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
@@ -834,6 +853,7 @@ function quote(lines, opt={}){
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
 function applyPurchase(q, channel, doc){
   const first = !S.visits.includes(S.day); if(first) S.visits.push(S.day);
+  if(first && weekDays(weekOf(S.day))>recordDays() && S.recWeek!==weekOf(S.day)){ S.recWeek=weekOf(S.day); S.bonus+=REC_BONUS; setTimeout(()=>toast(`Новый рекорд недели! +${REC_BONUS} бонусов 🔥`,4000),3200); }
   S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, saved:q.saved, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
   S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
   let w=q.walletSpend; const fm=Math.min(S.wallet.money,w); S.wallet.money-=fm; w-=fm; S.wallet.gift-=w;
@@ -1378,13 +1398,35 @@ const WOWMAN=`<svg class="wowman" viewBox="0 0 124 132" aria-hidden="true">
     <circle cx="72" cy="75" r="3" fill="#ff8a80" opacity=".6"/><circle cx="96" cy="75" r="3" fill="#ff8a80" opacity=".6"/>
   </g>
 </svg>`;
+/* «Твой ритм»: сколько дней с покупкой на этой неделе против своего обычного и своего рекорда.
+   Считаем дни, а не чеки: несколько покупок в один день — один день. Побил рекорд — +REC_BONUS бонусов. */
+const REC_BONUS=50;
+const allWeeks=()=>[...(S.past||[]), ...S.weekHist.map(h=>h.days)];
+const recordDays=()=>Math.max(0,...allWeeks());
+const avgDays=()=>{ const w=allWeeks().slice(-8); return w.length? Math.round(w.reduce((a,x)=>a+x,0)/w.length*10)/10 : 0; };
+function rhythm(){
+  const cur=weekDays(weekOf(S.day)), rec=recordDays(), avg=avgDays(), dow=S.day%7, today=S.visits.includes(S.day);
+  const left=7-dow-(today?1:0), canMax=cur+left, D=n=>plural(n,'день','дня','дней'), avgR=Math.round(avg);
+  let msg, mood='';
+  if(cur>rec){ msg=`<b>Новый рекорд — ${cur} ${D(cur)}!</b> Ты красавчик. +${REC_BONUS} бонусов уже на счёте 🔥`; mood='win'; }
+  else if(cur===rec && left===0){ msg=`<b>Ты повторил рекорд — ${rec} ${D(rec)}!</b> На следующей неделе побьёшь — и +${REC_BONUS} бонусов.`; mood='hot'; }
+  else if(cur===rec){ msg=`<b>Ты повторил рекорд!</b> Ещё один день на этой неделе — и он твой, плюс +${REC_BONUS} бонусов.`; mood='hot'; }
+  else if(canMax>rec){ const need=rec+1-cur; msg=cur>=avgR&&cur>0?`<b>${cur} ${D(cur)} — это уже больше, чем обычно.</b> До нового рекорда ${need} ${D(need)}, награда +${REC_BONUS} бонусов. Поднажми!`:`Обычно ты заходишь <b>${String(avg).replace('.',',')}</b> ${plural(avgR,'день','дня','дней')} в неделю, а твой рекорд — <b>${rec} ${D(rec)}</b>. Побей его — получишь +${REC_BONUS} бонусов.`; }
+  else { msg=`Рекорд в ${rec} ${D(rec)} на этой неделе уже не догнать — но можно обойти своё обычное: ${String(avg).replace('.',',')}.`; }
+  return `<div class="rhythm ${mood}"${F(3)}>
+    <div class="rh-top"><span class="label">Твой ритм · эта неделя</span><span class="rh-rec">👑 Рекорд: ${rec} ${D(rec)}</span></div>
+    <div class="rh-big"><b class="money">${cur}</b><span>${plural(cur,'день','дня','дней')} с покупкой<br>на этой неделе</span></div>
+    <div class="rh-cells">${[1,2,3,4,5,6,7].map(n=>`<span class="c ${n<=cur?'f':''} ${n===rec?'rc':''} ${n===rec+1&&cur<=rec?'nx':''}">${n===rec?'<i class="cr">👑</i>':''}${n}${n===avgR?'<i class="avg">обычно</i>':''}</span>`).join('')}</div>
+    <p class="rh-msg">${msg}</p>
+  </div>`;
+}
 function progress(){
   const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
   const f=S.funnel, mx=Math.max(1,f.shown), weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0);
   return `<section class="screen">
     <div class="turbo-intro"><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>
-    <div class="goalpick"><div class="gtop"><span class="gl">Моя цель — заходить в кофейную</span><b class="gs">${S.goal} ${plural(S.goal,'день','дня','дней')} в неделю</b></div><div class="seg">${[2,3,4,5,6].map(g=>`<button class="${g===S.goal?'on':''}" onclick="setGoal(${g})" aria-label="${g} ${plural(g,'день','дня','дней')} в неделю">${g}</button>`).join('')}</div></div>
+    ${rhythm()}
     <div class="stack"><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel"${F(3)}>
       <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
