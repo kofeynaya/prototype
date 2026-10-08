@@ -1414,7 +1414,7 @@ const WOWMAN=`<svg class="wowman" viewBox="0 0 124 132" aria-hidden="true">
 </svg>`;
 /* «Твой ритм»: сколько дней с покупкой на этой неделе против своего обычного и своего рекорда.
    Считаем дни, а не чеки: несколько покупок в один день — один день. Побил рекорд — +REC_BONUS бонусов. */
-const REC_BONUS=50;
+const REC_BONUS=150;
 const allWeeks=()=>[...(S.past||[]), ...S.weekHist.map(h=>h.days)];
 const recordDays=()=>Math.max(0,...allWeeks());
 const avgDays=()=>{ const w=allWeeks().slice(-8); return w.length? Math.round(w.reduce((a,x)=>a+x,0)/w.length*10)/10 : 0; };
