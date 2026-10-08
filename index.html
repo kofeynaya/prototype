@@ -329,6 +329,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .pill{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--surface);border:1.5px solid var(--ink);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill s{color:var(--muted);font-weight:400;font-size:13px}
 .pill.in{background:var(--ink);color:var(--bg);padding:4px}
+.pill{position:relative;max-width:100%}
+.pill .plus{font-weight:700}
+.pill .qb{position:absolute;top:-8px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#2e9e6a;color:#fff;font-style:normal;font-size:12px;font-weight:700;line-height:20px;text-align:center;box-shadow:0 0 0 2px var(--surface)}
+.pill.has{border-color:#2e9e6a}
+.rec .pill{padding:7px 11px;gap:4px;font-size:14px}
 .pill.in button{width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;display:grid;place-items:center;color:inherit}
 .pill.in span{min-width:22px;text-align:center}
 .empty-note{padding:24px 0;text-align:center;color:var(--muted)}
@@ -986,7 +991,8 @@ function pillHtml(m){
   m.o = o; // «от N ₽ →» — у блюд с выбором (как на сайте), «N ₽ +» — сразу в корзину
   if(q>0 && !o) return `<span class="pill in" data-pill="${m.id}"><button aria-label="Убрать ${m.n}" onclick="event.stopPropagation();tapMinus('${m.id}')">−</button><span>${q}</span><button aria-label="Добавить ${m.n}" onclick="event.stopPropagation();tapAdd('${m.id}')">+</button></span>`;
   const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : `${m.o?'от ':''}${rub(m.p)}`;
-  return `<button class="pill" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')">${price} ${o?'→':'+'}${q>0?` · ${q}`:''}</button>`;
+  // сколько уже в корзине — маленький кружок на углу кнопки, а не текстом (кнопка не растёт и не вылезает из карточки)
+  return `<button class="pill${q>0?' has':''}" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')" aria-label="${m.n}: ${rub(pp??m.p)}${q>0?`, в корзине ${q}`:''}">${price} <b class="plus">+</b>${q>0?`<i class="qb">${q}</i>`:''}</button>`;
 }
 const CART_TABS=['home','progress','menu','prices']; // где видна плашка корзины
 function cartbarHtml(){
