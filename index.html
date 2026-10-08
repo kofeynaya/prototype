@@ -503,11 +503,7 @@ p{margin:0}
 .bk-act3 svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .softbtn{width:46px;height:46px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .softbtn svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.9}
-.split{display:flex;flex-direction:column;gap:2px}
-.sp{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center;padding:8px 0}
-.sp .dotc{width:12px;height:12px;border-radius:50%}
-.sp .tx{display:flex;flex-direction:column;min-width:0}.sp small{color:var(--muted);font-size:12px}
-.spbar{height:8px;border-radius:4px;background:#f2c230;overflow:hidden;margin-top:6px}.spbar i{display:block;height:100%;background:#0d553f}
+.pill-g .pd{width:8px;height:8px;border-radius:50%;display:inline-block}
 </style>
 
 <div class="app" id="app"></div>
@@ -1268,7 +1264,7 @@ function profile(){
   const row=(ic,t,act,extra='',f=0)=>`<button class="li"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
-      <div class="row" style="gap:8px"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button><button class="softbtn" onclick="openQR()" aria-label="QR-код">${IC.qr}</button></div></div>
+      <div class="row" style="gap:8px"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="list">
@@ -1309,11 +1305,6 @@ function wallet(){
   return `<section class="screen">${back()}
     <div class="stack" style="gap:2px"><span class="label">Баланс</span><h1>Ваши деньги в кофейной</h1></div>
     ${bankCard(true)}
-    <div class="panel"><h3>Из чего состоит депозит</h3>
-      <div class="split"><div class="sp"><span class="dotc" style="background:#0d553f"></span><span class="tx"><b>Ваши деньги</b><small>можно вернуть на карту</small></span><strong class="money">${rubk(S.wallet.money)}</strong></div>
-      <div class="sp"><span class="dotc" style="background:#f2c230"></span><span class="tx"><b>Подарок за пополнение</b><small>тратится после денег, при возврате сгорает</small></span><strong class="money">${rubk(S.wallet.gift)}</strong></div>
-      <div class="spbar"><i style="width:${walletTotal()?S.wallet.money/walletTotal()*100:0}%"></i></div></div>
-      <p class="small muted">Почему именно так: при оплате сначала списываются ваши деньги, и только когда они закончатся — подарок. Поэтому остаток всегда видно точно.</p></div>
     <div class="stack"><h3>Пополнить и получить подарок</h3>
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span>
         <span class="n">Подарок ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
@@ -1331,6 +1322,7 @@ function bankCard(big){
   return `<div class="bank"${F(14)} onclick="go('wallet')" role="button" tabindex="0">
     <div class="row between"><span class="bk-l">Ваш депозит</span><span class="mark" style="width:26px;color:#f9f9f9;opacity:.9"></span></div>
     <div class="bk-sum money">${(+r).toLocaleString('ru-RU')}<span class="kop">,${k}</span><span class="cur"> ₽</span></div>
+    <div class="bk-pills"><span class="pill-g"><i class="pd" style="background:#f9f9f9"></i>Рублёвых ${rub(w.money)}</span><span class="pill-g"><i class="pd" style="background:#f2c230"></i>Бонусных ${rub(w.gift)}</span></div>
     <div class="bk-act3">
       <button onclick="event.stopPropagation();openTopup()">${ic.top}<span>Пополнить</span></button>
       <button onclick="event.stopPropagation();go('wallet')">${ic.st}<span>Выписка</span></button>
