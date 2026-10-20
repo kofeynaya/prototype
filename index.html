@@ -447,12 +447,13 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .batt.big .bb i.on{background:var(--bc)}
 .batt.big .bt{width:7px;height:22px;background:var(--ink)}
 @media (prefers-reduced-motion:no-preference){.batt .bb i.edge{animation:serblink 1.4s ease-in-out infinite}}
-.myph{position:relative;width:64px;height:64px;flex:none;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--muted);color:var(--muted);cursor:pointer;overflow:hidden}
-.myph .pl{font-size:28px;line-height:1;font-weight:300}
-.myph .cap{font-size:11px;margin-top:-2px}
+.myph{position:relative;width:44px;height:44px;flex:none;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--muted);color:var(--muted);cursor:pointer;overflow:hidden}
+.myph .pl{font-size:24px;line-height:1;font-weight:300}
+.myph .cap{display:none}
+.ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .myph.has{border:0}
 .myph img{width:100%;height:100%;object-fit:cover}
-.myph.has::after{content:"+";position:absolute;right:0;bottom:0;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:15px;line-height:20px;text-align:center}
+.myph.has::after{content:"+";position:absolute;right:0;bottom:0;width:16px;height:16px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:13px;line-height:16px;text-align:center}
 img.ava{object-fit:cover}
 .pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
 .pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
@@ -1983,8 +1984,8 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row between"><div class="row" style="gap:12px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:0"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span>${S.plus?`<span style="margin-top:4px">${subChip()}</span>`:''}</div></div>
-      <div class="row" style="gap:8px;align-self:flex-start"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
+    <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:0;overflow:hidden"><h1>${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
+      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="stack"${F(7)}><h2>Достижения</h2>
