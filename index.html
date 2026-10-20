@@ -500,7 +500,17 @@ img.ava{object-fit:cover}
 .ben-b{margin:0;font-size:13px;color:var(--muted)}
 .ben-b b{color:var(--ink)}
 .pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
-.pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
+.pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}
+/* строка «Заряд выгоды»: свечение и стрелка цвета уровня; при 75–99% — оранжевый отсвет справа и оранжевое «что не включено» */
+.pw-link{position:relative;border-color:rgba(var(--lv-rgb),.4);box-shadow:0 0 16px -8px rgba(var(--lv-rgb),.7)}
+.pw-link .pc{color:var(--lv)}
+.pw-link small em{font-style:normal;color:var(--ink)}
+.pw-link .chev{color:var(--lv);font-size:34px;font-weight:700;line-height:1;margin-top:-4px}
+.pw-link.lv-almost{border-color:rgba(46,158,91,.4);border-right-color:#ff9100;background:linear-gradient(90deg,var(--surface) 55%,rgba(255,145,0,.16));box-shadow:-4px 0 14px -8px rgba(46,158,91,.7),8px 0 20px -6px rgba(255,145,0,.75)}
+.pw-link.lv-almost small em{color:#ff9100;font-weight:700}
+.pw-link.lv-almost .chev{color:#2e9e5b}
+@media (prefers-reduced-motion:no-preference){.pw-link.lv-almost{animation:pwglow 2.8s ease-in-out infinite}}
+@keyframes pwglow{50%{box-shadow:-4px 0 18px -6px rgba(46,158,91,.8),10px 0 28px -4px rgba(255,145,0,.95)}}
 .pw-link .batt .bb,.pw-link .batt .bt{border-color:var(--ink)}.pw-link .batt .bt{background:var(--ink)}
 .pw-hero{display:flex;flex-direction:column;gap:8px}
 .pw-big{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -2071,8 +2081,8 @@ function powerTile(){ const it=powerItems(), on=it.filter(x=>x.on).length, pct=p
   const lv=LV(pct);
   return `<button class="ptile lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money">${pct}%</b></span><span class="pt-s">${lv.k==='perfect'?'<b>Идеально! Всё включено</b>':lv.k==='almost'?`Почти! Не хватает <b class="miss">${it.length-on}</b>`:`Включено <b>${on} из ${it.length}</b>`}</span><span class="pt-btn">${pct<100?'Включить ещё →':'Ты лучший ✓'}</span></button>`; }
 // Вход в «Заряд выгоды» — одна и та же аккуратная строка на всех вкладках
-function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on);
-  return `<button class="pw-link" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды ${pct}%</b><small>${tip?`Ещё можно включить: ${tip.t}`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
+function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on), lv=LV(pct);
+  return `<button class="pw-link lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды <span class="pc">${pct}%</span></b><small>${tip?`Ещё можно включить: <em>${tip.t}</em>`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
 const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on).length/it.length*100); };
 // Цвет уровня: красный — мало, оранжевый — средне, зелёный «почти» (но с оранжевой дырой — не всё гладко), небесно-голубой — идеал 100%
 const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53',k:'low'}:pct<75?{c:'#ff9100',rgb:'255,145,0',k:'mid'}:pct<100?{c:'#2e9e5b',rgb:'46,158,91',k:'almost'}:{c:'#29b6f6',rgb:'41,182,246',k:'perfect'};
