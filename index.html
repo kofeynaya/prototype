@@ -437,6 +437,39 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @media (prefers-reduced-motion:no-preference){.offer .art{animation:bob 3.2s ease-in-out infinite}}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-3deg)}}
 :root{--star:#f2c230}
+.batt{display:inline-flex;align-items:center}
+.batt .bb{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:44px;height:22px;padding:2px;border:2px solid #212221;border-radius:5px}
+.batt .bb i{border-radius:1px;background:transparent}
+.batt .bb i.on{background:var(--bc)}
+.batt .bt{width:3px;height:9px;margin-left:1px;border-radius:0 2px 2px 0;background:#212221}
+.batt.big .bb{width:150px;height:56px;padding:4px;gap:4px;border-width:3px;border-radius:12px;border-color:var(--ink)}
+.batt.big .bb i{border-radius:3px;background:var(--line)}
+.batt.big .bb i.on{background:var(--bc)}
+.batt.big .bt{width:7px;height:22px;background:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.batt.big .bb i.on:last-of-type{animation:serblink 1.4s ease-in-out infinite}}
+.pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
+.pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
+.pw-link .batt .bb,.pw-link .batt .bt{border-color:var(--ink)}.pw-link .batt .bt{background:var(--ink)}
+.pw-hero{display:flex;flex-direction:column;gap:8px}
+.pw-big{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pw-big b{font-family:var(--f-num);font-weight:400;font-size:56px;line-height:1}
+.pw-msg{margin:0;font-size:16px;line-height:1.35}
+.pw-tip{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff;text-align:left;width:100%}
+.pw-tip .pi{font-size:30px;flex:none}
+.pw-tip .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pw-tip small{opacity:.85;font-size:12px}
+.pw-tip b{font-size:18px}
+.pw-tip .chev{font-size:22px}
+.pw-list{gap:0;padding-top:4px;padding-bottom:4px}
+.pw-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.pw-row:last-child{border-bottom:0}
+.pw-row .ck{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-weight:900;font-size:14px;color:#fff}
+.pw-row.on .ck{background:#2e9e5b;border-color:#2e9e5b}
+.pw-row .pi{font-size:22px;flex:none}
+.pw-row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pw-row .tx small{color:var(--muted);font-size:13px;line-height:1.25}
+.pw-row:not(.on) .tx b{color:var(--ink)}
+.pw-row .btn{padding:8px 12px;font-size:13px;flex:none}
 .perk{width:150px;min-height:156px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;text-align:left}
 .perk .pi{height:48px;width:48px;flex:none;margin-bottom:8px;display:grid;place-items:center}
 .perk .pi svg{width:48px;height:48px}
@@ -1289,6 +1322,7 @@ function home(){
   const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
+    {n:0, t:`Заряд выгоды ${powerPct()}%`, s:`Включено ${powerItems().filter(x=>x.on).length} из ${powerItems().length} — что ещё?`, bg:'var(--cream)', go:"go('power')", big:battery(powerPct())},
     {n:12, t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст · ${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
     {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
@@ -1819,6 +1853,37 @@ function progress(){
 }
 
 
+/* ---------- Заряд выгоды: сколько выгод приложения гость уже берёт (как заряд батарейки) ---------- */
+function powerItems(){
+  const lw=lastWeekDays(), wal=walletTotal(), fr=S.ref.friends.filter(f=>!f.blocked).length, spent=S.orders.some(o=>o.bonusSpend>0);
+  return [
+    {ic:'☀️', t:'Предложение дня',  on:S.funnel.used>0,                 yes:'Пользуешься — каждый день новое',            no:'Каждый день новая скидка только для тебя',     btn:"go('home')"},
+    {ic:'📈', t:'Твой ритм',        on:lw>=3,                           yes:`${rate()}% бонусами с каждой покупки`,      no:'Заходи 3+ дня в неделю — бонусов станет больше', btn:"go('progress')"},
+    {ic:'☕', t:'Каждый 6-й −30%',  on:Object.values(S.stamps).some(n=>n>0), yes:'Копишь отметки',                       no:'Каждый 6-й капучино, круассан… на 30% дешевле', btn:"go('progress')"},
+    {ic:'💰', t:'Депозит',          on:wal>0,                           yes:`На депозите ${rub(Math.floor(wal))}`,         no:`Пополни на 3 000 ₽ — получишь +150 ₽ в подарок`, btn:"go('wallet')"},
+    {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ×${FZ_PLUS}`, no:`Бонусы до ${PLUS_CAP}% вместо ${FREE_CAP}% и свои цены недели`, btn:"go('plus')"},
+    {ic:'🪙', t:'Платить бонусами', on:spent,                           yes:'Оплачиваешь бонусами часть чека',            no:`У тебя ${S.bonus} бонусов = ${S.bonus} ₽. Оплати ими до 30% чека`, btn:"go('menu')"},
+    {ic:'🎂', t:'День рождения',    on:!!(S.birth&&S.birth.d),          yes:'Дата указана — скидка будет',               no:'Укажи дату — в день рождения скидка = возраст',  btn:"go('birthday')"},
+    {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_REWARD} ₽ тебе и другу`,                  btn:"go('invite')"},
+  ];
+}
+const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on).length/it.length*100); };
+function battery(pct,big){ const c=pct<40?'#e53935':pct<75?'#ff9100':'#2e9e5b', n=8, on=Math.round(pct/100*n);
+  return `<span class="batt ${big?'big':''}" style="--bc:${c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':''}"></i>`).join('')}</span><span class="bt"></span></span>`; }
+function power(){
+  const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct(), tip=it.find(x=>!x.on);
+  const face=pct<40?'😕':pct<75?'🙂':pct<100?'😄':'🤩';
+  return `<section class="screen">${back('home')}
+    <div class="pw-hero">
+      <span class="label">Заряд выгоды</span>
+      <div class="pw-big"><b class="money">${pct}%</b>${battery(pct,true)}</div>
+      <p class="pw-msg">${face} ${pct<100?`Ты включил <b>${on} из ${it.length}</b> выгод. Включи остальные — и будешь экономить больше.`:`<b>Ты на полной мощности!</b> Берёшь от приложения всё.`}</p>
+    </div>
+    ${tip?`<button class="pw-tip" onclick="${tip.btn}"><span class="pi">${tip.ic}</span><span class="tx"><small>Совет — проще всего включить</small><b>${tip.t}</b><span>${tip.no}</span></span><span class="chev">›</span></button>`:''}
+    <div class="panel pw-list">${it.map(x=>`<div class="pw-row ${x.on?'on':''}"><span class="ck">${x.on?'✓':''}</span><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${x.on?x.yes:x.no}</small></span>${x.on?'':`<button class="btn" onclick="${x.btn}">Включить</button>`}</div>`).join('')}</div>
+    <p class="rh-foot" style="text-align:center">Зелёная галочка — выгода уже работает на тебя.</p>
+  </section>`;
+}
 /* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
 /* кегль числа в плитке под длину — чтобы «+1 150 ₽» и больше не упирались в край */
 const fitNum=(t,extra=0)=>{ const n=t.length+extra; return `font-size:${n<=5?18:n<=7?15.5:n<=9?13:11}px`; };
@@ -1853,6 +1918,7 @@ function dashboard(){
         <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ДР −${bd.age}%. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 7% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
+    <button class="pw-link" onclick="go('power')">${battery(powerPct())}<span class="tx"><b>Заряд выгоды ${powerPct()}%</b><small>Какие выгоды ты ещё не включил</small></span><span class="chev">›</span></button>
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="openStatement()">Выписка</button></div>
   </div>`;
 }
@@ -1886,6 +1952,7 @@ const RULES=[
   ['Депозит','Пополняете баланс — получаете подарок сверху. Оплата с баланса на кассе.'],
   ['Подписка Кофейная+','Цены недели, бонусы до 7%, скидка в ДР. 99 ₽/мес, первые 6 месяцев бесплатно.'],
   ['Как скидки сочетаются','На одну позицию — одна лучшая скидка. Поверх — бонусы и депозит.'],
+  ['Заряд выгоды 🔋','Батарейка показывает, сколько выгод приложения ты уже включил: предложение дня, ритм, каждый 6-й, депозит, подписку, оплату бонусами, день рождения, друга. Чем больше включено — тем больше экономишь. Подсказка сверху говорит, что включить проще всего.'],
   ['Достижения','Значки за посещения и выгоду.'],
 ];
 function openRules(){
@@ -2041,8 +2108,8 @@ const TABS=[
   ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
-const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders};
-const TAB_OF={prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
+const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders,power};
+const TAB_OF={power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
 function go(t){ if(t==='qr'){ openQR(); return; } tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 
 /* ===================== Вход по СМС (имитация) ===================== */
