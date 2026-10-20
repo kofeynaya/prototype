@@ -504,6 +504,8 @@ img.ava{object-fit:cover}
 /* строка «Заряд выгоды»: свечение и стрелка цвета уровня; при 75–99% — оранжевый отсвет справа и оранжевое «что не включено» */
 .pw-link{position:relative;border-color:rgba(var(--lv-rgb),.4);box-shadow:0 0 16px -8px rgba(var(--lv-rgb),.7)}
 .pw-link .pc{color:var(--lv)}
+/* 75–99%: процент — градиентом от зелёного к оранжевому («почти, но не всё гладко») */
+.pcg-almost{background:linear-gradient(90deg,#2e9e5b 0%,#ff9100 70%);-webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent}
 .pw-link small em{font-style:normal;color:var(--ink)}
 .pw-link .chev{color:var(--lv);font-size:34px;font-weight:700;line-height:1;margin-top:-4px}
 .pw-link.lv-almost{border-color:rgba(46,158,91,.4);border-right-color:#ff9100;background:linear-gradient(90deg,var(--surface) 55%,rgba(255,145,0,.16));box-shadow:-4px 0 14px -8px rgba(46,158,91,.7),8px 0 20px -6px rgba(255,145,0,.75)}
@@ -2096,10 +2098,10 @@ function gauge(pct,label){ const r=46, L=Math.PI*r, f=L*pct/100;
 // Плитка «Заряд выгоды» на «Сегодня» — тёмная, батарейка и свечение цвета уровня (красный / оранжевый / зелёный)
 function powerTile(){ const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct();
   const lv=LV(pct);
-  return `<button class="ptile lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money">${pct}%</b></span><span class="pt-s">${lv.k==='perfect'?'<b>Идеально! Всё включено</b>':lv.k==='almost'?`Почти! Не хватает <b class="miss">${it.length-on}</b>`:`Включено <b>${on} из ${it.length}</b>`}</span><span class="pt-btn">${pct<100?'Включить ещё →':'Ты лучший ✓'}</span></button>`; }
+  return `<button class="ptile lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money pcg-${lv.k}">${pct}%</b></span><span class="pt-s">${lv.k==='perfect'?'<b>Идеально! Всё включено</b>':lv.k==='almost'?`Почти! Не хватает <b class="miss">${it.length-on}</b>`:`Включено <b>${on} из ${it.length}</b>`}</span><span class="pt-btn">${pct<100?'Включить ещё →':'Ты лучший ✓'}</span></button>`; }
 // Вход в «Заряд выгоды» — одна и та же аккуратная строка на всех вкладках
 function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on), lv=LV(pct);
-  return `<button class="pw-link lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды <span class="pc">${pct}%</span></b><small>${tip?`Ещё можно включить: <em>${tip.t}</em>`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
+  return `<button class="pw-link lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды <span class="pc pcg-${lv.k}">${pct}%</span></b><small>${tip?`Ещё можно включить: <em>${tip.t}</em>`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
 const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on).length/it.length*100); };
 // Цвет уровня: красный — мало, оранжевый — средне, зелёный «почти» (но с оранжевой дырой — не всё гладко), небесно-голубой — идеал 100%
 const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53',k:'low'}:pct<75?{c:'#ff9100',rgb:'255,145,0',k:'mid'}:pct<100?{c:'#2e9e5b',rgb:'46,158,91',k:'almost'}:{c:'#29b6f6',rgb:'41,182,246',k:'perfect'};
@@ -2111,7 +2113,7 @@ function power(){
   return `<section class="screen">${back('home')}
     <div class="pw-hero">
       <span class="label">Заряд выгоды</span>
-      <div class="pw-big"><b class="money">${pct}%</b>${battery(pct,true)}</div>
+      <div class="pw-big"><b class="money pcg-${LV(pct).k}">${pct}%</b>${battery(pct,true)}</div>
       <p class="pw-msg">${face} ${pct===100?`<b>Идеально!</b> Ты берёшь от приложения всё ✨`:pct>=75?`<b>Почти идеально</b>, но не всё гладко: включено ${on} из ${it.length}. Ещё ${it.length-on} — и будет 100%.`:`Ты включил <b>${on} из ${it.length}</b> выгод. Включи остальные — и будешь экономить больше.`}</p>
     </div>
     ${tip?`<button class="pw-tip" onclick="${tip.btn}"><span class="pi">${tip.ic}</span><span class="tx"><small>Совет — проще всего включить</small><b>${tip.t}</b><span>${tip.no}</span></span><span class="chev">›</span></button>`:''}
@@ -2148,7 +2150,7 @@ function benefit(){
   const minD=isoOf(Math.min(S.regDay??0,...S.orders.map(o=>o.day))), maxD=isoOf(S.day);
   const picker=benPer==='custom'?`<div class="ben-dates"><label>с<input type="date" value="${isoOf(Math.min(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('from',this.value)"></label><label>по<input type="date" value="${isoOf(Math.max(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('to',this.value)"></label></div>`:'';
   const pct=powerPct(), lv=LV(pct), tip=powerItems().find(x=>!x.on);
-  const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего ${pct}%</b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
+  const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего <span class="pcg-${lv.k}">${pct}%</span></b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
   const head=`<div class="ben-h"><b>Выгода от приложения</b></div><div class="ben-per">${chips}</div>${picker}`;
   if(!os.length) return `<div class="ben" id="ben">${head}<p class="small muted" style="margin:0">${lbl[0].toUpperCase()+lbl.slice(1)} покупок не было — выбери другой период.</p>${boost}</div>`;
   const by={}; let without=0, paid=0;
