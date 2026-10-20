@@ -579,12 +579,13 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 /* полоса серии закреплена под демо-полосой, как верхняя панель Дуолинго */
 .ser-pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h));z-index:12;background:var(--bg);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line)}
 .ser-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ser-main{display:flex;align-items:center;gap:6px;text-align:left;flex:none}
-.ser-main>span{display:flex;flex-direction:column}
+/* число с огнём в строку, подпись — под ними, по левому краю огня */
+.ser-main{display:flex;flex-direction:column;align-items:flex-start;text-align:left;flex:none}
+.ser-num{display:flex;align-items:center;gap:6px}
 .ser-fl{width:34px;height:44px;flex:none}
 .ser-fl path{fill:#ff6d00}
 .ser-main b{display:block;font-family:var(--f-num);font-weight:400;font-size:40px;line-height:1}
-.ser-main small{font-size:13px;line-height:1.2;margin-top:5px;color:var(--muted);white-space:nowrap}
+.ser-main small{font-size:13px;line-height:1.2;margin-top:4px;color:var(--muted);white-space:nowrap}
 /* намёк «сюда можно нажать»: стрелка мягко зовёт вправо, по числу раз в несколько секунд пробегает блик, при нажатии — лёгкое «вдавливание» */
 .ser-main{position:relative;border-radius:14px;transition:transform .15s}
 .ser-main:active{transform:scale(.97)}
@@ -614,7 +615,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .vm-grid .d.today{box-shadow:0 0 0 2px var(--ink)}
 .vm-grid .d.reg{box-shadow:0 0 0 2px #2b2b93}
 .vm-grid .d.fut{opacity:.35}
-.ser-side{display:flex;gap:4px;min-width:0}
+.ser-side{display:flex;gap:6px;min-width:0;margin:0 auto}
 .ser-side button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px;border-radius:12px;background:var(--line);width:52px}
 .ser-side b{font-size:14px;white-space:nowrap}
 .ser-side small{font-size:11px;color:var(--muted)}
@@ -1634,7 +1635,7 @@ function serWeek(w){
 function serHead(){
   const st=serState(), w=weekOf(S.day), rank=lbRank();
   return `<div class="ser-top ser-pin ser ${st.k}">
-      <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></span></button>
+      <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><span class="ser-num"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><b class="money">${S.ser.n}</b></span><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></button>
       <div class="ser-side">
         <button onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
         <button onclick="openFreeze()"><b>❄️ ${Math.max(0,fzLeft())}</b><small>заморозки</small></button>
