@@ -593,7 +593,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ser-week i{width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-style:normal;font-size:15px}
 .ser-week .v i{background:rgba(255,109,0,.18)}
 .ser-week .now i{box-shadow:0 0 0 2px var(--ink)}
-.ser-week .now{color:var(--ink);font-weight:700}
+.ser-week .x i{background:rgba(229,57,53,.14);color:#e53935;font-weight:900;font-size:17px}
+.ser-week .fz i{background:rgba(155,217,217,.35)}
+.ser-week .today{color:var(--ink);font-weight:700}
+.ser-wk{display:flex;flex-direction:column;gap:4px}
+.ser-wt{font-size:12px;color:var(--muted)}
 .ser-week .fut i{opacity:.5}
 .ser-msg{margin:0;font-size:14px;line-height:1.35}
 .ser.danger .ser-msg b{color:#e53935}
@@ -998,8 +1002,8 @@ function applyPurchase(q, channel, doc){
 /* ===================== Достижения ===================== */
 const ACH = [
   {id:'first',  t:'Первый визит',        n:'1',  bg:'var(--sage)',  test:()=>S.orders.length>0},
-  {id:'ser30',  t:'Серия 30 дней',       n:'30', bg:'var(--cream)', test:()=>S.ser.best>=30},
-  {id:'ser100', t:'Серия 100 дней',      n:'100',bg:'var(--pink)',  test:()=>S.ser.best>=100},
+  {id:'ser30',  t:'Огонёк 30 дней',      n:'30', bg:'var(--cream)', test:()=>S.ser.best>=30},
+  {id:'ser100', t:'Огонёк 100 дней',     n:'100',bg:'var(--pink)',  test:()=>S.ser.best>=100},
   {id:'explorer',t:'Попробовал 3 вида акций',n:'3',bg:'var(--aqua)',test:()=>Object.keys(S.mechTried).length>=3},
   {id:'sweet',  t:'Сладкоежка: 5 десертов',n:'5',bg:'var(--pink)',  test:()=>S.pastryCount>=5},
   {id:'save500',t:'Сэкономил 500 ₽',     n:'500',bg:'var(--sage)', test:()=>S.saved>=500},
@@ -1018,8 +1022,8 @@ function nextDay(){
     const d=weekDays(w), met=d>=SER_MIN, was=Math.min(rawRate(),rateCap()), rec=isRecord(d); S.weekHist.push({week:w,days:d,met});
     msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rate()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     if(!met && S.ser.n){ const end=w*7+6;
-      if(d===SER_MIN-1 && fzLeft(end)>0){ const m=monthKey(end); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла серию 🔥 ${S.ser.n}.`; }
-      else { S.ser.lost=S.ser.n; msg+=` Серия 🔥 ${S.ser.n} сгорела — начинаем новую. Лучшая (${S.ser.best}) остаётся.`; S.ser.n=0; } }
+      if(d===SER_MIN-1 && fzLeft(end)>0){ const m=monthKey(end); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла твой огонёк 🔥 ${S.ser.n}.`; }
+      else { S.ser.lost=S.ser.n; msg+=` Огонёк 🔥 ${S.ser.n} погас — зажигаем заново. Лучший результат (${S.ser.best}) остаётся.`; S.ser.n=0; } }
     if(rec){ S.bonus+=REC_BONUS; msg+=` 🏆 Новый рекорд: +${REC_BONUS} бонусов!`; }
   }
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
@@ -1187,7 +1191,7 @@ function stampsBlock(compact){
 const STORIES = [
   {t:'Гид по пенкам', img:'img/bn1.jpg', body:'Капучино, флэт уайт, латте — чем отличаются пенки и что выбрать.', link:'https://kofeynaya.ru/stories/XdBGzpQr', cta:['Кофе с молоком',"go('menu');setTimeout(()=>jump('kofeinaya_klassika1'),60)"]},
   {t:'Только в октябре', img:'img/bn2.jpg', body:'Пицца-донат с пепперони и острым мёдом.', link:'https://kofeynaya.ru/stories/cdpu0AT5', cta:['В меню: Спешл',"go('menu');setTimeout(()=>jump('speshl'),60)"]},
-  {t:'Серия 🔥', bg:'var(--sage)', body:'Каждый день с покупкой — +1 к серии. Не сжигай её: минимум 3 дня в неделю. Сколько ты продержишься?', cta:['Мой прогресс',"go('progress')"]},
+  {t:'Огонёк 🔥', bg:'var(--sage)', body:'Каждый день с покупкой — огонёк горит на день дольше. Чтобы не погас — заходи минимум 3 дня в неделю. Сколько дней ты продержишь его?', cta:['Мой прогресс',"go('progress')"]},
   {t:'Гид по топпингам', img:'img/bn3.jpg', body:'Сиропы, молоко и добавки — что с чем сочетается.', link:'https://kofeynaya.ru/stories/mjKz06mI', cta:['Авторские напитки',"go('menu');setTimeout(()=>jump('sezonnoe_menyu__kofe'),60)"]},
   {t:'★ Кофейная+', bg:'var(--blue)', fg:'#f9f9f9', body:'Цены недели только для вас, бонусы до 7% и скидка в день рождения = возраст.', cta:['Подробнее',"go('plus')"]},
   {t:'Рекомендация недели', img:'img/bn4.jpg', body:'Что попробовать на этой неделе.', link:'https://kofeynaya.ru/stories/C1m1jvqX', cta:['Всё меню',"go('menu')"]},
@@ -1573,31 +1577,39 @@ function serState(){
   const need=Math.max(0,SER_MIN-cur), fz=fzLeft(weekOf(S.day)*7+6)>0, must=need-(fz?1:0), D=n=>plural(n,'день','дня','дней');
   const when=left===1?'сегодня':'каждый день до воскресенья';
   let k, msg;
-  if(!S.ser.n){ k='zero'; msg=S.ser.lost?`Серия 🔥 ${S.ser.lost} сгорела. Начни новую — первый же день с покупкой зажжёт огонь.`:`Зайди сегодня — и зажжёшь серию.`; }
-  else if(!need){ k='safe'; msg=`<b>Серия в безопасности на этой неделе ✓</b> Каждый день с покупкой — ещё +1.`; }
-  else if(must>left){ k='doomed'; msg=`<b>В этот раз ${SER_MIN} дня уже не набрать</b> — в понедельник серия начнётся заново. 👑 Лучшая (${S.ser.best}) останется.`; }
-  else if(must>0&&must===left){ k='danger'; msg=fz?`<b>Заходи ${when} — тогда заморозка ❄️ спасёт серию.</b> Не зайдёшь — 🔥 ${S.ser.n} сгорит!`:`<b>Заходи ${when} — или 🔥 ${S.ser.n} сгорит!</b>`; }
+  if(!S.ser.n){ k='zero'; msg=S.ser.lost?`Твой огонёк 🔥 ${S.ser.lost} погас. Зажги новый — первый же день с покупкой.`:`Зайди сегодня — и зажжёшь огонёк.`; }
+  else if(!need){ k='safe'; msg=`<b>На этой неделе огонёк не погаснет ✓</b> Каждый день с покупкой — ещё +1 день.`; }
+  else if(must>left){ k='doomed'; msg=`<b>В этот раз ${SER_MIN} дня уже не набрать</b> — в понедельник огонёк погаснет и начнётся заново. 👑 Лучший результат (${S.ser.best}) останется.`; }
+  else if(must>0&&must===left){ k='danger'; msg=fz?`<b>Заходи ${when} — тогда заморозка ❄️ спасёт огонёк.</b> Не зайдёшь — огонёк 🔥 ${S.ser.n} погаснет!`:`<b>Заходи ${when} — или огонёк 🔥 ${S.ser.n} погаснет!</b>`; }
   else if(must<=0&&need>=left){ k='freeze'; msg=`На этой неделе <b>${cur} из ${SER_MIN}</b>. ${need>left?'Не хватит дня — спасёт заморозка ❄️':`Зайди ${left===1?'сегодня':'ещё'} — или сработает заморозка ❄️`}`; }
-  else { k='need'; msg=`На этой неделе <b>${cur} из ${SER_MIN}</b> дней. Ещё ${need} ${D(need)} — и серия в безопасности.`; }
+  else { k='need'; msg=`На этой неделе <b>${cur} из ${SER_MIN}</b> дней. Ещё ${need} ${D(need)} — и огонёк не погаснет.`; }
   return {k,msg,cur,left};
+}
+// Дни недели для огонька: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
+function serWeek(w,title){
+  const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d<S.day && !S.visits.includes(d); });
+  const fzDay=S.ser.frozen.includes(w)?miss[miss.length-1]:-1;
+  return `<div class="ser-wk"><span class="ser-wt">${title}</span><div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
+    const k=v?'v':i===fzDay?'fz':miss.includes(i)?'x':day===S.day?'now':'fut';
+    return `<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='x'?'✕':''}</i>${d}</span>`; }).join('')}</div></div>`;
 }
 function serHead(){
   const st=serState(), w=weekOf(S.day), rank=lbRank();
   return `<div class="ser-top ser-pin ser ${st.k}">
-      <div class="ser-main"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'день','дня','дней')} в серии</small></span></div>
+      <div class="ser-main"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'день','дня','дней')} горит огонёк</small></span></div>
       <div class="ser-side">
-        <button onclick="toast('Лучшая серия: ${S.ser.best} ${plural(S.ser.best,'день','дня','дней')}. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучшая</small></button>
+        <button onclick="toast('Лучший результат: огонёк горел ${S.ser.best} ${plural(S.ser.best,'день','дня','дней')}. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
         <button onclick="openFreeze()"><b>❄️ ${Math.max(0,fzLeft())}</b><small>заморозки</small></button>
         <button onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место</small></button>
       </div>
     </div>
-    <div class="ser ser-body ${st.k}"><div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day); return `<span class="${v?'v':''} ${day===S.day?'now':''} ${day>S.day?'fut':''}"><i>${v?'🔥':''}</i>${d}</span>`; }).join('')}</div>
+    <div class="ser ser-body ${st.k}">${w>0?serWeek(w-1,'Прошлая неделя'):''}${serWeek(w,'Эта неделя')}
     <p class="ser-msg">${st.msg}</p></div>`;
 }
 function openFreeze(){
   const max=S.plus?FZ_PLUS:FZ_FREE, left=Math.max(0,fzLeft());
   sheet(`<h2>❄️ Заморозки</h2>
-    <p>Серия сгорает, если за неделю меньше ${SER_MIN} дней с покупкой. <b>Заморозка закрывает один недостающий день</b> — если за неделю было ${SER_MIN-1} дня, серия сохранится.</p>
+    <p>Огонёк гаснет, если за неделю меньше ${SER_MIN} дней с покупкой. <b>Заморозка закрывает один пропущенный день</b> — если за неделю было ${SER_MIN-1} дня, огонёк не погаснет.</p>
     <div class="fz-row">${Array.from({length:max},(_,i)=>`<span class="${i<left?'on':''}">❄️</span>`).join('')}</div>
     <p class="small muted">Осталось в этом месяце: <b>${left} из ${max}</b>. Срабатывает сама, в понедельник. Не больше одной в неделю.</p>
     <div class="panel"><div class="row between"><span>Без подписки</span><b>${FZ_FREE} в месяц</b></div><div class="row between"><span>★ Кофейная+</span><b>${FZ_PLUS} в месяц — на каждую неделю</b></div></div>
@@ -1617,7 +1629,7 @@ const GUESTS=[
   {id:'g9', n:'Вера Павлова',      s:84,  fav:'Чай облепиховый', shop:1, bio:'Не пью кофе, но хожу ради круассанов 🥐'},
   {id:'g10',n:'Сергей Никитин',    s:80,  fav:'Капучино',        shop:4, bio:'Играю в настолки, зову всех'},
   {id:'g11',n:'Полина Егорова',    s:52,  fav:'Какао',           shop:3, bio:'Рисую скетчи прямо за столиком'},
-  {id:'g12',n:'Максим Соколов',    s:37,  fav:'Флэт уайт',       shop:6, bio:'Начал серию — не остановлюсь'},
+  {id:'g12',n:'Максим Соколов',    s:37,  fav:'Флэт уайт',       shop:6, bio:'Зажёг огонёк — не дам погаснуть'},
   {id:'g13',n:'Елена Морозова',    s:21,  fav:'Латте',           shop:0, bio:'Новенькая в городе, давайте знакомиться'},
   {id:'g14',n:'Тимур Ахмедов',     s:9,   fav:'Американо',       shop:2, bio:'Только начал'},
 ];
@@ -1631,7 +1643,7 @@ function ava(i,size=44){ const bg=AV_BG[i%7], sk=AV_SKIN[(i*3)%4], hr=AV_HAIR[(i
 const lbAll=()=>{ const me={id:'me', n:S.name||'Ты', s:S.ser.n, me:true}; return [...GUESTS, ...(S.lbHide?[]:[me])].sort((a,b)=>b.s-a.s||(a.me?-1:1)); };
 const lbRank=()=>S.lbHide?'—':lbAll().findIndex(g=>g.me)+1;
 const gAva=(g,size)=>g.me?ava(99,size):ava(GUESTS.indexOf(g),size);
-function lbRow(g,i){ return `<button class="lbr ${g.me?'me':''}" onclick="${g.me?`toast('Это ты! Держи серию 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span></button>`; }
+function lbRow(g,i){ return `<button class="lbr ${g.me?'me':''}" onclick="${g.me?`toast('Это ты! Не дай огоньку погаснуть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span></button>`; }
 function leaderboard(){
   const all=lbAll(), r=all.findIndex(g=>g.me);
   const idx=new Set([0,1,2]); if(r>=0) for(let k=r-2;k<=r+2;k++) if(k>=0&&k<all.length) idx.add(k);
@@ -1646,13 +1658,13 @@ function leaderboard(){
     <p class="rh-foot">В прототипе гости вымышленные. В приложении — только те, кто сам согласился показывать себя.</p>
   </div>`;
 }
-function openLb(){ sheet(`<h2>Рейтинг серий</h2><p class="small muted">Гости кофейной — по длине серии 🔥. Нажми на гостя, чтобы познакомиться.</p><div class="lb">${lbAll().map(lbRow).join('')}</div>`); }
+function openLb(){ sheet(`<h2>Чей огонёк горит дольше</h2><p class="small muted">Гости кофейной: у кого огонёк 🔥 горит больше дней. Нажми на гостя, чтобы познакомиться.</p><div class="lb">${lbAll().map(lbRow).join('')}</div>`); }
 function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x=>x.id===id)+1;
-  sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'день','дня','дней')} в серии</span></div>
+  sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'день','дня','дней')} горит огонёк</span></div>
     <p class="gp-bio">«${g.bio}»</p>
     <div class="panel"><div class="row between"><span class="muted">Любимый напиток</span><b>${g.fav}</b></div><div class="row between"><span class="muted">Чаще всего</span><b>${SHOPS[g.shop%SHOPS.length].n}</b></div></div>
     <button class="btn block" onclick="openChat('${id}')">Написать</button>`); }
-const AUTO_REPLY=['Привет! 😊','О, привет! Ты тоже в Кофейной часто?','Давай как-нибудь пересечёмся на кофе ☕','Ха, спасибо! А какая у тебя серия?','Я обычно бываю утром, часов в 9','Супер, буду рада познакомиться!'];
+const AUTO_REPLY=['Привет! 😊','О, привет! Ты тоже в Кофейной часто?','Давай как-нибудь пересечёмся на кофе ☕','Ха, спасибо! А сколько дней горит твой огонёк?','Я обычно бываю утром, часов в 9','Супер, буду рада познакомиться!'];
 function openChat(id){ const g=GUESTS.find(x=>x.id===id), ms=S.chats[id]||[];
   sheet(`<div class="chat-h">${ava(GUESTS.indexOf(g),40)}<b>${g.n}</b></div>
     <div class="chat" id="chat">${ms.length?ms.map(m=>`<div class="msg ${m.me?'me':''}">${m.t.replace(/</g,'&lt;')}</div>`).join(''):`<p class="small muted" style="text-align:center">Напиши первым — например, позови на кофе ☕</p>`}</div>
@@ -1668,7 +1680,7 @@ function progress(){
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
     ${serHead()}
     ${tsec(1,'Твой ритм = твои бонусы',rhythm())}
-    ${tsec(2,'Рейтинг серий',leaderboard())}
+    ${tsec(2,'Чей огонёк горит дольше',leaderboard())}
     ${tsec(3,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`)}
 
   </section>`;
@@ -1733,7 +1745,7 @@ const RULES=[
       <li><b>Бонусы не сгорают.</b> 1 бонус = 1 ₽, ими можно оплатить до 30% чека.</li>
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
-  ['Серия 🔥',`<p class="small muted">Каждый день с покупкой — +1 к серии. Серия сгорает, только если за неделю было меньше ${SER_MIN} дней с покупкой. <b>Заморозка ❄️</b> закрывает один недостающий день в неделе: без подписки ${FZ_FREE} в месяц, с Кофейная+ — ${FZ_PLUS} (на каждую неделю). Срабатывает сама. Лучшая серия 👑 не сгорает никогда. В «Турбо» — рейтинг серий: можно посмотреть профиль гостя и написать ему.</p>`],
+  ['Огонёк 🔥',`<p class="small muted">Каждый день с покупкой — огонёк горит на день дольше. <b>Огонёк гаснет</b>, если за неделю было меньше ${SER_MIN} дней с покупкой. <b>Заморозка ❄️</b> закрывает один пропущенный день в неделе: без подписки ${FZ_FREE} в месяц, с Кофейная+ — ${FZ_PLUS} (на каждую неделю). Срабатывает сама. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, чей огонёк горит дольше, — можно открыть профиль гостя и написать ему.</p>`],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
   ['Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: пять отметок — шестой со скидкой.'],
@@ -1742,7 +1754,7 @@ const RULES=[
   ['Депозит','Пополняете баланс — получаете подарок сверху. Оплата с баланса на кассе.'],
   ['Подписка Кофейная+','Цены недели, бонусы до 7%, скидка в ДР. 99 ₽/мес, первые 6 месяцев бесплатно.'],
   ['Как скидки сочетаются','На одну позицию — одна лучшая скидка. Поверх — бонусы и депозит.'],
-  ['Достижения','Значки за визиты, серии и выгоду.'],
+  ['Достижения','Значки за визиты, огонёк и выгоду.'],
 ];
 function openRules(){
   sheet(`<h2>Как всё устроено</h2><p class="small muted">Коротко обо всех акциях и бонусах. Раздел в работе — подробности добавим.</p>
@@ -1775,7 +1787,7 @@ function profile(){
         return `<span class="label">Что вы любите</span><div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
         <span class="label">Какие акции вам ближе</span><div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>`})()}</div>
     <div class="panel"><h3>Уведомления</h3>
-      ${[['offer','Новое предложение дня'],['streak','Напоминание о серии 🔥'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
+      ${[['offer','Новое предложение дня'],['streak','Напоминание: не дай огоньку погаснуть 🔥'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
     <div class="stack"><button class="btn ghost block" onclick="logout()">Выйти</button>
       <button class="link" style="align-self:center" onclick="resetDemo()">Сбросить демо-данные</button></div>
   </section>`;
@@ -1866,7 +1878,7 @@ function birthday(){
   </section>`;
 }
 function plus(){
-  const rows=[['Персональное предложение',1,1],['Серия 🔥: заморозки',`${FZ_FREE} в мес`,`${FZ_PLUS} в мес`],['Каждый 6-й −30%',1,1],['Заказ, друг, баланс',1,1],['Бонусы с покупки (ритм)',`до ${FREE_CAP}%`,`до ${PLUS_CAP}%`],['Цены недели только для вас','—','✓'],['Скидка в день рождения',`${BD_FREE}%`,'= возраст']];
+  const rows=[['Персональное предложение',1,1],['Заморозки огонька ❄️',`${FZ_FREE} в мес`,`${FZ_PLUS} в мес`],['Каждый 6-й −30%',1,1],['Заказ, друг, баланс',1,1],['Бонусы с покупки (ритм)',`до ${FREE_CAP}%`,`до ${PLUS_CAP}%`],['Цены недели только для вас','—','✓'],['Скидка в день рождения',`${BD_FREE}%`,'= возраст']];
   return `<section class="screen">${back()}
     <div class="bday"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">★ Кофейная+</span>
       <span>${S.plus?`Подключена до ${plusEndTxt()}.`:'99 ₽ в месяц. Первые 6 месяцев после запуска — бесплатно для всех.'}</span></div>
@@ -1933,8 +1945,8 @@ const F = n => (!LEGEND_ON || LEGEND_HIDE.includes(n)) ? '' : ` data-f="${n}"`;
 const LEGEND = [
  [1,'#ff1744','Персональное предложение','Каждый день — своё предложение «только для тебя». Приложение учится: чем чаще пользуетесь, тем точнее.','«Сегодня», первая карточка',"go('home')"],
  [2,'#ffea00','Герой дня','Каждый день новый персонаж и цвет — чтобы предложение замечали. Нажмите «Завтра →» — герой сменится.','«Сегодня», справа на предложении',"go('home')"],
- [3,'#00e676','Серия 🔥','+1 за каждый день с покупкой; сгорает, если за неделю меньше 3 дней. Заморозки ❄️: 1 в месяц, с подпиской 4.','«Турбо», сверху',"go('progress')"],
- [4,'#ff9100','Рейтинг серий','Гости по длине серии: профиль, «Написать».','«Турбо»',"go('progress')"],
+ [3,'#00e676','Огонёк 🔥','+1 день за каждый день с покупкой; гаснет, если за неделю меньше 3 дней. Заморозки ❄️: 1 в месяц, с подпиской 4.','«Турбо», сверху',"go('progress')"],
+ [4,'#ff9100','Чей огонёк горит дольше','Гости по дням огонька: профиль, «Написать».','«Турбо»',"go('progress')"],
  [5,'#d500f9','Твой ритм','Дней с покупкой на прошлой неделе = % бонусов на этой (до 3%, с подпиской до 7%). Новый рекорд — +500.','«Турбо», «Профиль» → Мои выгоды',"go('progress')"],
  [6,'#1de9b6','Моя выгода','Сколько сэкономили по оплаченным покупкам. Бонусы и баланс — отдельно.','«Профиль» → Мои выгоды, «История покупок» по кнопке',"go('profile')"],
  [7,'#c6ff00','Достижения','Значки за визиты, недели в цель, экономию.','«Профиль»',"go('profile')"],
