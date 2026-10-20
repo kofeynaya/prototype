@@ -478,6 +478,18 @@ img.ava{object-fit:cover}
 .pw-row .tx small{color:var(--muted);font-size:13px;line-height:1.25}
 .pw-row:not(.on) .tx b{color:var(--ink)}
 .pw-row .btn{padding:8px 12px;font-size:13px;flex:none}
+.ptile{--neon:#d4ff3a;--g-track:#2c3324;position:relative;flex:none;width:176px;min-height:156px;border-radius:20px;padding:12px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:#f4f7ec;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(212,255,58,.22),rgba(212,255,58,0) 60%),#13160f;border:1px solid rgba(212,255,58,.35);box-shadow:0 0 22px -4px rgba(212,255,58,.45),inset 0 0 18px rgba(212,255,58,.06)}
+.ptile .pt-h{align-self:flex-start;font-weight:700;font-size:15px}
+.ptile .gauge{width:132px;height:auto;margin-top:2px;overflow:visible}
+.ptile .gv{filter:drop-shadow(0 0 6px rgba(212,255,58,.85))}
+.ptile .gt{font-family:var(--f-num);font-size:24px;fill:#fff}
+.ptile .pt-s{font-size:13px;opacity:.8}
+.ptile .pt-s b{color:var(--neon);opacity:1}
+.ptile .pt-btn{margin-top:4px;padding:7px 12px;border-radius:999px;background:var(--neon);color:#13160f;font-weight:700;font-size:13px;box-shadow:0 0 14px rgba(212,255,58,.55)}
+@media (prefers-reduced-motion:no-preference){.ptile{animation:neon 2.8s ease-in-out infinite}}
+@keyframes neon{50%{box-shadow:0 0 34px -2px rgba(212,255,58,.65),inset 0 0 18px rgba(212,255,58,.1)}}
+.hscroll:has(.ptile){padding-top:12px;padding-bottom:16px;margin-top:-12px;margin-bottom:-16px}
 .perk{width:150px;min-height:156px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;text-align:left}
 .perk .pi{height:48px;width:48px;flex:none;margin-bottom:8px;display:grid;place-items:center}
 .perk .pi svg{width:48px;height:48px}
@@ -1330,7 +1342,7 @@ function home(){
   const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
-    {n:0, t:`Заряд выгоды ${powerPct()}%`, s:`Включено ${powerItems().filter(x=>x.on).length} из ${powerItems().length} — что ещё?`, bg:'var(--cream)', go:"go('power')", big:battery(powerPct())},
+    {power:true},
     {n:12, t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст · ${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
     {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
@@ -1353,7 +1365,7 @@ function home(){
     ${bdBanner()}
 
     <div class="stack"${F(16)}><div class="wowhead"><h2>Самое выгодное</h2>${WOW}</div>
-      <div class="hscroll">${perks.map(k=>`<button class="perk"${F(k.n)} style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
+      <div class="hscroll">${perks.map(k=>k.power?powerTile():`<button class="perk"${F(k.n)} style="background:${k.bg};color:${k.fg||'var(--on-color)'}" onclick="${k.go}"><span class="pi">${k.big}</span><strong>${k.t}</strong><span>${k.s}</span></button>`).join('')}</div></div>
 
   </section>`;
 }
@@ -1883,6 +1895,12 @@ function powerItems(){
     {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_REWARD} ₽ тебе и другу`,                  btn:"go('invite')"},
   ];
 }
+// Спидометр: полукруг, заполнен на pct% (неоновая дуга со свечением)
+function gauge(pct,label){ const r=46, L=Math.PI*r, f=L*pct/100;
+  return `<svg class="gauge" viewBox="0 0 120 70" role="img" aria-label="${pct}%"><path d="M14 62a46 46 0 0 1 92 0" fill="none" stroke="var(--g-track)" stroke-width="11" stroke-linecap="round"/><path class="gv" d="M14 62a46 46 0 0 1 92 0" fill="none" stroke="var(--neon)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${f} ${L}"/><text x="60" y="56" text-anchor="middle" class="gt">${pct}%</text>${label?`<text x="60" y="68" text-anchor="middle" class="gl">${label}</text>`:''}</svg>`; }
+// Плитка «Заряд выгоды» на «Сегодня» — тёмная, с неоновым свечением и спидометром
+function powerTile(){ const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct();
+  return `<button class="ptile" onclick="go('power')"><span class="pt-h">Заряд выгоды</span>${gauge(pct)}<span class="pt-s">Включено <b>${on} из ${it.length}</b></span><span class="pt-btn">${pct<100?'Включить ещё':'Всё включено'} →</span></button>`; }
 // Вход в «Заряд выгоды» — одна и та же аккуратная строка на всех вкладках
 function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on);
   return `<button class="pw-link" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды ${pct}%</b><small>${tip?`Ещё можно включить: ${tip.t}`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
