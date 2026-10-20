@@ -462,6 +462,23 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .crop-prev .cp{position:relative;flex:none;border-radius:50%;overflow:hidden;background:var(--line)}
 .crop-prev .cp img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0}
 img.ava{object-fit:cover}
+.ben{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.ben-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ben-v{font-family:var(--f-num);font-size:24px;color:#2e9e5b;white-space:nowrap}
+.ben-r{display:grid;grid-template-columns:1fr auto;grid-template-areas:"t v" "b b";gap:3px 8px;font-size:13px;color:var(--muted)}
+.ben-r span:first-child{grid-area:t}.ben-r b{grid-area:v;color:var(--ink);font-size:14px}
+.ben-r .bar{grid-area:b;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.ben-r .bar i{display:block;height:100%;border-radius:5px;background:var(--muted);opacity:.55}
+.ben-r.me .bar i{background:#2e9e5b;opacity:1}
+.ben-r.me{color:var(--ink)}
+.ben-st{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-top:4px}
+.ben-st i{min-width:4px}
+.ben-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.ben-lg span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.ben-lg i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.ben-lg b{color:var(--ink);font-weight:700}
+.ben-b{margin:0;font-size:13px;color:var(--muted)}
+.ben-b b{color:var(--ink)}
 .pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
 .pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
 .pw-link .batt .bb,.pw-link .batt .bt{border-color:var(--ink)}.pw-link .batt .bt{background:var(--ink)}
@@ -1011,6 +1028,11 @@ if(!S.past2){ S.past=[3,4,2,5,3,4,3]; S.past2=1; } // демо: дни с пок
 if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // демо: серия уже идёт 87 дней, лучшая — 112
 if(!S.chats) S.chats={};
+if(!S.benDemo){ S.benDemo=1; let sd=11; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647, ids=[ID.cap,ID.croissant,ID.muffin,ID.caesar,ID.cookie].filter(Boolean), K=['offer','pp','six','offer','bd'];
+  const old=[]; for(let i=0;i<24;i++){ const day=-(i*3+2), its=[ids[i%ids.length],ids[(i*3+1)%ids.length]], reg=its.reduce((a,id)=>a+byId(id).p,0);
+    const k=K[i%5], dsc=k==='bd'?Math.round(reg*.3):Math.round(reg*(.08+rnd()*.2)), bs=0, gs=i%6===0?30:0;
+    old.push({day,items:its,sum:reg-dsc-bs,goods:reg-dsc,saved:dsc,src:{[k]:dsc},giftSpend:gs,bonus:Math.round((reg-dsc)*.03),bonusSpend:bs,walletSpend:gs,ch:'Касса'}); S.saved+=dsc; }
+  S.orders=[...old.reverse(),...S.orders]; }
 if(!S.histPast){ // демо: посещения до начала календаря прототипа, сходятся с «87 подряд» и «лучший 112»
   let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647, pick=(w,k)=>{ const ds=[0,1,2,3,4,5,6].sort(()=>rnd()-.5).slice(0,k); return ds.map(d=>w*7+d); };
   const out=[], burnt=[]; let w=-1, left=Math.max(0,S.ser.n-S.visits.filter(d=>d<S.day).length);
@@ -1102,7 +1124,7 @@ function quote(lines, opt={}){
   const out=[];
   for(const u of units){
     const m=byId(u.id), full=m.p+u.sur; regular+=full;
-    if(comboOk && comboLeft.includes(u.id)){ comboLeft.splice(comboLeft.indexOf(u.id),1); out.push({id:u.id,name:m.n,regular:full,price:null,why:'комбо дня'}); continue; }
+    if(comboOk && comboLeft.includes(u.id)){ comboLeft.splice(comboLeft.indexOf(u.id),1); out.push({id:u.id,name:m.n,regular:full,price:null,why:'комбо дня',k:'offer'}); continue; }
     let best={price:full,why:'',k:''};
     const cand=(p,why,k)=>{ if(p<best.price) best={price:p,why,k} };
     const pp=myPrice(u.id); if(pp!=null) cand(pp+u.sur,'★ цена недели','pp');
@@ -1114,7 +1136,7 @@ function quote(lines, opt={}){
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
     if(best.k==='six'){ sixLeft[u.id]=0; sixthUsed.push(u.id); }
     if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
-    out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why});
+    out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why,k:best.k==='gift'?'offer':best.k});
   }
   if(comboOk){ const cl=out.filter(l=>l.price===null); const full=cl.reduce((a,l)=>a+l.regular-0,0);
     cl.forEach(l=>l.price=Math.round(l.regular/full*o.comboPrice)); offerUsed=true; }
@@ -1128,7 +1150,9 @@ function quote(lines, opt={}){
 }
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
 function applyPurchase(q, channel, doc){
-  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, goods:q.paid, saved:q.saved, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
+  const src={}; q.lines.forEach(l=>{ if(l.k&&l.regular>l.price) src[l.k]=(src[l.k]||0)+l.regular-l.price; });
+  const giftSpend=Math.max(0,q.walletSpend-Math.min(S.wallet.money,q.walletSpend));
+  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   if(first){ S.visits.push(S.day); S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.lost=0; }
@@ -1976,6 +2000,24 @@ function power(){
     <p class="rh-foot" style="text-align:center">Зелёная галочка — выгода уже работает на тебя.</p>
   </section>`;
 }
+/* «Выгода от приложения»: сколько заплатил бы без приложения и сколько заплатил с ним — и откуда разница. Бонусы на счёте — отдельной строкой (это не деньги) */
+const BEN_SRC=[['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Подарок депозита','#2e9e5b']];
+function benefit(){
+  const os=S.orders; if(!os.length) return `<div class="ben"><b>Выгода от приложения</b><span class="small muted">Сделай первую покупку — здесь появится, сколько ты сэкономил.</span></div>`;
+  const by={}; let without=0, paid=0;
+  for(const o of os){ const sv=o.saved||0, bs=o.bonusSpend||0, gs=o.giftSpend||0; without+=o.sum+sv+bs; paid+=o.sum-gs;
+    if(o.src&&Object.keys(o.src).length) for(const k in o.src) by[k]=(by[k]||0)+o.src[k]; else if(sv) by.disc=(by.disc||0)+sv;
+    if(bs) by.bonus=(by.bonus||0)+bs; if(gs) by.gift=(by.gift||0)+gs; }
+  const gain=without-paid, parts=BEN_SRC.filter(([k])=>by[k]>0);
+  return `<div class="ben">
+    <div class="ben-h"><b>Выгода от приложения</b><span class="ben-v money">+${rub(gain)}</span></div>
+    <div class="ben-r"><span>Без приложения заплатил бы</span><span class="bar"><i style="width:100%"></i></span><b class="money">${rub(without)}</b></div>
+    <div class="ben-r me"><span>С приложением заплатил</span><span class="bar"><i style="width:${Math.round(paid/without*100)}%"></i></span><b class="money">${rub(paid)}</b></div>
+    <div class="ben-st">${parts.map(([k,,c])=>`<i style="flex:${by[k]};background:${c}"></i>`).join('')}</div>
+    <div class="ben-lg">${parts.map(([k,t,c])=>`<span><i style="background:${c}"></i>${t} <b class="money">${rub(by[k])}</b></span>`).join('')}</div>
+    ${S.bonus?`<p class="ben-b">И ещё ${COIN}<b>${S.bonus}</b> бонусов на счёте — это ${rub(S.bonus)} к следующей покупке.</p>`:''}
+  </div>`;
+}
 /* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
 /* кегль числа в плитке под длину — чтобы «+1 150 ₽» и больше не упирались в край */
 const fitNum=(t,extra=0)=>{ const n=t.length+extra; return `font-size:${n<=5?18:n<=7?15.5:n<=9?13:11}px`; };
@@ -2003,6 +2045,7 @@ function dashboard(){
       <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money" style="${fs}">${rub(S.saved)}</b><small>за всё время</small></div>
       <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money" style="${fs}">${giftT}</b><small>за всё время</small></button>
     </div>
+    ${benefit()}
     ${S.plus?'':`<div class="dash">
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
