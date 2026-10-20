@@ -734,6 +734,10 @@ img.ava{object-fit:cover}
 .ser-week i{width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-style:normal;font-size:15px}
 .ser-week .v i{background:rgba(255,109,0,.18)}
 .ser-week .now i{box-shadow:0 0 0 2px var(--ink)}
+.ser-week button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:0;background:none}
+.stc .ser-week button{color:inherit;opacity:.8}
+.ser-week button.can i{box-shadow:0 0 0 2px rgba(41,182,246,.7)}
+.fz-hint{margin:0;font-size:12px;opacity:.85}
 .ser-week .x i{background:rgba(229,57,53,.14);color:#e53935;font-weight:900;font-size:17px}
 .ser-week .fz i{background:rgba(155,217,217,.35)}
 .ser-week .today{color:var(--ink);font-weight:700}
@@ -1088,6 +1092,9 @@ const weekDays = w => S.visits.filter(v=>weekOf(v)===w).length;
    Заморозка закрывает один недостающий день в неделе (не больше одной в неделю): без подписки 1 в месяц, с подпиской 4. */
 const SER_MIN = 3, FZ_FREE = 1, FZ_PLUS = 4;
 const monthKey = d => { const x=dateOf(d); return x.getFullYear()*12+x.getMonth(); };
+const fzDaysIn = w => (S.ser.fzDays||[]).filter(d=>weekOf(d)===w);
+const weekFrozen = w => S.ser.frozen.includes(w) || fzDaysIn(w).length>0;   // в этой неделе заморозка уже использована
+const serDays = w => weekDays(w) + fzDaysIn(w).length;                       // дни для счётчика: посещения + замороженные дни
 const fzLeft = (d=S.day) => (S.plus?FZ_PLUS:FZ_FREE) - (S.ser.fz.m===monthKey(d)?S.ser.fz.used:0);
 const lastWeekDays = () => { const w=weekOf(S.day)-1; return w>=0 ? weekDays(w) : ((S.past||[]).slice(-1)[0]||0); };
 const rawRate = () => Math.min(7,lastWeekDays());            // % по ритму без учёта подписки
@@ -1237,10 +1244,10 @@ function nextDay(){
   const w=weekOf(S.day); S.day++;
   let msg='Новый день: '+fmt(S.day)+'.';
   if(weekOf(S.day)!==w){
-    const d=weekDays(w), met=d>=SER_MIN, was=Math.min(rawRate(),rateCap()), rec=isRecord(d); S.weekHist.push({week:w,days:d,met});
+    const d=weekDays(w), met=serDays(w)>=SER_MIN, was=Math.min(rawRate(),rateCap()), rec=isRecord(d); S.weekHist.push({week:w,days:d,met});
     msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rate()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     if(!met && S.ser.n){ const end=w*7+6;
-      if(d===SER_MIN-1 && fzLeft(end)>0){ const m=monthKey(end); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла твои ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')}.`; }
+      if(serDays(w)===SER_MIN-1 && !weekFrozen(w) && fzLeft(end)>0){ const m=monthKey(end); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла твои ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')}.`; }
       else { S.ser.lost=S.ser.n; (S.ser.burnt=S.ser.burnt||[]).push(w); msg+=` Счётчик ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')} сгорел — начинаем с нуля. Лучший результат (${S.ser.best}) остаётся.`; S.ser.n=0; } }
     if(rec){ S.bonus+=REC_BONUS; msg+=` 🏆 Новый рекорд: +${REC_BONUS} бонусов!`; }
   }
@@ -1793,8 +1800,8 @@ const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.
 /* ---------- Серия 🔥: шапка «Турбо» (как верхняя панель Дуолинго) ---------- */
 const FLAME_P='M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z';
 function serState(){
-  const cur=weekDays(weekOf(S.day)), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0);
-  const need=Math.max(0,SER_MIN-cur), fz=fzLeft(weekOf(S.day)*7+6)>0, must=need-(fz?1:0), D=n=>plural(n,'день','дня','дней');
+  const w0=weekOf(S.day), cur=serDays(w0), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0);
+  const need=Math.max(0,SER_MIN-cur), fz=!weekFrozen(w0)&&fzLeft(w0*7+6)>0, must=need-(fz?1:0), D=n=>plural(n,'день','дня','дней');
   const when=left===1?'сегодня':'каждый день до воскресенья';
   let k, msg;
   if(!S.ser.n){ k='zero'; msg=S.ser.lost?`Твои ${S.ser.lost} ${plural(S.ser.lost,'посещение','посещения','посещений')} сгорели. Начни заново — с первой покупки.`:`Зайди сегодня — и счётчик пойдёт.`; }
@@ -1808,10 +1815,12 @@ function serState(){
 // Дни этой недели у счётчика посещений: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
 function serWeek(w){
   const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d<S.day && !S.visits.includes(d); });
-  const fzDay=S.ser.frozen.includes(w)?miss[miss.length-1]:-1;
+  const fzDay=S.ser.frozen.includes(w)?miss[miss.length-1]:-1, man=fzDaysIn(w).map(d=>d%7);
+  const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !weekFrozen(w);
   return `<div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
-    const k=v?'v':i===fzDay?'fz':miss.includes(i)?'x':day===S.day?'now':'fut';
-    return `<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='x'?'✕':''}</i>${d}</span>`; }).join('')}</div>`;
+    const k=v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?'x':day===S.day?'now':'fut';
+    return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':''}</i>${d}</span>`; }).join('')}</div>
+    ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на ✕</b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
 /* Статус гостя — по счётчику «посещений подряд». Сгорел счётчик — статус возвращается к Серебряному (лучший результат остаётся). */
 const TIERS=[{k:'silver',n:'Серебряный',to:'Серебряного',from:0},{k:'gold',n:'Золотой',to:'Золотого',from:30},{k:'plat',n:'Платиновый',to:'Платинового',from:100}];
@@ -1853,7 +1862,7 @@ function openTiers(){
 const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function openVisits(){
   const all=new Set([...(S.histPast||[]), ...S.visits]), reg=S.regDay??0, total=[...all].filter(d=>d<=S.day).length, r=dateOf(reg);
-  const burnt=new Set((S.ser.burnt||[]).map(w=>w*7+6)), fz=new Set(S.ser.frozen.map(w=>w*7+6));
+  const burnt=new Set((S.ser.burnt||[]).map(w=>w*7+6)), fz=new Set([...S.ser.frozen.map(w=>w*7+6),...(S.ser.fzDays||[])]);
   const months=[]; let d=new Date(dateOf(S.day).getFullYear(),dateOf(S.day).getMonth(),1);
   while(d>=new Date(r.getFullYear(),r.getMonth(),1)){ months.push(new Date(d)); d.setMonth(d.getMonth()-1); }
   const off=x=>Math.round((x-new Date(DAY0))/864e5);
@@ -1869,6 +1878,16 @@ function openVisits(){
     <div class="vm-leg"><span>🔥 был</span><span>❄️ заморозка</span><span>💔 счётчик сгорел</span></div>
     ${months.map(mon).join('')}`);
 }
+// Заморозить пропущенный день задним числом — только с подпиской «Кофейная+», одна заморозка в неделю
+function freezeDay(day){ const w=weekOf(day), dn=fmt(day);
+  if(!S.plus) return sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>Пропущенный день можно заморозить задним числом — он засчитается в счётчик, и посещения не сгорят.</p><p class="small muted">Это можно только с подпиской <b>★ Кофейная+</b>: ${FZ_PLUS} заморозки в месяц, по одной на каждую неделю.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
+  if(weekFrozen(w)) return toast('На этой неделе заморозка уже использована — одна в неделю.');
+  if(fzLeft(day)<=0) return toast('Заморозки в этом месяце закончились.');
+  const left=fzLeft(day)-1;
+  sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>День засчитается в счётчик, как будто ты зашёл. Посещения не сгорят.</p><p class="small muted">После этого останется ${left} ${plural(left,'заморозка','заморозки','заморозок')} в этом месяце. На этой неделе — больше нельзя.</p>
+    <button class="btn block" onclick="doFreeze(${day})">Заморозить ❄️</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
+function doFreeze(day){ const m=monthKey(day); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; (S.ser.fzDays=S.ser.fzDays||[]).push(day);
+  save(); closeSheet(); render(); toast(`❄️ ${fmt(day)} заморожен — счётчик не сгорит.`); }
 function openFreeze(){
   const max=S.plus?FZ_PLUS:FZ_FREE, left=Math.max(0,fzLeft());
   sheet(`<h2>❄️ Заморозки</h2>
@@ -2145,7 +2164,7 @@ const RULES=[
       <li><b>Бонусы не сгорают.</b> 1 бонус = 1 ₽, ими можно оплатить до 30% чека.</li>
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
-  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> закрывает одно пропущенное посещение в неделе: без подписки ${FZ_FREE} в месяц, с Кофейная+ — ${FZ_PLUS}. Срабатывает сама. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
+  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> закрывает одно пропущенное посещение в неделе: без подписки ${FZ_FREE} в месяц, с Кофейная+ — ${FZ_PLUS}. Срабатывает сама. С Кофейная+ пропущенный день можно заморозить и задним числом — нажми на красный ✕ (одна заморозка в неделю). 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
   ['Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: пять отметок — шестой со скидкой.'],
