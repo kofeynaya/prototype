@@ -449,11 +449,18 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @media (prefers-reduced-motion:no-preference){.batt .bb i.edge{animation:serblink 1.4s ease-in-out infinite}}
 .myph{position:relative;width:44px;height:44px;flex:none;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--muted);color:var(--muted);cursor:pointer;overflow:hidden}
 .myph .pl{font-size:24px;line-height:1;font-weight:300}
-.myph .cap{display:none}
 .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .myph.has{border:0}
 .myph img{width:100%;height:100%;object-fit:cover}
-.myph.has::after{content:"+";position:absolute;right:0;bottom:0;width:16px;height:16px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:13px;line-height:16px;text-align:center}
+.myph.has{padding:0;background:none}
+.crop{position:relative;align-self:center;overflow:hidden;border-radius:16px;touch-action:none;cursor:grab;background:#000}
+.crop img{position:absolute;left:0;top:0;max-width:none;user-select:none;pointer-events:none;transform-origin:0 0}
+.crop-mask{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 200px rgba(0,0,0,.55);outline:2px solid rgba(255,255,255,.9);outline-offset:-2px;pointer-events:none}
+.crop-z{display:flex;align-items:center;gap:10px;font-size:22px;color:var(--muted)}
+.crop-z input{flex:1}
+.crop-prev{display:flex;align-items:center;gap:12px}
+.crop-prev .cp{position:relative;flex:none;border-radius:50%;overflow:hidden;background:var(--line)}
+.crop-prev .cp img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0}
 img.ava{object-fit:cover}
 .pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
 .pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
@@ -1823,12 +1830,44 @@ function ava(i,size=44){ const bg=AV_BG[i%7], sk=AV_SKIN[(i*3)%4], hr=AV_HAIR[(i
 const lbAll=()=>{ const me={id:'me', n:S.name||'Ты', s:S.ser.n, me:true}; return [...GUESTS, ...(S.lbHide?[]:[me])].sort((a,b)=>b.s-a.s||(a.me?-1:1)); };
 const lbRank=()=>S.lbHide?'—':lbAll().findIndex(g=>g.me)+1;
 const gAva=(g,size)=>g.me?(S.photo?`<img class="ava" src="${S.photo}" width="${size}" height="${size}" alt="">`:ava(99,size)):ava(GUESTS.indexOf(g),size);
-/* Фото профиля: кружок с «+», по нажатию — выбрать фото (или снять камерой); уменьшаем до 256 px и храним у себя */
-function myPhoto(){ return `<label class="myph ${S.photo?'has':''}" aria-label="${S.photo?'Сменить фото':'Добавить фото'}">${S.photo?`<img src="${S.photo}" alt="">`:'<span class="pl">+</span><span class="cap">фото</span>'}<input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
+/* Фото профиля: пустой кружок с «+» → выбрать фото → окно «Поправь фото»: двигать пальцем и приближать внутри круга,
+   сразу видно, как фото будет выглядеть в профиле. Сохраняем 256×256 у гостя. С фото — без «+», по нажатию: сменить / удалить */
+function myPhoto(){ return S.photo
+  ? `<button class="myph has" onclick="openPhotoMenu()" aria-label="Фото профиля"><img src="${S.photo}" alt=""></button>`
+  : `<label class="myph" aria-label="Добавить фото"><span class="pl">+</span><input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
+function openPhotoMenu(){ sheet(`<h2>Фото профиля</h2><div class="gp"><img class="ava" src="${S.photo}" width="120" height="120" alt=""></div>
+  <label class="btn block" style="text-align:center">Выбрать другое фото<input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>
+  <button class="btn ghost block" onclick="S.photo=null;save();closeSheet();render()">Удалить фото</button>`); }
+const CROP={S:280};
 function setPhoto(inp){ const f=inp.files&&inp.files[0]; if(!f) return; const r=new FileReader();
-  r.onload=()=>{ const im=new Image(); im.onload=()=>{ const n=256, c=document.createElement('canvas'); c.width=c.height=n; const k=Math.min(im.width,im.height);
-    c.getContext('2d').drawImage(im,(im.width-k)/2,(im.height-k)/2,k,k,0,0,n,n); S.photo=c.toDataURL('image/jpeg',.82); save(); render(); toast('Фото добавлено. Его видят гости в «У кого больше посещений».'); };
-    im.src=r.result; }; r.readAsDataURL(f); }
+  r.onload=()=>{ const im=new Image(); im.onload=()=>{ CROP.im=im; CROP.base=CROP.S/Math.min(im.width,im.height); CROP.z=1;
+      CROP.x=(CROP.S-im.width*CROP.base)/2; CROP.y=(CROP.S-im.height*CROP.base)/2; openCrop(); }; im.src=r.result; }; r.readAsDataURL(f); }
+function openCrop(){
+  sheet(`<h2>Поправь фото</h2><p class="small muted" style="margin:0">Двигай пальцем и приближай — в профиле будет то, что внутри круга.</p>
+    <div class="crop" id="crop" style="width:${CROP.S}px;height:${CROP.S}px"><img id="cropimg" src="${CROP.im.src}" alt="" draggable="false"><span class="crop-mask"></span></div>
+    <label class="crop-z">−<input type="range" id="cropz" min="1" max="4" step="0.01" value="${CROP.z}" oninput="cropZoom(+this.value)">+</label>
+    <div class="crop-prev"><span class="small muted">Так будет в профиле:</span><span class="cp" style="width:44px;height:44px"><img alt=""></span><span class="cp" style="width:72px;height:72px"><img alt=""></span></div>
+    <button class="btn block" onclick="cropSave()">Готово</button>`);
+  const st=document.getElementById('crop'), pts=new Map(); let last=null, pinch=null;
+  st.addEventListener('pointerdown',e=>{ st.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); last={x:e.clientX,y:e.clientY};
+    if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:CROP.z}; } });
+  st.addEventListener('pointermove',e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===2&&pinch){ const [a,b]=[...pts.values()]; cropZoom(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d); return; }
+    CROP.x+=e.clientX-last.x; CROP.y+=e.clientY-last.y; last={x:e.clientX,y:e.clientY}; cropDraw(); });
+  const up=e=>{ pts.delete(e.pointerId); pinch=null; const r=[...pts.values()][0]; if(r) last={...r}; };
+  st.addEventListener('pointerup',up); st.addEventListener('pointercancel',up);
+  st.addEventListener('wheel',e=>{ e.preventDefault(); cropZoom(CROP.z*(e.deltaY<0?1.06:1/1.06)); },{passive:false});
+  cropDraw();
+}
+function cropZoom(z){ const c=CROP, S2=c.S/2, k=Math.max(1,Math.min(4,z))/c.z; c.x=S2-(S2-c.x)*k; c.y=S2-(S2-c.y)*k; c.z*=k; const r=document.getElementById('cropz'); if(r) r.value=c.z; cropDraw(); }
+function cropDraw(){ const c=CROP, k=c.base*c.z, w=c.im.width*k, h=c.im.height*k;
+  c.x=Math.min(0,Math.max(c.S-w,c.x)); c.y=Math.min(0,Math.max(c.S-h,c.y));
+  const set=(el,sc)=>{ el.style.width=w*sc+'px'; el.style.height=h*sc+'px'; el.style.transform=`translate(${c.x*sc}px,${c.y*sc}px)`; };
+  const m=document.getElementById('cropimg'); if(m) set(m,1);
+  document.querySelectorAll('.crop-prev .cp').forEach(cp=>{ const im=cp.querySelector('img'); im.src=c.im.src; set(im,cp.offsetWidth/c.S); }); }
+function cropSave(){ const c=CROP, k=c.base*c.z, n=256, cv=document.createElement('canvas'); cv.width=cv.height=n;
+  cv.getContext('2d').drawImage(c.im,-c.x/k,-c.y/k,c.S/k,c.S/k,0,0,n,n); S.photo=cv.toDataURL('image/jpeg',.85); save(); closeSheet(); render();
+  toast('Фото сохранено. Его видят гости в «У кого больше посещений».'); }
 function lbRow(g,i){ return `<button class="lbr ${g.me?'me':''}" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span></button>`; }
 function leaderboard(){
   const all=lbAll(), r=all.findIndex(g=>g.me);
