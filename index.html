@@ -554,6 +554,13 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .rhythm.hot{border-color:#ff6d00;box-shadow:0 0 0 3px rgba(255,109,0,.18)}
 .rhythm.win{border-color:#f2c230;background:linear-gradient(135deg,rgba(242,194,48,.18),var(--surface) 60%)}
 .rh-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+/* «Турбо»: пронумерованные заголовки блоков — цифра в квадрате (как акцидентные цифры фирстиля) + название над карточкой */
+.tsec{display:flex;flex-direction:column;gap:10px}
+.tsec-h{display:flex;align-items:center;gap:10px}
+.tsec-h .tile{font-size:20px;flex:none}
+.tsec-h h2{flex:1;margin:0;font-size:22px;line-height:1.15}
+.tsec-h .aside{flex:none;font-size:14px;color:var(--muted)}
+.streak-line{display:flex;align-items:center;gap:8px;font-weight:600}
 .rh-rec{font-size:13px;font-weight:700;white-space:nowrap}
 .rh-big{display:flex;align-items:center;gap:10px}
 .rh-big b{font-family:var(--f-num);font-size:44px;line-height:1}
@@ -1440,14 +1447,15 @@ function rhythm(){
   else if(cur===rec){ msg=`<b>Ты повторил рекорд!</b> Ещё один день на этой неделе — и он твой, плюс +${REC_BONUS} бонусов.`; mood='hot'; }
   else if(canMax>rec){ const need=rec+1-cur; msg=cur>=avgR&&cur>0?`<b>${cur} ${D(cur)} — это уже больше, чем обычно.</b> До нового рекорда ${need} ${D(need)}, награда +${REC_BONUS} бонусов. Поднажми!`:`Обычно ты заходишь <b>${String(avg).replace('.',',')}</b> ${plural(avgR,'день','дня','дней')} в неделю, а твой рекорд — <b>${rec} ${D(rec)}</b>. Побей его — получишь +${REC_BONUS} бонусов.`; }
   else { const toAvg=Math.max(0,avgR+1-cur); msg=toAvg&&toAvg<=left?`<b>Каждый день с покупкой — в копилку.</b> Ещё ${toAvg} ${D(toAvg)} — и эта неделя будет лучше обычной. Чем чаще заходишь, тем больше бонусов!`:`<b>Заходи, когда удобно — каждый день считается.</b> Чем чаще заходишь, тем выше уровень и больше бонусов с каждой покупки.`; }
-  return `<div class="rhythm ${mood}"${F(3)}>
-    <div class="rh-top"><span class="label">Твой ритм</span><span class="rh-rec">👑 Рекорд: ${rec} ${D(rec)} в неделю</span></div>
+  return `<div class="rhythm ${mood}">
+    <div class="rh-top" style="justify-content:flex-end"><span class="rh-rec">👑 Рекорд: ${rec} ${D(rec)} в неделю</span></div>
     <div class="rh-big"><b class="money">${cur}</b><span>${plural(cur,'день','дня','дней')} с покупкой<br>на этой неделе</span></div>
     <div class="rh-cells">${[1,2,3,4,5,6,7].map(n=>`<span class="c ${n<=cur?'f':''} ${n===rec?'rc':''} ${n===rec+1&&cur<=rec?'nx':''}">${n===rec?'<i class="cr">👑</i>':''}${n}${n===avgR?'<i class="avg">обычно</i>':''}</span>`).join('')}</div>
     <p class="rh-msg">${msg}</p>
   </div>`;
 }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
+function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h">${tiles(n)}<h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
 function progress(){
   const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
@@ -1455,22 +1463,20 @@ function progress(){
   return `<section class="screen">
     ${S.turboHide?`<button class="turbo-head" onclick="S.turboHide=false;save();render()" aria-label="Что такое Турбо"><span class="th-ic"><svg viewBox="0 0 24 24">${TURBO_IC}</svg></span><span class="th-tx"><b>Турбо</b><span class="small muted">Самое мощное: все акции за регулярность</span></span></button>`
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
-    ${rhythm()}
-    <div class="stack"><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
-    <div class="panel"${F(3)}>
-      <div class="row between"><h3>Эта неделя</h3><span class="money">${wd} / ${S.goal}</span></div>
+    ${tsec(1,'Твой ритм',rhythm())}
+    ${tsec(2,'Цель недели',`<div class="panel"${F(3)}>
       ${goalTrack()}
       <p class="small muted">Засчитывается день с оплаченной покупкой: на кассе, самовывоз, за столиком или доставка. Несколько покупок в день — один день.</p>
-    </div>
-    <div class="panel"${F(4)}><h3>Огоньки</h3>
+    </div>`,`<span class="money">${wd} / ${S.goal}</span>`)}
+    ${tsec(3,'Огоньки',`<div class="panel"${F(4)}>
+      <div class="streak-line">🔥 ${S.streak} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</div>
       <div class="flames">${hist.map(h=>flame(h.met,`Неделя ${fmtShort(h.week*7)}: ${h.days} из ${S.goal}`)).join('')}${(()=>{const cw=weekDays(weekOf(S.day)),ok=cw>=S.goal;return flame(ok,ok?'Эта неделя: цель выполнена!':`Эта неделя: ${cw} из ${S.goal}`,!ok)})()}</div>
       <p class="small">${weekDays(weekOf(S.day))>=S.goal?'<b>Огонёк этой недели уже ваш!</b> В понедельник он засчитается в серию и поднимет уровень бонусов.':`Эта неделя: <b>${weekDays(weekOf(S.day))} из ${S.goal}</b> — огонёк загорится, когда наберёте ${S.goal}.`}</p>
-      <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, бонусы на счёте не сгорают.</p></div>
-    <div class="panel"${F(5)}>
-      <div class="row between"><h3>Бонусы с каждой покупки</h3><span class="chip">${effLevel().p}%</span></div>
+      <p class="small muted">Огонёк — неделя, в которой вы выполнили цель. Пропущенная неделя снижает уровень на одну ступень, бонусы на счёте не сгорают.</p></div>`)}
+    ${tsec(4,'Бонусы с каждой покупки',`<div class="panel"${F(5)}>
       <div class="ladder">${LEVELS.map(l=>`<div class="step ${l===level()?'cur':''}"><span class="p">${l.p}%${l.p>FREE_CAP&&!S.plus?'<sup>★</sup>':''}</span><span class="w">${l.w===4?'4+ нед.':l.w+' нед.'}</span></div>`).join('')}</div>
-      <p class="small">${capped?`Ваш уровень — ${level().p}%, без подписки начисляем ${FREE_CAP}%. <button class="link" onclick="go('plus')">Кофейная+</button> открывает до 10%.`:nextLevel()?`Ещё одна неделя в цель — и будет ${nextLevel().p}%${!S.plus&&nextLevel().p>FREE_CAP?' (★ с подпиской)':''}.`:'Максимальный уровень.'}</p></div>
-    <div class="panel"${F(11)}><h3>Каждый 6-й — на 30% дешевле</h3>${stampsBlock(false)}</div>
+      <p class="small">${capped?`Ваш уровень — ${level().p}%, без подписки начисляем ${FREE_CAP}%. <button class="link" onclick="go('plus')">Кофейная+</button> открывает до 10%.`:nextLevel()?`Ещё одна неделя в цель — и будет ${nextLevel().p}%${!S.plus&&nextLevel().p>FREE_CAP?' (★ с подпиской)':''}.`:'Максимальный уровень.'}</p></div>`,`<span class="chip">${effLevel().p}%</span>`)}
+    ${tsec(5,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`)}
 
   </section>`;
 }
