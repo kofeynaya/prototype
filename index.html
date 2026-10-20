@@ -790,9 +790,9 @@ img.ava{object-fit:cover}
 .promo-h h2{margin:0;font-size:26px}
 .tstack{--page:var(--bg);display:flex;flex-direction:column;padding-top:14px}
 .tk{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:24px;background:var(--tkbg)}
-.tk+.tk{margin-top:6px}
-.tk-bump{position:absolute;left:50%;top:-15px;width:180px;height:16px;transform:translateX(-50%);fill:var(--tkbg)}
-.tk-notch{position:absolute;left:50%;bottom:-1px;width:200px;height:18px;transform:translateX(-50%);fill:var(--page);z-index:1}
+.tk+.tk{margin-top:5px}
+.tk-bump{position:absolute;left:50%;top:-16px;width:180px;height:17px;transform:translateX(-50%);fill:var(--tkbg);z-index:2}
+.tk-notch{position:absolute;left:50%;bottom:-1px;width:196px;height:22px;transform:translateX(-50%);fill:var(--page);z-index:1}
 .tk:last-child .tk-notch{display:none}
 .tk-h{display:flex;align-items:center;gap:10px}
 .tk-h .num{flex:none;font-family:var(--f-num);font-size:22px;line-height:1;color:var(--ink)}
@@ -2027,7 +2027,7 @@ function sendMsg(id){ const el=document.getElementById('msgin'), t=(el&&el.value
   setTimeout(()=>{ const ms=S.chats[id]; ms.push({me:false,t:AUTO_REPLY[ms.length%AUTO_REPLY.length]}); save(); if(document.getElementById('chat')) openChat(id); },1300); }
 // Карточки акций стыкуются, как в референсе: у каждой сверху выступ по центру, у предыдущей снизу — такой же вырез; выступ входит в вырез с тонким зазором. Карточки разного цвета
 const TK_BUMP='<svg class="tk-bump" viewBox="0 0 180 16" preserveAspectRatio="none" aria-hidden="true"><path d="M0 16C16 16 18 0 36 0H144C162 0 164 16 180 16Z"/></svg>';
-const TK_NOTCH='<svg class="tk-notch" viewBox="0 0 200 18" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18C17 18 19 0 38 0H162C181 0 183 18 200 18Z"/></svg>';
+const TK_NOTCH='<svg class="tk-notch" viewBox="0 0 196 22" preserveAspectRatio="none" aria-hidden="true"><path d="M0 22C17 22 19 0 40 0H156C177 0 179 22 196 22Z"/></svg>';
 function tcard(id,n,title,body,cls=''){ return `<div class="tk ${cls}" id="${id}">${TK_BUMP}${TK_NOTCH}<div class="tk-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2></div>${body}</div>`; }
 function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
 function progress(){
