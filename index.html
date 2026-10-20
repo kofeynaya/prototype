@@ -378,11 +378,14 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .li .tx small{color:var(--muted);font-size:13px}
 .li .chev{color:var(--muted)}
 .li svg.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
-/* Важный пункт списка («Как всё устроено») — мягкая мятная подсветка */
-.li.hl{margin:4px -10px;padding:12px 10px;width:calc(100% + 20px);border-radius:12px;border-bottom:0;background:rgba(167,210,185,.16);color:var(--ok)}
+/* Важный пункт списка («Как всё устроено») — подсвечен только цвет шрифта, деликатный розовый */
+:root{--hl:#d6336c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hl:#ff9eb8}}
+:root[data-theme="dark"]{--hl:#ff9eb8}
+.li.hl{color:var(--hl)}
 .li.hl .tx{font-weight:600}
-.li.hl .tx small{color:var(--ok);opacity:.75;font-weight:400}
-.li.hl .chev{color:var(--ok)}
+.li.hl .tx small{color:var(--hl);opacity:.8;font-weight:400}
+.li.hl .chev{color:var(--hl)}
 
 .pd .ph{width:100%;aspect-ratio:1;border-radius:18px;margin-top:48px}
 .optgroup{display:flex;flex-direction:column;gap:8px}
@@ -554,10 +557,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .rhythm.hot{border-color:#ff6d00;box-shadow:0 0 0 3px rgba(255,109,0,.18)}
 .rhythm.win{border-color:#f2c230;background:linear-gradient(135deg,rgba(242,194,48,.18),var(--surface) 60%)}
 .rh-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-/* «Турбо»: пронумерованные заголовки блоков — цифра в квадрате (как акцидентные цифры фирстиля) + название над карточкой */
+/* «Турбо»: пронумерованные заголовки блоков — градиентный номер «01» (цвет Турбо) + название над карточкой */
 .tsec{display:flex;flex-direction:column;gap:10px}
 .tsec-h{display:flex;align-items:center;gap:10px}
-.tsec-h .tile{font-size:20px;flex:none}
+.tsec-h .num{flex:none;font-family:var(--f-num);font-size:22px;line-height:1;background:linear-gradient(135deg,#ff6d00,#d500f9);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tsec-h h2{flex:1;margin:0;font-size:22px;line-height:1.15}
 .tsec-h .aside{flex:none;font-size:14px;color:var(--muted)}
 .streak-line{display:flex;align-items:center;gap:8px;font-weight:600}
@@ -1455,7 +1458,7 @@ function rhythm(){
   </div>`;
 }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
-function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h">${tiles(n)}<h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
+function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
 function progress(){
   const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
