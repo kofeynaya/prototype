@@ -378,6 +378,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .li .tx small{color:var(--muted);font-size:13px}
 .li .chev{color:var(--muted)}
 .li svg.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none}
+/* Важный пункт списка («Как всё устроено») — мягкая мятная подсветка */
+.li.hl{margin:4px -10px;padding:12px 10px;width:calc(100% + 20px);border-radius:12px;border-bottom:0;background:rgba(167,210,185,.16);color:var(--ok)}
+.li.hl .tx{font-weight:600}
+.li.hl .tx small{color:var(--ok);opacity:.75;font-weight:400}
+.li.hl .chev{color:var(--ok)}
 
 .pd .ph{width:100%;aspect-ratio:1;border-radius:18px;margin-top:48px}
 .optgroup{display:flex;flex-direction:column;gap:8px}
@@ -1529,7 +1534,7 @@ function openRules(){
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
 function profile(){
   const bd=bdInfo();
-  const row=(ic,t,act,extra='',f=0)=>`<button class="li"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
+  const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
       <div class="row" style="gap:8px">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
@@ -1543,7 +1548,7 @@ function profile(){
       ${row('user','Мои данные',"go('birthday')",`<small class="muted">ДР ${S.birth.d} ${MON[S.birth.m]}</small>`,12)}
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`,15)}
-      ${row('info','Как всё устроено',"openRules()",'<small class="muted">акции и бонусы</small>')}
+      ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
     <div class="panel"${F(9)}><h3>Что приложение о вас узнало</h3>
