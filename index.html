@@ -573,18 +573,26 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .rh-v{font-size:15px;line-height:1.1}
 .rh-v b{font-family:var(--f-num);font-size:34px;line-height:1;font-weight:400}
 .rh-eq{align-self:center;font-family:var(--f-num);font-size:26px;color:var(--muted)}
-.rh-sep{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-top:4px}
-.rh-sep::after{content:"";flex:1;height:1px;background:var(--line)}
-.rh-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding-top:14px}
+.rh-lead{margin:4px 0 0;font-size:15px;line-height:1.3;font-weight:600}
+.rh-row .rider{position:absolute;top:-34px;left:50%;transform:translateX(-50%);width:30px;height:30px;font-style:normal}
+.rh-row .rider .mface{width:30px;height:30px;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.rh-row .rc.lock b{opacity:.55}
+.rh-mood{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--line)}
+.rh-mood .mface{width:44px;height:44px;flex:none}
+.rh-mood.sad{background:rgba(159,179,200,.22)}
+.rh-mood.joy,.rh-mood.star{background:rgba(245,101,58,.16)}
+.rh-stat{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:14px}
+.rh-stat b{font-family:var(--f-num);font-weight:400;font-size:17px}
+.rh-stat .ar{color:var(--muted)}
+.rh-stat .lf{margin-left:auto;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.rh-row .rider{animation:rider 1.6s ease-in-out infinite}}
+@keyframes rider{50%{transform:translate(-50%,-3px)}}
+.rh-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding-top:38px}
 .rh-row .rc{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .rh-row .rc b{width:100%;height:32px;border-radius:9px;background:var(--line);display:grid;place-items:center;font-family:var(--f-num);font-weight:400;font-size:14px;color:var(--muted)}
 .rh-row .rc em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
-.rh-row .rc.f b{background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff}
 .rh-row .rc.f em{color:var(--ink)}
-.rh-row .rc.keep b{border:2px dashed #ff9100;background:transparent;color:#ff9100}
-.rh-row .rc.keep em{color:#ff9100}
 .rh-row .cr{position:absolute;top:-15px;font-style:normal;font-size:12px}
-@media (prefers-reduced-motion:no-preference){.rh-row .rc.keep b{animation:rhnext 1.2s ease-in-out infinite}}
 .rh-foot{margin:0;font-size:12px;line-height:1.35;color:var(--muted)}
 .rh-msg{margin:0;font-size:14px;line-height:1.35}
 /* Приз за новый рекорд: до рекорда — цель, после — «Ура!» */
@@ -1473,32 +1481,49 @@ const allWeeks=()=>[...(S.past||[]), ...S.weekHist.map(h=>h.days)];
 const recordDays=()=>Math.max(0,...allWeeks());
 const isRecord=d=>d>recordDays() && d>=REC_MIN;
 const avgDays=()=>{ const w=allWeeks().slice(-8); return w.length? Math.round(w.reduce((a,x)=>a+x,0)/w.length*10)/10 : 0; };
+// Лица настроения «Твоего ритма» — свои SVG в стиле героев дня (эмодзи на разных телефонах выглядят по-разному)
+const MOOD_FACE={
+  sad:  {bg:'#9fb3c8', m:'<path d="M13 29q7-7 14 0"/>', e:'<path d="M10 16l5-3M30 16l-5-3"/><circle cx="14" cy="19" r="1.8"/><circle cx="26" cy="19" r="1.8"/><path fill="#4fc3f7" stroke="none" d="M27.5 22.5q-2.2 3.2 0 4.4 2.2-1.2 0-4.4z"/>'},
+  worry:{bg:'#f6c99a', m:'<path d="M14 27q6-3 12 0"/>', e:'<circle cx="14" cy="18" r="1.8"/><circle cx="26" cy="18" r="1.8"/>'},
+  calm: {bg:'#f9b77d', m:'<path d="M14 26h12"/>', e:'<circle cx="14" cy="18" r="1.8"/><circle cx="26" cy="18" r="1.8"/>'},
+  happy:{bg:'#fb9a4b', m:'<path d="M13 24q7 6 14 0"/>', e:'<circle cx="14" cy="18" r="1.8"/><circle cx="26" cy="18" r="1.8"/>'},
+  joy:  {bg:'#f5653a', m:'<path d="M12 23q8 9 16 0z" fill="#212221"/>', e:'<path d="M11 18q3-4 6 0M23 18q3-4 6 0"/>'},
+  star: {bg:'#f2c230', m:'<path d="M12 23q8 9 16 0z" fill="#212221"/>', e:'<path fill="#e53935" stroke="none" d="M14 13l1.4 2.9 3.1.4-2.3 2.1.6 3.1-2.8-1.5-2.8 1.5.6-3.1-2.3-2.1 3.1-.4zM26 13l1.4 2.9 3.1.4-2.3 2.1.6 3.1-2.8-1.5-2.8 1.5.6-3.1-2.3-2.1 3.1-.4z"/>'},
+};
+const moodFace=k=>`<svg class="mface" viewBox="0 0 40 40" role="img" aria-label="${k}"><circle cx="20" cy="20" r="18" fill="${MOOD_FACE[k].bg}" stroke="#212221" stroke-width="2"/><g fill="#212221" stroke="#212221" stroke-width="2.2" stroke-linecap="round" fill-opacity="1">${MOOD_FACE[k].e}</g><g fill="none" stroke="#212221" stroke-width="2.4" stroke-linecap="round">${MOOD_FACE[k].m}</g></svg>`;
+// заливка дней: одна тёплая гамма, с каждым днём ярче и горячее
+const RH_HEAT=['#fde3cf','#fcc9a2','#fbac74','#f98d4b','#f56a32','#ea4a3c','#d6264f'];
 function rhythm(){
   const cur=weekDays(weekOf(S.day)), last=lastWeekDays(), cap=rateCap(), now=rate(), rec=recordDays(), dow=S.day%7, today=S.visits.includes(S.day);
-  const left=7-dow-(today?1:0), D=n=>plural(n,'день','дня','дней'), keep=Math.min(last,7), next=Math.min(cur,cap);
-  const recGoal=Math.max(rec+1,REC_MIN), recNow=isRecord(cur);
-  let msg, mood='';
-  if(cur<keep){ const need=keep-cur;
-    if(need<=left){ msg=`<b>Не потеряй ${Math.min(keep,cap)}%!</b> Чтобы сохранить их на следующую неделю, нужно ещё ${need} ${D(need)} с покупкой до воскресенья. Сейчас идёт к ${next}%.`; mood=need===left?'hot':'warn'; }
-    else msg=`На следующей неделе будет <b>${Math.min(cur+left,cap)}%</b>, если заходить каждый день до воскресенья. Каждый день — +1%.`;
-  } else if(cur<cap){ msg=`<b>${Math.min(keep,cap)}% сохранены!</b> Каждый следующий день на этой неделе — ещё +1% на следующую.`; mood='ok'; }
-  else msg=S.plus?`<b>Максимум ${cap}% на следующую неделю — твой!</b>`:`<b>${cap}% на следующую неделю — максимум без подписки.</b> С <button class="link" onclick="go('plus')">Кофейная+</button> было бы ${Math.min(cur,PLUS_CAP)}%.`;
-  if(recNow) mood='win';
-  const cell=n=>{ const f=n<=cur, star=n>cap; return `<span class="rc ${f?'f':''} ${n===keep&&!f?'keep':''}">${n===rec?'<i class="cr">👑</i>':''}<b>${n}</b><em>${star?'★':''}${n}%</em></span>`; };
-  return `<div class="rhythm ${mood}"${F(5)}>
+  const left=7-dow-(today?1:0), D=n=>plural(n,'день','дня','дней'), keep=Math.min(last,7), next=Math.min(cur,cap), pc=n=>Math.min(n,cap);
+  const recGoal=Math.max(rec+1,REC_MIN), recNow=isRecord(cur), need=Math.max(0,keep-cur);
+  // настроение: грустим, только когда прошлую неделю уже точно не догнать
+  let mood, msg;
+  if(recNow){ mood='star'; msg=`<b>Новый рекорд — ${cur} ${D(cur)}!</b> Ты огонь. +${REC_BONUS} бонусов придут в понедельник.`; }
+  else if(cur>keep){ mood='joy'; msg=`<b>Лучше, чем на прошлой неделе!</b> ${next<cap?`Каждый новый день — ещё +1%.`:`Это максимум — ${cap}%.`}`; }
+  else if(cur===keep){ mood='happy'; msg=cur?`<b>Уже как на прошлой неделе!</b> ${cur<cap?`Ещё день — и будет ${pc(cur+1)}%.`:`Это максимум — ${cap}%.`}`:`<b>Новая неделя!</b> Зайди сегодня — и с понедельника будет 1%.`; }
+  else if(need>left){ mood='sad'; msg=`<b>Эх…</b> На прошлой неделе ты был ${keep} ${D(keep)}, в этот раз уже не догнать. Но каждый день ещё добавляет +1%.`; }
+  else if(need===left||need>=left-1&&dow>=3){ mood='worry'; msg=`<b>Поднажми!</b> Ещё ${need} ${D(need)} с покупкой до воскресенья — и сохранишь ${pc(keep)}%.`; }
+  else { mood='calm'; msg=cur?`Ещё <b>${need} ${D(need)}</b> — и будет как на прошлой неделе: ${pc(keep)}%.`:`<b>Новая неделя!</b> Набери ${keep} ${D(keep)} с покупкой — и сохранишь ${pc(keep)}%.`; }
+  const pos=Math.max(1,cur);
+  const cell=n=>{ const f=n<=cur, star=n>cap, h=RH_HEAT[n-1];
+    return `<span class="rc ${f?'f':''} ${star&&!f?'lock':''}">${n===pos?`<i class="rider">${moodFace(mood)}</i>`:''}${n===rec&&n!==pos&&cur>=rec-1?'<i class="cr">👑</i>':''}<b style="${f?`background:${h};color:${n>=4?'#fff':'#212221'}`:''}">${n}</b><em>${star?'★':''}${n}%</em></span>`; };
+  return `<div class="rhythm ${recNow?'win':''}"${F(5)}>
     <div class="rh-now">
       <div class="rh-f"><span class="rh-k">На прошлой неделе</span><span class="rh-v"><b class="money">${last}</b> ${D(last)}</span></div>
       <span class="rh-eq">=</span>
       <div class="rh-f pct"><span class="rh-k">Бонусы сейчас</span><span class="rh-v"><b class="money">${now}%</b></span><span class="rh-k">с каждой покупки</span></div>
     </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
-    <div class="rh-sep"><span>Эта неделя → % на следующей</span></div>
+    <p class="rh-lead">Сколько дней наберёшь на этой неделе — столько % будет со следующего понедельника.</p>
     <div class="rh-row">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
-    <p class="rh-msg">${msg}</p>
+    ${!S.plus?`<p class="rh-foot" style="text-align:right">★ — с подпиской Кофейная+</p>`:''}
+    <div class="rh-mood ${mood}">${moodFace(mood)}<p class="rh-msg">${msg}</p></div>
+    <div class="rh-stat"><span>Сейчас <b>${now}%</b></span><span class="ar">→</span><span>с понедельника <b>${next}%</b></span><span class="lf">${left?`осталось ${left} ${D(left)}`:'последний день недели'}</span></div>
     ${recNow?`<div class="rh-prize got"><span class="pz">🏆</span><span class="pt"><b>Новый рекорд — ${cur} ${D(cur)}!</b>Бонусы придут в понедельник</span><span class="pv">+${REC_BONUS}</span></div>`
       :rec>=7?`<div class="rh-prize"><span class="pz">👑</span><span class="pt"><b>Рекорд 7 из 7</b>Выше не бывает — держи ритм</span></div>`
       :`<div class="rh-prize"><span class="pz">🎁</span><span class="pt"><b>Приз за новый рекорд</b>${rec?`👑 Твой рекорд ${rec} ${D(rec)}. `:''}Побей: ${recGoal} ${D(recGoal)} за неделю</span><span class="pv">+${REC_BONUS}</span></div>`}
-    <p class="rh-foot">День засчитывается, если покупок за день на ${MIN_DAY} ₽ и больше. Новый % и приз за рекорд — в понедельник.</p>
+    <p class="rh-foot">День засчитывается, если покупок за день на ${MIN_DAY} ₽ и больше. Два чека в один день — это один день.</p>
   </div>`;
 }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
