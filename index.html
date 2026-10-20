@@ -1121,7 +1121,6 @@ function home(){
   const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
-    {n:4, t:`${S.streak} ${plural(S.streak,'неделя','недели','недель')} в цель`, s:`${wd} из ${S.goal} дней на этой неделе`, bg:'var(--sage)', go:"go('progress')", big:PI.flame},
     {n:12, t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст · ${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
     {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 10%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
