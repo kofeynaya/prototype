@@ -485,17 +485,20 @@ img.ava{object-fit:cover}
 .pw-row .tx small{color:var(--muted);font-size:13px;line-height:1.25}
 .pw-row:not(.on) .tx b{color:var(--ink)}
 .pw-row .btn{padding:8px 12px;font-size:13px;flex:none}
-.ptile{--neon:#d4ff3a;--g-track:#2c3324;position:relative;flex:none;width:176px;min-height:156px;border-radius:20px;padding:12px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:#f4f7ec;
-  background:radial-gradient(120% 80% at 50% 0%,rgba(212,255,58,.22),rgba(212,255,58,0) 60%),#13160f;border:1px solid rgba(212,255,58,.35);box-shadow:0 0 22px -4px rgba(212,255,58,.45),inset 0 0 18px rgba(212,255,58,.06)}
+.ptile{position:relative;flex:none;width:176px;min-height:156px;border-radius:20px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:#f4f7ec;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(var(--lv-rgb),.25),rgba(var(--lv-rgb),0) 60%),#121512;border:1px solid rgba(var(--lv-rgb),.45);box-shadow:0 0 22px -4px rgba(var(--lv-rgb),.6),inset 0 0 18px rgba(var(--lv-rgb),.07)}
 .ptile .pt-h{align-self:flex-start;font-weight:700;font-size:15px}
-.ptile .gauge{width:132px;height:auto;margin-top:2px;overflow:visible}
-.ptile .gv{filter:drop-shadow(0 0 6px rgba(212,255,58,.85))}
-.ptile .gt{font-family:var(--f-num);font-size:24px;fill:#fff}
+.ptile .pt-bat{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:4px}
+.ptile .pt-bat b{font-family:var(--f-num);font-weight:400;font-size:26px;line-height:1;color:#fff}
+.ptile .batt.big .bb{width:118px;height:44px;border-color:#f4f7ec;border-radius:10px}
+.ptile .batt.big .bb i{background:rgba(255,255,255,.08)}
+.ptile .batt.big .bb i.on{background:var(--lv);box-shadow:0 0 8px rgba(var(--lv-rgb),.8)}
+.ptile .batt.big .bt{background:#f4f7ec;height:16px}
 .ptile .pt-s{font-size:13px;opacity:.8}
-.ptile .pt-s b{color:var(--neon);opacity:1}
-.ptile .pt-btn{margin-top:4px;padding:7px 12px;border-radius:999px;background:var(--neon);color:#13160f;font-weight:700;font-size:13px;box-shadow:0 0 14px rgba(212,255,58,.55)}
+.ptile .pt-s b{color:var(--lv);opacity:1;filter:brightness(1.25)}
+.ptile .pt-btn{margin-top:2px;padding:7px 12px;border-radius:999px;background:var(--lv);color:#fff;font-weight:700;font-size:13px;box-shadow:0 0 14px rgba(var(--lv-rgb),.6)}
 @media (prefers-reduced-motion:no-preference){.ptile{animation:neon 2.8s ease-in-out infinite}}
-@keyframes neon{50%{box-shadow:0 0 34px -2px rgba(212,255,58,.65),inset 0 0 18px rgba(212,255,58,.1)}}
+@keyframes neon{50%{box-shadow:0 0 34px -2px rgba(var(--lv-rgb),.8),inset 0 0 18px rgba(var(--lv-rgb),.12)}}
 .hscroll:has(.ptile){padding-top:12px;padding-bottom:16px;margin-top:-12px;margin-bottom:-16px}
 .perk{width:150px;min-height:156px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;text-align:left}
 .perk .pi{height:48px;width:48px;flex:none;margin-bottom:8px;display:grid;place-items:center}
@@ -1937,14 +1940,16 @@ function powerItems(){
 // Спидометр: полукруг, заполнен на pct% (неоновая дуга со свечением)
 function gauge(pct,label){ const r=46, L=Math.PI*r, f=L*pct/100;
   return `<svg class="gauge" viewBox="0 0 120 70" role="img" aria-label="${pct}%"><path d="M14 62a46 46 0 0 1 92 0" fill="none" stroke="var(--g-track)" stroke-width="11" stroke-linecap="round"/><path class="gv" d="M14 62a46 46 0 0 1 92 0" fill="none" stroke="var(--neon)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${f} ${L}"/><text x="60" y="56" text-anchor="middle" class="gt">${pct}%</text>${label?`<text x="60" y="68" text-anchor="middle" class="gl">${label}</text>`:''}</svg>`; }
-// Плитка «Заряд выгоды» на «Сегодня» — тёмная, с неоновым свечением и спидометром
+// Плитка «Заряд выгоды» на «Сегодня» — тёмная, батарейка и свечение цвета уровня (красный / оранжевый / зелёный)
 function powerTile(){ const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct();
-  return `<button class="ptile" onclick="go('power')"><span class="pt-h">Заряд выгоды</span>${gauge(pct)}<span class="pt-s">Включено <b>${on} из ${it.length}</b></span><span class="pt-btn">${pct<100?'Включить ещё':'Всё включено'} →</span></button>`; }
+  const lv=LV(pct);
+  return `<button class="ptile" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money">${pct}%</b></span><span class="pt-s">Включено <b>${on} из ${it.length}</b></span><span class="pt-btn">${pct<100?'Включить ещё':'Всё включено'} →</span></button>`; }
 // Вход в «Заряд выгоды» — одна и та же аккуратная строка на всех вкладках
 function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on);
   return `<button class="pw-link" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды ${pct}%</b><small>${tip?`Ещё можно включить: ${tip.t}`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
 const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on).length/it.length*100); };
-function battery(pct,big){ const c=pct<40?'#e53935':pct<75?'#ff9100':'#2e9e5b', n=8, on=Math.round(pct/100*n);
+const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53'}:pct<75?{c:'#ff9100',rgb:'255,145,0'}:{c:'#2e9e5b',rgb:'46,158,91'}; // красный — мало, оранжевый — средне, зелёный — много
+function battery(pct,big){ const c=LV(pct).c, n=8, on=Math.round(pct/100*n);
   return `<span class="batt ${big?'big':''}" style="--bc:${c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':''} ${i===on-1&&pct<100?'edge':''}"></i>`).join('')}</span><span class="bt"></span></span>`; }
 function power(){
   const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct(), tip=it.find(x=>!x.on);
