@@ -499,6 +499,16 @@ img.ava{object-fit:cover}
 .ptile .pt-btn{margin-top:2px;padding:7px 12px;border-radius:999px;background:var(--lv);color:#fff;font-weight:700;font-size:13px;box-shadow:0 0 14px rgba(var(--lv-rgb),.6)}
 @media (prefers-reduced-motion:no-preference){.ptile{animation:neon 2.8s ease-in-out infinite}}
 @keyframes neon{50%{box-shadow:0 0 34px -2px rgba(var(--lv-rgb),.8),inset 0 0 18px rgba(var(--lv-rgb),.12)}}
+.batt .bb i.gap{box-shadow:inset 0 0 0 2px #ff9100;background:rgba(255,145,0,.18)!important}
+@media (prefers-reduced-motion:no-preference){.batt .bb i.gap{animation:serblink 1.2s ease-in-out infinite}
+  .batt.lv-perfect .bb i.on{background:linear-gradient(100deg,#29b6f6 30%,#b3e5fc 50%,#29b6f6 70%) 100% 0/300% 100%;animation:sky 3s linear infinite}}
+@keyframes sky{to{background-position:-200% 0}}
+.ptile.lv-almost{background:radial-gradient(70% 60% at 100% 40%,rgba(255,145,0,.28),rgba(255,145,0,0) 70%),radial-gradient(120% 80% at 30% 0%,rgba(46,158,91,.25),rgba(46,158,91,0) 60%),#121512;border-color:rgba(46,158,91,.45);border-right-color:rgba(255,145,0,.7);box-shadow:-6px 0 22px -6px rgba(46,158,91,.6),10px 0 26px -6px rgba(255,145,0,.7)}
+.ptile.lv-almost .pt-s .miss{color:#ff9100}
+.ptile.lv-almost .pt-btn{background:linear-gradient(90deg,#2e9e5b,#ff9100)}
+@media (prefers-reduced-motion:no-preference){.ptile.lv-almost{animation:neon2 2.8s ease-in-out infinite}}
+@keyframes neon2{50%{box-shadow:-6px 0 30px -4px rgba(46,158,91,.75),12px 0 34px -4px rgba(255,145,0,.9)}}
+.ptile.lv-perfect .pt-s b{color:#b3e5fc}
 .hscroll:has(.ptile){padding-top:12px;padding-bottom:16px;margin-top:-12px;margin-bottom:-16px}
 .perk{width:150px;min-height:156px;border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;text-align:left}
 .perk .pi{height:48px;width:48px;flex:none;margin-bottom:8px;display:grid;place-items:center}
@@ -1943,22 +1953,23 @@ function gauge(pct,label){ const r=46, L=Math.PI*r, f=L*pct/100;
 // Плитка «Заряд выгоды» на «Сегодня» — тёмная, батарейка и свечение цвета уровня (красный / оранжевый / зелёный)
 function powerTile(){ const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct();
   const lv=LV(pct);
-  return `<button class="ptile" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money">${pct}%</b></span><span class="pt-s">Включено <b>${on} из ${it.length}</b></span><span class="pt-btn">${pct<100?'Включить ещё':'Всё включено'} →</span></button>`; }
+  return `<button class="ptile lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')"><span class="pt-h">Заряд выгоды</span><span class="pt-bat">${battery(pct,true)}<b class="money">${pct}%</b></span><span class="pt-s">${lv.k==='perfect'?'<b>Идеально! Всё включено</b>':lv.k==='almost'?`Почти! Не хватает <b class="miss">${it.length-on}</b>`:`Включено <b>${on} из ${it.length}</b>`}</span><span class="pt-btn">${pct<100?'Включить ещё →':'Ты лучший ✓'}</span></button>`; }
 // Вход в «Заряд выгоды» — одна и та же аккуратная строка на всех вкладках
 function pwLink(close){ const pct=powerPct(), tip=powerItems().find(x=>!x.on);
   return `<button class="pw-link" onclick="${close?'closeSheet();':''}go('power')">${battery(pct)}<span class="tx"><b>Заряд выгоды ${pct}%</b><small>${tip?`Ещё можно включить: ${tip.t}`:'Все выгоды включены 🤩'}</small></span><span class="chev">›</span></button>`; }
 const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on).length/it.length*100); };
-const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53'}:pct<75?{c:'#ff9100',rgb:'255,145,0'}:{c:'#2e9e5b',rgb:'46,158,91'}; // красный — мало, оранжевый — средне, зелёный — много
-function battery(pct,big){ const c=LV(pct).c, n=8, on=Math.round(pct/100*n);
-  return `<span class="batt ${big?'big':''}" style="--bc:${c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':''} ${i===on-1&&pct<100?'edge':''}"></i>`).join('')}</span><span class="bt"></span></span>`; }
+// Цвет уровня: красный — мало, оранжевый — средне, зелёный «почти» (но с оранжевой дырой — не всё гладко), небесно-голубой — идеал 100%
+const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53',k:'low'}:pct<75?{c:'#ff9100',rgb:'255,145,0',k:'mid'}:pct<100?{c:'#2e9e5b',rgb:'46,158,91',k:'almost'}:{c:'#29b6f6',rgb:'41,182,246',k:'perfect'};
+function battery(pct,big){ const lv=LV(pct), n=8, on=Math.round(pct/100*n);
+  return `<span class="batt ${big?'big':''} lv-${lv.k}" style="--bc:${lv.c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':lv.k==='almost'?'gap':''} ${i===on-1&&lv.k!=='almost'&&pct<100?'edge':''}"></i>`).join('')}</span><span class="bt"></span></span>`; }
 function power(){
   const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct(), tip=it.find(x=>!x.on);
-  const face=pct<40?'😕':pct<75?'🙂':pct<100?'😄':'🤩';
+  const face=pct<40?'😕':pct<75?'🙂':pct<100?'😏':'🤩';
   return `<section class="screen">${back('home')}
     <div class="pw-hero">
       <span class="label">Заряд выгоды</span>
       <div class="pw-big"><b class="money">${pct}%</b>${battery(pct,true)}</div>
-      <p class="pw-msg">${face} ${pct<100?`Ты включил <b>${on} из ${it.length}</b> выгод. Включи остальные — и будешь экономить больше.`:`<b>Ты на полной мощности!</b> Берёшь от приложения всё.`}</p>
+      <p class="pw-msg">${face} ${pct===100?`<b>Идеально!</b> Ты берёшь от приложения всё ✨`:pct>=75?`<b>Почти идеально</b>, но не всё гладко: включено ${on} из ${it.length}. Ещё ${it.length-on} — и будет 100%.`:`Ты включил <b>${on} из ${it.length}</b> выгод. Включи остальные — и будешь экономить больше.`}</p>
     </div>
     ${tip?`<button class="pw-tip" onclick="${tip.btn}"><span class="pi">${tip.ic}</span><span class="tx"><small>Совет — проще всего включить</small><b>${tip.t}</b><span>${tip.no}</span></span><span class="chev">›</span></button>`:''}
     <div class="panel pw-list">${it.map(x=>`<div class="pw-row ${x.on?'on':''}"><span class="ck">${x.on?'✓':''}</span><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${x.on?x.yes:x.no}</small></span>${x.on?'':`<button class="btn" onclick="${x.btn}">Включить</button>`}</div>`).join('')}</div>
