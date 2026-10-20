@@ -464,11 +464,31 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 img.ava{object-fit:cover}
 .ben{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .ben-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.ben-v{font-family:var(--f-num);font-size:24px;color:#2e9e5b;white-space:nowrap}
+.ben-per{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px}
+.ben-per::-webkit-scrollbar{display:none}
+.ben-per button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:7px 6px;border-radius:999px;background:var(--line);font-size:12.5px;font-weight:700;color:var(--ink)}
+.ben-per button.on{background:#2e9e5b;color:#fff;box-shadow:0 0 12px rgba(46,158,91,.5)}
+.ben-dates{display:flex;gap:8px}
+.ben-dates label{flex:1;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.ben-dates input{flex:1;min-width:0;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
+.ben-v{display:flex;flex-direction:column;gap:2px;padding:6px 0 2px}
+.ben-v .money{font-family:var(--f-num);font-size:40px;line-height:1;color:#2e9e5b;white-space:nowrap;text-shadow:0 0 18px rgba(46,158,91,.45)}
+.ben-v small{font-size:13px;color:var(--muted)}
+.ben-v.pop .money{animation:benpop .9s ease-out}
+@keyframes benpop{0%{transform:scale(.85);opacity:.4}40%{transform:scale(1.08);text-shadow:0 0 30px rgba(46,158,91,.9)}100%{transform:none}}
+.ben-boost{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;padding:10px 12px;border-radius:14px;text-align:left;background:rgba(var(--lv-rgb),.1);border:1px solid rgba(var(--lv-rgb),.45);box-shadow:0 0 16px -6px rgba(var(--lv-rgb),.7)}
+.ben-boost .tx{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ben-boost b{font-size:14px}
+.ben-boost small{font-size:12px;color:var(--muted);line-height:1.25}
+.ben-boost .go{flex:none;font-weight:700;font-size:13px;color:var(--lv);white-space:nowrap}
+.ben-boost.lv-almost{border-right-color:#ff9100;box-shadow:-4px 0 14px -6px rgba(46,158,91,.7),6px 0 16px -6px rgba(255,145,0,.8)}
+.ben-boost.lv-almost .go{color:#ff9100}
+.ben-r .bar i{transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.ben-st i{transition:flex-grow .8s cubic-bezier(.2,.8,.2,1)}
 .ben-r{display:grid;grid-template-columns:1fr auto;grid-template-areas:"t v" "b b";gap:3px 8px;font-size:13px;color:var(--muted)}
 .ben-r span:first-child{grid-area:t}.ben-r b{grid-area:v;color:var(--ink);font-size:14px}
 .ben-r .bar{grid-area:b;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
-.ben-r .bar i{display:block;height:100%;border-radius:5px;background:var(--muted);opacity:.55}
+.ben-r .bar i{display:block;height:100%;border-radius:5px;background:var(--muted);opacity:.55;transition:width .8s cubic-bezier(.2,.8,.2,1)}
 .ben-r.me .bar i{background:#2e9e5b;opacity:1}
 .ben-r.me{color:var(--ink)}
 .ben-st{display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px;margin-top:4px}
@@ -2002,20 +2022,49 @@ function power(){
 }
 /* «Выгода от приложения»: сколько заплатил бы без приложения и сколько заплатил с ним — и откуда разница. Бонусы на счёте — отдельной строкой (это не деньги) */
 const BEN_SRC=[['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Подарок депозита','#2e9e5b']];
+// Период для «Выгоды от приложения»: сегодня / неделя / месяц / всё время / свои даты
+let benPer='all', benFrom=null, benTo=null;
+const dayOff=d=>Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-DAY0)/864e5);
+const isoOf=day=>{ const x=dateOf(day); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); };
+const shortD=day=>{ const x=dateOf(day); return x.getDate()+' '+MON[x.getMonth()].slice(0,3)+(x.getFullYear()!==dateOf(S.day).getFullYear()?' '+x.getFullYear():''); };
+function benRange(){ const t=S.day, d=dateOf(t);
+  if(benPer==='today') return [t,t,'за сегодня'];
+  if(benPer==='week') return [weekOf(t)*7,t,'за эту неделю'];
+  if(benPer==='month') return [dayOff(new Date(d.getFullYear(),d.getMonth(),1)),t,'за '+MON_N[d.getMonth()].toLowerCase()];
+  if(benPer==='custom'){ const a=benFrom??(t-30), b=benTo??t, lo=Math.min(a,b), hi=Math.max(a,b); return [lo,hi,lo===hi?'за '+shortD(lo):`с ${shortD(lo)} по ${shortD(hi)}`]; }
+  return [-1e9,t,'за всё время']; }
+function setBenPer(p){ benPer=p; if(p==='custom'&&benFrom==null){ benFrom=S.day-30; benTo=S.day; } benRefresh(); }
+function setBenDate(which,v){ if(!v) return; const off=dayOff(new Date(v+'T00:00')); if(which==='from') benFrom=off; else benTo=off; benRefresh(); }
+function benRefresh(){ const el=document.getElementById('ben'); if(!el) return; el.outerHTML=benefit(); benAnimate(); }
+// «Вау»: сумма набегает с нуля, полоски растут, цифра вспыхивает
+function benAnimate(){ const el=document.getElementById('ben'); if(!el) return;
+  const v=el.querySelector('.ben-v [data-n]'), n=+(v&&v.dataset.n||0), t0=performance.now(), reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.querySelectorAll('[data-w]').forEach(b=>{ b.style.width='0%'; }); el.querySelectorAll('[data-f]').forEach(b=>{ b.style.flexGrow=0; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.querySelectorAll('[data-w]').forEach(b=>b.style.width=b.dataset.w+'%'); el.querySelectorAll('.ben-st i').forEach(b=>b.style.flexGrow=b.dataset.g); }));
+  if(!v||reduce) return; const step=now=>{ const k=Math.min(1,(now-t0)/800), e=1-Math.pow(1-k,3); v.textContent=Math.round(n*e).toLocaleString('ru-RU'); if(k<1) requestAnimationFrame(step); }; requestAnimationFrame(step);
+  const h=el.querySelector('.ben-v'); h.classList.remove('pop'); void h.offsetWidth; h.classList.add('pop'); }
 function benefit(){
-  const os=S.orders; if(!os.length) return `<div class="ben"><b>Выгода от приложения</b><span class="small muted">Сделай первую покупку — здесь появится, сколько ты сэкономил.</span></div>`;
+  const [lo,hi,lbl]=benRange(), os=S.orders.filter(o=>o.day>=lo&&o.day<=hi), cap=byId(ID.cap);
+  const chips=[['today','Сегодня'],['week','Неделя'],['month','Месяц'],['all','Всё время'],['custom','📅 Даты']].map(([k,t])=>`<button class="${benPer===k?'on':''}" onclick="setBenPer('${k}')">${t}</button>`).join('');
+  const minD=isoOf(Math.min(S.regDay??0,...S.orders.map(o=>o.day))), maxD=isoOf(S.day);
+  const picker=benPer==='custom'?`<div class="ben-dates"><label>с<input type="date" value="${isoOf(Math.min(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('from',this.value)"></label><label>по<input type="date" value="${isoOf(Math.max(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('to',this.value)"></label></div>`:'';
+  const pct=powerPct(), lv=LV(pct), tip=powerItems().find(x=>!x.on);
+  const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего ${pct}%</b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
+  const head=`<div class="ben-h"><b>Выгода от приложения</b></div><div class="ben-per">${chips}</div>${picker}`;
+  if(!os.length) return `<div class="ben" id="ben">${head}<p class="small muted" style="margin:0">${lbl[0].toUpperCase()+lbl.slice(1)} покупок не было — выбери другой период.</p>${boost}</div>`;
   const by={}; let without=0, paid=0;
   for(const o of os){ const sv=o.saved||0, bs=o.bonusSpend||0, gs=o.giftSpend||0; without+=o.sum+sv+bs; paid+=o.sum-gs;
     if(o.src&&Object.keys(o.src).length) for(const k in o.src) by[k]=(by[k]||0)+o.src[k]; else if(sv) by.disc=(by.disc||0)+sv;
     if(bs) by.bonus=(by.bonus||0)+bs; if(gs) by.gift=(by.gift||0)+gs; }
-  const gain=without-paid, parts=BEN_SRC.filter(([k])=>by[k]>0);
-  return `<div class="ben">
-    <div class="ben-h"><b>Выгода от приложения</b><span class="ben-v money">+${rub(gain)}</span></div>
-    <div class="ben-r"><span>Без приложения заплатил бы</span><span class="bar"><i style="width:100%"></i></span><b class="money">${rub(without)}</b></div>
-    <div class="ben-r me"><span>С приложением заплатил</span><span class="bar"><i style="width:${Math.round(paid/without*100)}%"></i></span><b class="money">${rub(paid)}</b></div>
-    <div class="ben-st">${parts.map(([k,,c])=>`<i style="flex:${by[k]};background:${c}"></i>`).join('')}</div>
+  const gain=without-paid, parts=BEN_SRC.filter(([k])=>by[k]>0), cups=cap?Math.floor(gain/cap.p):0;
+  return `<div class="ben" id="ben">${head}
+    <div class="ben-v"><span class="money">+<span data-n="${gain}">${gain.toLocaleString('ru-RU')}</span> ₽</span><small>сэкономил ${lbl}${cups?` · это ${cups} ${plural(cups,'капучино','капучино','капучино')} бесплатно ☕`:''}</small></div>
+    <div class="ben-r"><span>Без приложения заплатил бы</span><span class="bar"><i data-w="100" style="width:100%"></i></span><b class="money">${rub(without)}</b></div>
+    <div class="ben-r me"><span>С приложением заплатил</span><span class="bar"><i data-w="${Math.round(paid/without*100)}" style="width:${Math.round(paid/without*100)}%"></i></span><b class="money">${rub(paid)}</b></div>
+    <div class="ben-st">${parts.map(([k,,c])=>`<i data-f data-g="${by[k]}" style="flex-grow:${by[k]};background:${c}"></i>`).join('')}</div>
     <div class="ben-lg">${parts.map(([k,t,c])=>`<span><i style="background:${c}"></i>${t} <b class="money">${rub(by[k])}</b></span>`).join('')}</div>
-    ${S.bonus?`<p class="ben-b">И ещё ${COIN}<b>${S.bonus}</b> бонусов на счёте — это ${rub(S.bonus)} к следующей покупке.</p>`:''}
+    ${S.bonus&&benPer==='all'?`<p class="ben-b">И ещё ${COIN}<b>${S.bonus}</b> бонусов на счёте — это ${rub(S.bonus)} к следующей покупке.</p>`:''}
+    ${boost}
   </div>`;
 }
 /* Дашборд выгоды в профиле: бонусы, баланс, подписка, экономия — всё в одном месте */
@@ -2053,7 +2102,7 @@ function dashboard(){
         <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ДР −${bd.age}%. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 7% и скидку в ДР −${bd.age}%. 99 ₽/мес, первые 6 месяцев бесплатно.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
-    ${pwLink()}
+    
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1;padding:11px 12px"${F(6)} onclick="openHistory()">История покупок</button><button class="btn ghost" style="flex:1;padding:11px 12px" onclick="openStatement()">Выписка</button></div>
   </div>`;
 }
