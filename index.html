@@ -627,6 +627,49 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ser-week .x i{background:rgba(229,57,53,.14);color:#e53935;font-weight:900;font-size:17px}
 .ser-week .fz i{background:rgba(155,217,217,.35)}
 .ser-week .today{color:var(--ink);font-weight:700}
+.dash-pin{justify-content:space-between;align-items:center}
+.dp-side{display:flex;flex-direction:column;align-items:center;gap:1px;width:76px}
+.dp-side b{font-size:17px;white-space:nowrap}
+.dp-side small{font-size:12px;color:var(--muted)}
+/* Карточка статуса: Серебряный / Золотой / Платиновый — свой цвет у каждого */
+.stc{display:flex;flex-direction:column;border-radius:22px;overflow:hidden;color:#2b1d0e;box-shadow:0 10px 30px -12px var(--glow,rgba(0,0,0,.4))}
+.stc-top{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px 16px 14px;cursor:pointer}
+.stc-chip{align-self:flex-start;font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.35)}
+.stc-name{font-size:30px;line-height:1.05}
+.stc-prog{display:flex;justify-content:space-between;font-size:14px;opacity:.85;padding-right:118px}
+.stc-bar{height:6px;border-radius:3px;background:rgba(0,0,0,.15);margin-right:118px}
+.stc-bar i{display:block;height:100%;border-radius:3px;background:currentColor}
+.stc-btn{position:absolute;right:16px;bottom:14px;padding:8px 14px;border-radius:999px;background:#2b1d0e;color:#fff;font-weight:700;font-size:14px}
+.stc-band{display:flex;flex-direction:column;gap:8px;padding:12px 16px 14px;background:rgba(255,255,255,.28)}
+.stc-bh{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700}
+.stc-bh button{font-size:13px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.45);color:inherit}
+.stc .ser-week i{background:rgba(255,255,255,.45)}
+.stc .ser-week .v i{background:rgba(255,255,255,.85)}
+.stc .ser-week .x i{background:rgba(229,57,53,.18)}
+.stc .ser-week span{color:inherit;opacity:.8}
+.stc .ser-week .today{opacity:1}
+.stc .ser-week .now i{box-shadow:0 0 0 2px currentColor}
+.stc .ser-msg{color:inherit}
+.t-silver{background:linear-gradient(135deg,#f1f3f6,#c3c9d1 55%,#9aa3ad);--glow:rgba(154,163,173,.6);color:#1f252b}
+.t-silver .stc-btn{background:#1f252b}
+.t-gold{background:linear-gradient(135deg,#fbe3a1,#e9b955 55%,#c48a2c);--glow:rgba(233,185,85,.6);color:#3a2408}
+.t-gold .stc-btn{background:#3a2408}
+.t-plat{background:linear-gradient(135deg,#585d7a,#2e3147 55%,#1d1f2e);--glow:rgba(140,150,220,.55);color:#eef0ff}
+.t-plat .stc-chip,.t-plat .stc-bh button{background:rgba(255,255,255,.16)}
+.t-plat .stc-band{background:rgba(255,255,255,.08)}
+.t-plat .stc-btn{background:#eef0ff;color:#1d1f2e}
+.t-plat .stc-bar{background:rgba(255,255,255,.2)}
+.t-plat .ser-week i{background:rgba(255,255,255,.14)}
+.t-plat .ser-week .v i{background:rgba(255,255,255,.3)}
+.stc.mini{box-shadow:none}.stc.mini .stc-top{cursor:default}.stc.mini .stc-prog{padding-right:0}
+/* Акции — отдельный раздел: ряд значков-ссылок, ниже карточки акций */
+.promo-h{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.promo-h h2{margin:0;font-size:26px}
+.promo-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.promo-row button{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.promo-row .pi{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:28px;background:var(--surface);border:1px solid var(--line)}
+.promo-row b{font-size:13px;line-height:1.15}
+.promo-row small{font-size:11px;color:var(--muted);line-height:1.15}
 .ser-wk{display:flex;flex-direction:column;gap:4px}
 .ser-wt{font-size:12px;color:var(--muted)}
 .ser-week .fut i{opacity:.5}
@@ -1632,18 +1675,42 @@ function serWeek(w){
     const k=v?'v':i===fzDay?'fz':miss.includes(i)?'x':day===S.day?'now':'fut';
     return `<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='x'?'✕':''}</i>${d}</span>`; }).join('')}</div>`;
 }
+/* Статус гостя — по счётчику «посещений подряд». Сгорел счётчик — статус возвращается к Серебряному (лучший результат остаётся). */
+const TIERS=[{k:'silver',n:'Серебряный',to:'Серебряного',from:0},{k:'gold',n:'Золотой',to:'Золотого',from:30},{k:'plat',n:'Платиновый',to:'Платинового',from:100}];
+const tierOf=n=>TIERS.filter(t=>n>=t.from).pop();
+// Шапка «Турбо» (как панель в Дуолинго): лучший · посещения подряд · место — закреплена при прокрутке
 function serHead(){
-  const st=serState(), w=weekOf(S.day), rank=lbRank();
-  return `<div class="ser-top ser-pin ser ${st.k}">
+  const st=serState(), rank=lbRank();
+  return `<div class="ser-pin dash-pin ser ${st.k}">
+      <button class="dp-side" onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
       <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><span class="ser-num"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><b class="money">${S.ser.n}</b></span><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></button>
-      <div class="ser-side">
-        <button onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
-        <button onclick="openFreeze()"><b>❄️ ${Math.max(0,fzLeft())}</b><small>заморозки</small></button>
-        <button onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место</small></button>
-      </div>
+      <button class="dp-side" onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место</small></button>
     </div>
-    <div class="ser ser-body ${st.k}">${serWeek(w)}
-    <p class="ser-msg">${st.msg}</p></div>`;
+    ${statusCard(st)}`;
+}
+// Карточка статуса — цвет по статусу; внизу — эта неделя и что сделать, чтобы счётчик не сгорел
+function statusCard(st){
+  const t=tierOf(S.ser.n), nx=TIERS[TIERS.indexOf(t)+1], w=weekOf(S.day);
+  return `<div class="stc t-${t.k} ser ${st.k}">
+    <div class="stc-top" onclick="openTiers()">
+      <span class="stc-chip">Твой статус</span>
+      <b class="stc-name">${t.n}</b>
+      ${nx?`<div class="stc-prog"><span>До ${nx.to}</span><span class="money">${S.ser.n} / ${nx.from}</span></div><div class="stc-bar"><i style="width:${Math.round((S.ser.n-t.from)/(nx.from-t.from)*100)}%"></i></div>`
+        :`<div class="stc-prog"><span>Высший статус. Держи счётчик!</span></div>`}
+      <button class="stc-btn">Все статусы</button>
+    </div>
+    <div class="stc-band">
+      <div class="stc-bh"><span>Эта неделя</span><button onclick="openFreeze()">❄️ ${Math.max(0,fzLeft())} ${plural(Math.max(0,fzLeft()),'заморозка','заморозки','заморозок')}</button></div>
+      ${serWeek(w)}
+      <p class="ser-msg">${st.msg}</p>
+    </div>
+  </div>`;
+}
+function openTiers(){
+  const cur=tierOf(S.ser.n);
+  sheet(`<h2>Статусы</h2><p class="small muted">Статус зависит от того, сколько посещений подряд. Сгорит счётчик — статус вернётся к Серебряному. 👑 Лучший результат останется.</p>
+    ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой статус':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div></div></div>`; }).join('')}
+    <p class="small muted">Что даёт каждый статус — добавим.</p>`);
 }
 const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function openVisits(){
@@ -1737,9 +1804,16 @@ function progress(){
     ${S.turboHide?`<button class="turbo-head" onclick="S.turboHide=false;save();render()" aria-label="Что такое Турбо"><span class="th-ic"><svg viewBox="0 0 24 24">${TURBO_IC}</svg></span><span class="th-tx"><b>Турбо</b><span class="small muted">Самое мощное: все акции за регулярность</span></span></button>`
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
     ${serHead()}
-    ${tsec(1,'Твой ритм = твои бонусы',rhythm())}
-    ${tsec(2,'У кого больше посещений',leaderboard())}
-    ${tsec(3,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`)}
+    <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
+    <div class="promo-row">
+      <button onclick="document.getElementById('pr-ritm').scrollIntoView({behavior:'smooth',block:'start'})"><span class="pi">📈</span><b>Твой ритм</b><small>${rate()}% бонусами</small></button>
+      <button onclick="document.getElementById('pr-six').scrollIntoView({behavior:'smooth',block:'start'})"><span class="pi">☕</span><b>Каждый 6-й</b><small>−30%</small></button>
+      <button onclick="go('birthday')"><span class="pi">🎂</span><b>День рождения</b><small>скидка = возраст</small></button>
+      <button onclick="go('invite')"><span class="pi">🎁</span><b>Пригласи друга</b><small>+${REF_REWARD} ₽</small></button>
+    </div>
+    <div id="pr-ritm">${tsec(1,'Твой ритм = твои бонусы',rhythm())}</div>
+    <div id="pr-six">${tsec(2,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`)}</div>
+    <div class="tsec"><div class="tsec-h"><h2>У кого больше посещений</h2></div>${leaderboard()}</div>
 
   </section>`;
 }
