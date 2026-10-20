@@ -584,7 +584,18 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ser-fl{width:40px;height:50px;flex:none}
 .ser-fl path{fill:#ff6d00}
 .ser-main b{display:block;font-family:var(--f-num);font-weight:400;font-size:40px;line-height:1}
-.ser-main small{font-size:13px;line-height:1.1;margin-top:-3px;color:var(--muted);white-space:nowrap}
+.ser-main small{font-size:13px;line-height:1.2;margin-top:5px;color:var(--muted);white-space:nowrap}
+/* намёк «сюда можно нажать»: стрелка мягко зовёт вправо, по числу раз в несколько секунд пробегает блик, при нажатии — лёгкое «вдавливание» */
+.ser-main{position:relative;border-radius:14px;transition:transform .15s}
+.ser-main:active{transform:scale(.97)}
+.ser-main b{position:relative;background:linear-gradient(100deg,var(--ink) 40%,#ff9d5c 50%,var(--ink) 60%) 100% 0/250% 100% no-repeat;-webkit-background-clip:text;background-clip:text;color:transparent}
+.ser-main .go{display:inline-block;margin-left:2px;color:#ff6d00;font-weight:700}
+@media (prefers-reduced-motion:no-preference){
+  .ser-main .go{animation:sergo 1.8s ease-in-out infinite}
+  .ser-main b{animation:sershine 5s ease-in-out infinite}
+}
+@keyframes sergo{0%,60%,100%{transform:none}30%{transform:translateX(4px)}}
+@keyframes sershine{0%,70%{background-position:100% 0}90%,100%{background-position:0 0}}
 /* Карта всех посещений: месяцы, 🔥 — был, ❄️ — заморозка, 💔 — счётчик сгорел */
 .vm-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .vm-sum div{display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:14px;background:var(--line)}
@@ -1623,7 +1634,7 @@ function serWeek(w){
 function serHead(){
   const st=serState(), w=weekOf(S.day), rank=lbRank();
   return `<div class="ser-top ser-pin ser ${st.k}">
-      <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд ›</small></span></button>
+      <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></span></button>
       <div class="ser-side">
         <button onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
         <button onclick="openFreeze()"><b>❄️ ${Math.max(0,fzLeft())}</b><small>заморозки</small></button>
