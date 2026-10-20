@@ -525,6 +525,15 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .turbo-intro .label{color:#fff;opacity:.9}.turbo-intro b{font-size:20px;line-height:1.2}.turbo-intro .small{opacity:.92;line-height:1.35}
 .turbo-intro{flex-direction:row;align-items:center;gap:4px;padding:14px 8px 0 16px;overflow:hidden}
 .ti-tx{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;padding-bottom:14px}
+.turbo-intro{position:relative}
+.ti-x{position:absolute;top:8px;right:8px;z-index:2;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.ti-x svg{width:14px;height:14px;stroke:#fff;stroke-width:2.6;fill:none}
+/* Свёрнутая шапка «Турбо» — после закрытия плашки; тап разворачивает её снова */
+.turbo-head{display:flex;align-items:center;gap:12px;text-align:left;width:100%}
+.turbo-head .th-ic{width:40px;height:40px;border-radius:12px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,#ff6d00,#d500f9)}
+.turbo-head .th-ic svg{width:22px;height:22px;stroke:#fff;stroke-width:1.8;fill:none}
+.turbo-head .th-tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.turbo-head b{font-size:22px;line-height:1.15}
 .wowman{width:140px;height:150px;margin-right:-6px;flex:none;align-self:flex-end;overflow:visible}
 @media (prefers-reduced-motion:no-preference){
  .wowman .man{transform-origin:84px 132px;animation:wmjump 1.1s ease-in-out infinite}
@@ -1438,12 +1447,14 @@ function rhythm(){
     <p class="rh-msg">${msg}</p>
   </div>`;
 }
+const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
 function progress(){
   const wd=weekDays(weekOf(S.day)), pct=Math.min(100,wd/S.goal*100);
   const hist=S.weekHist.slice(-7), capped=!S.plus&&level().p>FREE_CAP;
   const f=S.funnel, mx=Math.max(1,f.shown), weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0);
   return `<section class="screen">
-    <div class="turbo-intro"><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>
+    ${S.turboHide?`<button class="turbo-head" onclick="S.turboHide=false;save();render()" aria-label="Что такое Турбо"><span class="th-ic"><svg viewBox="0 0 24 24">${TURBO_IC}</svg></span><span class="th-tx"><b>Турбо</b><span class="small muted">Самое мощное: все акции за регулярность</span></span></button>`
+    :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
     ${rhythm()}
     <div class="stack"><h1>${tiles(S.streak)} ${plural(S.streak,'неделя','недели','недель')} подряд в цель</h1></div>
     <div class="panel"${F(3)}>
@@ -1674,7 +1685,7 @@ function plusBanner(){
 
 const TABS=[
   ['home','Сегодня','<path stroke="#e53935" d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/>'],
-  ['progress','Турбо','<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'],
+  ['progress','Турбо',TURBO_IC],
   ['qr','QR',''],
   ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
