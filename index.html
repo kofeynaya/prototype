@@ -579,11 +579,30 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 /* полоса серии закреплена под демо-полосой, как верхняя панель Дуолинго */
 .ser-pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h));z-index:12;background:var(--bg);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line)}
 .ser-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ser-main{display:flex;align-items:center;gap:8px}
+.ser-main{display:flex;align-items:center;gap:8px;text-align:left}
+.ser-main>span{display:flex;flex-direction:column}
 .ser-fl{width:40px;height:50px;flex:none}
 .ser-fl path{fill:#ff6d00}
 .ser-main b{display:block;font-family:var(--f-num);font-weight:400;font-size:40px;line-height:1}
-.ser-main small{font-size:13px;color:var(--muted)}
+.ser-main small{font-size:13px;line-height:1.1;margin-top:-3px;color:var(--muted);white-space:nowrap}
+/* Карта всех посещений: месяцы, 🔥 — был, ❄️ — заморозка, 💔 — счётчик сгорел */
+.vm-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vm-sum div{display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:14px;background:var(--line)}
+.vm-sum b{font-family:var(--f-num);font-weight:400;font-size:22px;line-height:1}
+.vm-sum span{font-size:12px;color:var(--muted);line-height:1.2}
+.vm-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.vm-mon{display:flex;flex-direction:column;gap:6px}
+.vm-mon h3{margin:6px 0 0;font-size:17px}
+.vm-mon h3 small{font-weight:400;color:var(--muted);font-size:13px}
+.vm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.vm-grid .h{font-size:11px;color:var(--muted);text-align:center}
+.vm-grid .d{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:13px;color:var(--muted);background:transparent}
+.vm-grid .d.v{background:#ff8a3d;color:#fff;font-weight:700}
+.vm-grid .d.fz{background:rgba(155,217,217,.45);color:var(--ink)}
+.vm-grid .d.burn{background:rgba(229,57,53,.16);color:#e53935;font-weight:700}
+.vm-grid .d.today{box-shadow:0 0 0 2px var(--ink)}
+.vm-grid .d.reg{box-shadow:0 0 0 2px #2b2b93}
+.vm-grid .d.fut{opacity:.35}
 .ser-side{display:flex;gap:4px}
 .ser-side button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 7px;border-radius:12px;background:var(--line);min-width:52px}
 .ser-side b{font-size:14px;white-space:nowrap}
@@ -864,6 +883,14 @@ if(!S.past2){ S.past=[3,4,2,5,3,4,3]; S.past2=1; } // демо: дни с пок
 if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // демо: серия уже идёт 87 дней, лучшая — 112
 if(!S.chats) S.chats={};
+if(!S.histPast){ // демо: посещения до начала календаря прототипа, сходятся с «87 подряд» и «лучший 112»
+  let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647, pick=(w,k)=>{ const ds=[0,1,2,3,4,5,6].sort(()=>rnd()-.5).slice(0,k); return ds.map(d=>w*7+d); };
+  const out=[], burnt=[]; let w=-1, left=Math.max(0,S.ser.n-S.visits.filter(d=>d<S.day).length);
+  while(left>0){ let k=Math.min(left,3+Math.floor(rnd()*3)); if(left-k>0&&left-k<3) k=left-3; out.push(...pick(w,k)); left-=k; w--; }
+  burnt.push(w); out.push(...pick(w,1)); w--;
+  left=S.ser.best; while(left>0){ let k=Math.min(left,3+Math.floor(rnd()*3)); if(left-k>0&&left-k<3) k=left-3; out.push(...pick(w,k)); left-=k; w--; }
+  out.push(...pick(w,2)); S.regDay=w*7+2; out.push(S.regDay); S.histPast=[...new Set(out)].sort((a,b)=>a-b); S.ser.burnt=[...(S.ser.burnt||[]),...burnt];
+}
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
 const weekOf = d => Math.floor(d/7);
@@ -1023,7 +1050,7 @@ function nextDay(){
     msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rate()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     if(!met && S.ser.n){ const end=w*7+6;
       if(d===SER_MIN-1 && fzLeft(end)>0){ const m=monthKey(end); S.ser.fz = S.ser.fz.m===m?{m,used:S.ser.fz.used+1}:{m,used:1}; S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла твои ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')}.`; }
-      else { S.ser.lost=S.ser.n; msg+=` Счётчик ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')} сгорел — начинаем с нуля. Лучший результат (${S.ser.best}) остаётся.`; S.ser.n=0; } }
+      else { S.ser.lost=S.ser.n; (S.ser.burnt=S.ser.burnt||[]).push(w); msg+=` Счётчик ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')} сгорел — начинаем с нуля. Лучший результат (${S.ser.best}) остаётся.`; S.ser.n=0; } }
     if(rec){ S.bonus+=REC_BONUS; msg+=` 🏆 Новый рекорд: +${REC_BONUS} бонусов!`; }
   }
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
@@ -1596,7 +1623,7 @@ function serWeek(w){
 function serHead(){
   const st=serState(), w=weekOf(S.day), rank=lbRank();
   return `<div class="ser-top ser-pin ser ${st.k}">
-      <div class="ser-main"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд</small></span></div>
+      <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд ›</small></span></button>
       <div class="ser-side">
         <button onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
         <button onclick="openFreeze()"><b>❄️ ${Math.max(0,fzLeft())}</b><small>заморозки</small></button>
@@ -1605,6 +1632,25 @@ function serHead(){
     </div>
     <div class="ser ser-body ${st.k}">${serWeek(w)}
     <p class="ser-msg">${st.msg}</p></div>`;
+}
+const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function openVisits(){
+  const all=new Set([...(S.histPast||[]), ...S.visits]), reg=S.regDay??0, total=[...all].filter(d=>d<=S.day).length, r=dateOf(reg);
+  const burnt=new Set((S.ser.burnt||[]).map(w=>w*7+6)), fz=new Set(S.ser.frozen.map(w=>w*7+6));
+  const months=[]; let d=new Date(dateOf(S.day).getFullYear(),dateOf(S.day).getMonth(),1);
+  while(d>=new Date(r.getFullYear(),r.getMonth(),1)){ months.push(new Date(d)); d.setMonth(d.getMonth()-1); }
+  const off=x=>Math.round((x-new Date(DAY0))/864e5);
+  const mon=m=>{ const first=off(m), dim=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(), lead=((m.getDay()+6)%7);
+    let cnt=0, cells=WD.map(x=>`<span class="h">${x}</span>`).join('')+'<span></span>'.repeat(lead);
+    for(let i=0;i<dim;i++){ const day=first+i, v=all.has(day)&&day<=S.day; if(v) cnt++;
+      const k=day<reg?'':v?'v':burnt.has(day)?'burn':fz.has(day)?'fz':day>S.day?'fut':'';
+      cells+=`<span class="d ${k} ${day===S.day?'today':''} ${day===reg?'reg':''}">${v?'🔥':k==='burn'?'💔':k==='fz'?'❄️':i+1}</span>`; }
+    return `<div class="vm-mon"><h3>${MON_N[m.getMonth()]} ${m.getFullYear()} <small>· ${cnt} ${plural(cnt,'посещение','посещения','посещений')}</small></h3><div class="vm-grid">${cells}</div></div>`; };
+  sheet(`<h2>Все мои посещения</h2>
+    <div class="vm-sum"><div><b>${S.ser.n}</b><span>подряд сейчас</span></div><div><b>👑 ${S.ser.best}</b><span>лучший результат</span></div><div><b>${total}</b><span>всего посещений</span></div></div>
+    <p class="small muted" style="margin:0">С нами с ${r.getDate()} ${MON[r.getMonth()]} ${r.getFullYear()} — обведено синим.</p>
+    <div class="vm-leg"><span>🔥 был</span><span>❄️ заморозка</span><span>💔 счётчик сгорел</span></div>
+    ${months.map(mon).join('')}`);
 }
 function openFreeze(){
   const max=S.plus?FZ_PLUS:FZ_FREE, left=Math.max(0,fzLeft());
