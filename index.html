@@ -573,7 +573,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .rh-v{font-size:15px;line-height:1.1}
 .rh-v b{font-family:var(--f-num);font-size:34px;line-height:1;font-weight:400}
 .rh-eq{align-self:center;font-family:var(--f-num);font-size:26px;color:var(--muted)}
-.ser{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:20px;background:var(--surface);border:1px solid var(--line)}
+.ser{display:flex;flex-direction:column;gap:10px}
+.ser-pin{flex-direction:row}
+.ser-body{margin-top:-10px}
+/* полоса серии закреплена под демо-полосой, как верхняя панель Дуолинго */
+.ser-pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h));z-index:12;background:var(--bg);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line)}
 .ser-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .ser-main{display:flex;align-items:center;gap:8px}
 .ser-fl{width:40px;height:50px;flex:none}
@@ -592,8 +596,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ser-week .now{color:var(--ink);font-weight:700}
 .ser-week .fut i{opacity:.5}
 .ser-msg{margin:0;font-size:14px;line-height:1.35}
-.ser.safe{border-color:#ff9100}
-.ser.danger{border-color:#e53935;box-shadow:0 0 0 3px rgba(229,57,53,.15)}
+.ser.danger .ser-msg b{color:#e53935}
 .ser.danger .ser-fl path{fill:#ffb199}
 .ser.freeze .ser-fl path,.ser.zero .ser-fl path{fill:#9bd9d9}
 .ser.zero .ser-fl path{fill:var(--line)}
@@ -1580,8 +1583,7 @@ function serState(){
 }
 function serHead(){
   const st=serState(), w=weekOf(S.day), rank=lbRank();
-  return `<div class="ser ${st.k}">
-    <div class="ser-top">
+  return `<div class="ser-top ser-pin ser ${st.k}">
       <div class="ser-main"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><span><b class="money">${S.ser.n}</b><small>${plural(S.ser.n,'день','дня','дней')} в серии</small></span></div>
       <div class="ser-side">
         <button onclick="toast('Лучшая серия: ${S.ser.best} ${plural(S.ser.best,'день','дня','дней')}. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучшая</small></button>
@@ -1589,9 +1591,8 @@ function serHead(){
         <button onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место</small></button>
       </div>
     </div>
-    <div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day); return `<span class="${v?'v':''} ${day===S.day?'now':''} ${day>S.day?'fut':''}"><i>${v?'🔥':''}</i>${d}</span>`; }).join('')}</div>
-    <p class="ser-msg">${st.msg}</p>
-  </div>`;
+    <div class="ser ser-body ${st.k}"><div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day); return `<span class="${v?'v':''} ${day===S.day?'now':''} ${day>S.day?'fut':''}"><i>${v?'🔥':''}</i>${d}</span>`; }).join('')}</div>
+    <p class="ser-msg">${st.msg}</p></div>`;
 }
 function openFreeze(){
   const max=S.plus?FZ_PLUS:FZ_FREE, left=Math.max(0,fzLeft());
@@ -1663,9 +1664,9 @@ function sendMsg(id){ const el=document.getElementById('msgin'), t=(el&&el.value
 function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
 function progress(){
   return `<section class="screen">
-    ${serHead()}
     ${S.turboHide?`<button class="turbo-head" onclick="S.turboHide=false;save();render()" aria-label="Что такое Турбо"><span class="th-ic"><svg viewBox="0 0 24 24">${TURBO_IC}</svg></span><span class="th-tx"><b>Турбо</b><span class="small muted">Самое мощное: все акции за регулярность</span></span></button>`
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
+    ${serHead()}
     ${tsec(1,'Твой ритм = твои бонусы',rhythm())}
     ${tsec(2,'Рейтинг серий',leaderboard())}
     ${tsec(3,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`)}
