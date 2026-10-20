@@ -1049,8 +1049,25 @@ const DAY0 = new Date(_NOW.getFullYear(), _NOW.getMonth(), _NOW.getDate()-_DOW-7
 const TODAY0 = 7+_DOW; // индекс реального «сегодня» в демо-календаре
 const WD = ['пн','вт','ср','чт','пт','сб','вс'];
 const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const rub = n => Math.round(n).toLocaleString('ru-RU')+' ₽';
-const rubk = n => (+n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₽';
+const rub = n => Math.round(n).toLocaleString('ru-RU')+'\u00A0₽';
+const rubk = n => (+n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})+'\u00A0₽';
+/* Типографика (требование владельца): ₽, %, бонусы не отрываются от числа; короткие предлоги/союзы/частицы не висят в конце строки —
+   переносятся вместе со следующим словом; тире не начинает строку; эмодзи в конце не уходит один на новую строку.
+   Работает на всём тексте приложения автоматически (наблюдатель за DOM). */
+const NB='\u00A0', TYPO_SHORT='(?:[А-ЯЁа-яё]{1,2}|без|для|при|про|над|под|изо|обо|что|как|или|это|ещё|еще|все|всё|так|уже|где|кто|чем|чтобы|если|когда)';
+const TYPO_RX=[
+  [/(\d)[ \u202F](?=\d{3}(?!\d))/g,'$1'+NB],                                  // 12 269 — разряды не разрываются
+  [/(\d)[ \u202F](₽|%|руб\.?|бонус)/g,'$1'+NB+'$2'],                          // 320 ₽, 30 %, 64 бонуса
+  [/([+−\-–]) (?=\d)/g,'$1'],
+  [new RegExp('(^|[\\s\u00A0«„"(—–-])('+TYPO_SHORT+') (?=\\S)','gi'),'$1$2'+NB],   // в, на, с, и, за, для… + следующее слово
+  [/ (—|–)(?= )/g,NB+'$1'],                                                      // тире не начинает строку
+  [/ (\p{Extended_Pictographic}[\uFE0F\u200D\p{Extended_Pictographic}]*)$/u,NB+'$1'],
+];
+function typo(str){ let t=str; for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
+function typoNode(root){ if(root.nodeType===3){ if(root.parentNode&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(root.parentNode.nodeName)) return; const t=typo(root.nodeValue); if(t!==root.nodeValue) root.nodeValue=t; return; }
+  if(root.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(root.nodeName)) return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); let n; while((n=w.nextNode())){ if(/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) continue; const t=typo(n.nodeValue); if(t!==n.nodeValue) n.nodeValue=t; } }
+new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='characterData') typoNode(m.target); else m.addedNodes.forEach(typoNode); } }).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
 const dateOf = d => { const x=new Date(DAY0); x.setDate(x.getDate()+d); return x; };
 const fmt = d => { const x=dateOf(d); return WD[(d%7)]+', '+x.getDate()+' '+MON[x.getMonth()]; };
 const fmtShort = d => { const x=dateOf(d); return x.getDate()+' '+MON[x.getMonth()]; };
