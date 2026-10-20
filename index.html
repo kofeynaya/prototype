@@ -598,6 +598,12 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .rh-prize.got{border-style:solid;background:linear-gradient(135deg,#f2c230,#ff9100);color:#212221}
 .rh-prize.got .pt,.rh-prize.got .pt b,:root .rh-prize.got .pv{color:#212221}
 @keyframes rhnext{50%{transform:scale(1.08)}}
+/* «Как всё устроено»: главное правило (ритм) — с формулой и списком */
+.rl-hero{border-color:#ff9100}
+.rl-main{margin:0;font-size:16px;line-height:1.35;font-weight:600}
+.rl-ex{margin:2px 0}
+.rl-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.35;color:var(--muted)}
+.rl-list b{color:var(--ink)}
 .goalpick{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 .goalpick .gl{font-weight:700;font-size:15px;white-space:nowrap}
 .goalpick .seg{display:flex;flex:1;gap:4px;padding:3px;border-radius:12px;background:var(--line)}
@@ -1569,8 +1575,17 @@ function openHistory(){
 
 /* Справочник «Как всё устроено» — пока схема, тексты допишем по указанию владельца */
 const RULES=[
-  ['Бонусы — твой ритм','Сколько дней с покупкой было на прошлой неделе — столько % бонусов с каждой покупки на этой (без подписки до 3%, с подпиской до 7%). Новый рекорд дней в неделю (от 5) — +500 бонусов. Оплатить бонусами можно до 30% чека.'],
-  ['Цель недели и огоньки','Сами выбираете, сколько дней в неделю заходить. Выполнили цель — горит огонёк, растёт уровень.'],
+  ['Бонусы — твой ритм',`<p class="rl-main">Сколько дней ты заходил на прошлой неделе — столько процентов бонусов получаешь с каждой покупки на этой.</p>
+    <div class="rh-now rl-ex"><div class="rh-f"><span class="rh-k">Прошлая неделя</span><span class="rh-v"><b class="money">5</b> дней</span></div><span class="rh-eq">=</span><div class="rh-f pct"><span class="rh-k">Эта неделя</span><span class="rh-v"><b class="money">5%</b></span><span class="rh-k">с каждой покупки</span></div></div>
+    <ul class="rl-list">
+      <li><b>Считаем дни, а не чеки.</b> День засчитывается, если покупок за день на ${MIN_DAY} ₽ и больше. Несколько чеков в один день — один день.</li>
+      <li><b>Новый % — каждый понедельник.</b> Зашёл реже — процент станет меньше, чаще — больше. Всё видно в «Турбо».</li>
+      <li><b>Максимум:</b> без подписки — ${FREE_CAP}%, с Кофейная+ — ${PLUS_CAP}%.</li>
+      <li><b>Новый рекорд — +${REC_BONUS} бонусов.</b> Рекорд — больше всего дней с покупкой за неделю, считаются рекорды от ${REC_MIN} дней. Каждый рекорд — один раз, бонусы приходят в понедельник.</li>
+      <li><b>Бонусы не сгорают.</b> 1 бонус = 1 ₽, ими можно оплатить до 30% чека.</li>
+    </ul>
+    <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
+  ['Цель недели и огоньки','Сами выбираете, сколько дней в неделю заходить. Выполнили цель — горит огонёк. Недели в цель подряд — серия огоньков.'],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
   ['Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: пять отметок — шестой со скидкой.'],
@@ -1583,7 +1598,7 @@ const RULES=[
 ];
 function openRules(){
   sheet(`<h2>Как всё устроено</h2><p class="small muted">Коротко обо всех акциях и бонусах. Раздел в работе — подробности добавим.</p>
-    ${RULES.map(([t,d])=>`<div class="panel"><h3>${t}</h3><p class="small muted">${d}</p></div>`).join('')}`);
+    ${RULES.map(([t,d],i)=>`<div class="panel${i?'':' rl-hero'}"><h3>${t}</h3>${d.startsWith('<')?d:`<p class="small muted">${d}</p>`}</div>`).join('')}`);
 }
 
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
