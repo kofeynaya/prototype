@@ -447,6 +447,13 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .batt.big .bb i.on{background:var(--bc)}
 .batt.big .bt{width:7px;height:22px;background:var(--ink)}
 @media (prefers-reduced-motion:no-preference){.batt.big .bb i.on:last-of-type{animation:serblink 1.4s ease-in-out infinite}}
+.myph{position:relative;width:64px;height:64px;flex:none;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--muted);color:var(--muted);cursor:pointer;overflow:hidden}
+.myph .pl{font-size:28px;line-height:1;font-weight:300}
+.myph .cap{font-size:11px;margin-top:-2px}
+.myph.has{border:0}
+.myph img{width:100%;height:100%;object-fit:cover}
+.myph.has::after{content:"+";position:absolute;right:0;bottom:0;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:15px;line-height:20px;text-align:center}
+img.ava{object-fit:cover}
 .pw-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:left}
 .pw-link .tx{flex:1;display:flex;flex-direction:column;gap:1px}.pw-link small{color:var(--muted);font-size:13px}.pw-link .chev{color:var(--muted)}
 .pw-link .batt .bb,.pw-link .batt .bt{border-color:var(--ink)}.pw-link .batt .bt{background:var(--ink)}
@@ -1801,7 +1808,13 @@ function ava(i,size=44){ const bg=AV_BG[i%7], sk=AV_SKIN[(i*3)%4], hr=AV_HAIR[(i
   return `<svg class="ava" width="${size}" height="${size}" viewBox="0 0 44 44" aria-hidden="true"><clipPath id="avc${i}"><circle cx="22" cy="22" r="22"/></clipPath><g clip-path="url(#avc${i})"><rect width="44" height="44" fill="${bg}"/><path fill="${['#00657f','#2b2b93','#0d553f','#382d2b','#d6264f'][i%5]}" d="M6 46q2-12 16-12t16 12z"/><circle cx="22" cy="21" r="9.5" fill="${sk}"/>${hair}<circle cx="18.5" cy="21.5" r="1.2" fill="#212221"/><circle cx="25.5" cy="21.5" r="1.2" fill="#212221"/><path d="M19 25.5q3 2.5 6 0" fill="none" stroke="#212221" stroke-width="1.3" stroke-linecap="round"/></g></svg>`; }
 const lbAll=()=>{ const me={id:'me', n:S.name||'Ты', s:S.ser.n, me:true}; return [...GUESTS, ...(S.lbHide?[]:[me])].sort((a,b)=>b.s-a.s||(a.me?-1:1)); };
 const lbRank=()=>S.lbHide?'—':lbAll().findIndex(g=>g.me)+1;
-const gAva=(g,size)=>g.me?ava(99,size):ava(GUESTS.indexOf(g),size);
+const gAva=(g,size)=>g.me?(S.photo?`<img class="ava" src="${S.photo}" width="${size}" height="${size}" alt="">`:ava(99,size)):ava(GUESTS.indexOf(g),size);
+/* Фото профиля: кружок с «+», по нажатию — выбрать фото (или снять камерой); уменьшаем до 256 px и храним у себя */
+function myPhoto(){ return `<label class="myph ${S.photo?'has':''}" aria-label="${S.photo?'Сменить фото':'Добавить фото'}">${S.photo?`<img src="${S.photo}" alt="">`:'<span class="pl">+</span><span class="cap">фото</span>'}<input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
+function setPhoto(inp){ const f=inp.files&&inp.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=()=>{ const im=new Image(); im.onload=()=>{ const n=256, c=document.createElement('canvas'); c.width=c.height=n; const k=Math.min(im.width,im.height);
+    c.getContext('2d').drawImage(im,(im.width-k)/2,(im.height-k)/2,k,k,0,0,n,n); S.photo=c.toDataURL('image/jpeg',.82); save(); render(); toast('Фото добавлено. Его видят гости в «У кого больше посещений».'); };
+    im.src=r.result; }; r.readAsDataURL(f); }
 function lbRow(g,i){ return `<button class="lbr ${g.me?'me':''}" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span></button>`; }
 function leaderboard(){
   const all=lbAll(), r=all.findIndex(g=>g.me);
@@ -1965,8 +1978,8 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row between"><div class="stack" style="gap:2px"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span></div>
-      <div class="row" style="gap:8px">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
+    <div class="row between"><div class="row" style="gap:12px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:0"><h1>${S.name}</h1><span class="muted small money">${S.phone||'+7 900 000-00-00'}</span>${S.plus?`<span style="margin-top:4px">${subChip()}</span>`:''}</div></div>
+      <div class="row" style="gap:8px;align-self:flex-start"><button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="stack"${F(7)}><h2>Достижения</h2>
