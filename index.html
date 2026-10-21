@@ -869,6 +869,23 @@ img.ava{object-fit:cover}
 .t-plat .ser-week i{background:rgba(255,255,255,.14)}
 .t-plat .ser-week .v i{background:rgba(255,255,255,.3)}
 .stc.mini{box-shadow:none}.stc.mini .stc-top{cursor:default}.stc.mini .stc-prog{padding-right:0}
+.stc-perk{align-self:flex-start;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.5);margin-right:118px}
+.t-plat .stc-perk{background:rgba(255,255,255,.16)}
+.stc.mini .stc-perk{margin-right:0}.stc-perk.big{font-weight:400;border-radius:10px;padding:5px 10px}
+/* Подарки за посещения: живут 3 дня, таймер «ещё N дня» / «сгорит сегодня» */
+.gifts{display:flex;flex-direction:column;gap:8px}
+.gift-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);color:var(--ink);margin-top:8px}
+.gifts .gift-row{margin-top:0}
+.gift-row .gi{font-size:26px;line-height:1}
+.gift-row .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.gift-row .tx small{color:var(--muted);font-size:13px}
+.gift-row .gw{font-size:13px;font-weight:700;white-space:nowrap;color:#b26a00}
+.gift-row.hot{border-color:#e53935}.gift-row.hot .gw{color:#e53935}
+.gift-row.chest{background:linear-gradient(135deg,#fff3c4,#ffd36b);border-color:#e6a700;color:#3a2408;cursor:pointer}
+.gift-row.chest .tx small{color:#6b4a10}.gift-row .go{font-weight:700;white-space:nowrap}
+.mile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.mile h2{margin:4px 0 0}.mile p{margin:4px 0}.mile .gift-row{text-align:left}
+.mile-n{font-size:54px;line-height:1;display:flex;align-items:center;gap:8px}.mile-n b{font-size:64px}
 /* Акции — отдельный раздел: ряд значков-ссылок, ниже карточки акций */
 .promo-h{display:flex;flex-direction:column;gap:2px;margin-top:8px}
 .promo-h h2{margin:0;font-size:26px}
@@ -1245,6 +1262,50 @@ const rateCap = () => S.plus ? PLUS_CAP : FREE_CAP;
 const rate = () => Math.min(rawRate(), rateCap());            // % бонусов с каждой покупки на этой неделе
 const walletTotal = () => S.wallet.money+S.wallet.gift;
 
+/* ===================== Награды за посещения подряд (решение владельца 21.10) =====================
+   Статус даёт % сверху к ритму: Золотой +1%, Платиновый +2% и каждый понедельник «любой напиток −50%».
+   Сундук — за неделю с 5+ настоящими посещениями (заморозка не считается). Вехи 30/50/100/200 — праздник и подарок, каждая один раз.
+   ГЛАВНОЕ: подарки не копятся — каждый действует 3 дня (день выдачи + 2), потом сгорает. Только с Кофейная+. */
+const GIFT_DAYS=3, CHEST_MIN=5, TIER_PLUS={gold:1,plat:2};
+const isDrink=m=>['coffee','tea'].includes(LCAT(m)), isSweet=m=>LCAT(m)==='pastry';
+const GIFT_KIND={
+  drink50:{t:'Любой напиток −50%', ic:'☕', fit:isDrink, off:.5},
+  drink30:{t:'Любой напиток −30%', ic:'☕', fit:isDrink, off:.3},
+  sweet50:{t:'Любой десерт −50%',  ic:'🧁', fit:isSweet, off:.5},
+  drink100:{t:'Любой напиток в подарок', ic:'☕', fit:isDrink, off:1},
+  sweet100:{t:'Любой десерт в подарок',  ic:'🧁', fit:isSweet, off:1},
+};
+const MILES=[{n:30,g:['drink30']},{n:50,g:['drink50']},{n:100,g:['drink100']},{n:200,g:['drink100','sweet100']}];
+const CHEST_PRIZES=['drink30','sweet50','drink50','sweet50','drink30'];
+if(!S.rw) S.rw={gifts:[],miles:{30:1,50:1},chest:{week:weekOf(S.day)-1,open:false},platWeek:null}; // демо: вехи 30 и 50 уже пройдены, сундук за прошлую неделю ждёт
+const tierPlus=()=>S.plus?(TIER_PLUS[tierOf(S.ser.n).k]||0):0;
+const rateAll=()=>rate()+tierPlus();                                   // % бонусов с покупки: ритм + статус
+const rateWhy=()=>tierPlus()?`${rate()}% за ритм + ${tierPlus()}% ${tierOf(S.ser.n).n}`:`${rate()}% за ритм`;
+const giftsLive=()=>S.plus?S.rw.gifts.filter(g=>!g.used&&!g.gone&&S.day>=g.from&&S.day<=g.until):[];
+const giftLeft=g=>g.until-S.day+1;                                     // сколько дней осталось, включая сегодня
+const giftWhen=g=>{ const n=giftLeft(g); return n<=1?'сгорит сегодня':`ещё ${n} ${plural(n,'день','дня','дней')}`; };
+function giveGift(kind,why){ const g={id:Date.now()+Math.random(),kind,why,from:S.day,until:S.day+GIFT_DAYS-1}; S.rw.gifts.push(g); return g; }
+function givePlat(){ const w=weekOf(S.day); if(S.plus&&tierOf(S.ser.n).k==='plat'&&S.rw.platWeek!==w){ S.rw.platWeek=w; giveGift('drink50','Платиновый — подарок недели'); return true; } return false; }
+// Веха: 30/50/100/200 подряд — только за настоящее посещение (вызывается из покупки)
+function checkMile(){ const m=MILES.find(x=>x.n===S.ser.n); if(!m||S.rw.miles[m.n]) return null; S.rw.miles[m.n]=1; m.g.forEach(k=>giveGift(k,`${m.n} посещений подряд`)); return m; }
+function celebrateMile(m){ confetti(); setTimeout(confetti,700);
+  sheet(`<div class="mile"><div class="mile-n">🎉<b class="money">${m.n}</b></div><h2>${m.n} посещений подряд!</h2><p>Ты молодец. Держи подарок:</p>
+    ${m.g.map(k=>`<div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>Действует ${GIFT_DAYS} дня — успей</small></span></div>`).join('')}
+    <p class="small muted">Скидка посчитается сама — на кассе по QR или в заказе</p><button class="btn block" onclick="closeSheet()">Ура!</button></div>`); }
+function openChest(){ if(!S.plus) return premGate('Сундук — только с ★ Кофейная+','Неделя, где 5 и больше посещений, — сундук с призом');
+  const c=S.rw.chest; if(!c||c.open) return; c.open=true; const k=CHEST_PRIZES[Math.floor(Math.random()*CHEST_PRIZES.length)]; giveGift(k,'Приз из сундука'); save(); render(); confetti();
+  sheet(`<div class="mile"><div class="mile-n">🎁</div><h2>Твой приз</h2><div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>Действует ${GIFT_DAYS} дня — потом сгорит</small></span></div>
+    <p class="small muted">Скидка посчитается сама — на кассе по QR или в заказе</p><button class="btn block" onclick="closeSheet()">Забрать</button></div>`); }
+const chestReady=()=>S.plus&&S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week===weekOf(S.day)-1;
+// Блок «Мои подарки»: сундук + живые подарки с таймером. Пусто — ничего не показываем
+function giftsBlock(){
+  const gs=giftsLive(), ch=chestReady(); if(!gs.length&&!ch) return '';
+  return `<div class="gifts">
+    ${ch?`<button class="gift-row chest" onclick="openChest()"><span class="gi">🎁</span><span class="tx"><b>Сундук за прошлую неделю</b><small>5 и больше посещений — держи приз</small></span><span class="go">Открыть ›</span></button>`:''}
+    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${GIFT_KIND[g.kind].ic}</span><span class="tx"><b>${GIFT_KIND[g.kind].t}</b><small>${g.why}</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
+  </div>`;
+}
+
 function bdInfo(){
   const b=S.birth; const today=dateOf(S.day); let best=null;
   for(const y of [today.getFullYear()-1,today.getFullYear(),today.getFullYear()+1]){
@@ -1310,6 +1371,7 @@ function quote(lines, opt={}){
   const comboOk = comboLeft && comboLeft.every(c=>units.some(u=>u.id===c));
   const bd=bdInfo(), bdOn=prem&&bd.active&&(S.birth.verified||opt.doc||opt.online); let bdLeft=bdOn?bd.capLeft:0;
   const sixLeft={}; if(prem) SIXTH.forEach(id=>{ if(S.stamps[id]>=5) sixLeft[id]=1 });
+  const gLeft=giftsLive().map(g=>({...g})), giftsUsed=[];   // подарки за посещения: каждый — на одну позицию
   const out=[];
   for(const u of units){
     const m=byId(u.id), full=m.p+u.sur; regular+=full;
@@ -1321,9 +1383,11 @@ function quote(lines, opt={}){
     if(sixLeft[u.id]) cand(Math.round(full*(1-SIX_OFF)),'6-й −'+Math.round(SIX_OFF*100)+'%','six');
     if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
     if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
+    let gPick=null; for(const g of gLeft){ if(g.left===0||!GIFT_KIND[g.kind].fit(m)) continue; const p=Math.round(full*(1-GIFT_KIND[g.kind].off)); if(p<best.price){ cand(p,'🎁 '+GIFT_KIND[g.kind].t.toLowerCase(),'rw'); gPick=g; } }
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
     if(best.k==='six'){ sixLeft[u.id]=0; sixthUsed.push(u.id); }
+    if(best.k==='rw'){ gPick.left=0; giftsUsed.push(gPick.id); }
     if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
     out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why,k:best.k==='gift'?'offer':best.k});
   }
@@ -1334,8 +1398,8 @@ function quote(lines, opt={}){
   const bonusSpend = opt.bonus&&prem ? Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE)) : 0;
   const after = paid-bonusSpend+fee;
   const walletSpend = opt.wallet&&prem ? Math.min(walletTotal(), after) : 0;
-  return {lines:out, regular, paid, saved:regular-paid, offerUsed, sixthUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
-          bonusSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rate()/100)};
+  return {lines:out, regular, paid, saved:regular-paid, offerUsed, sixthUsed, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
+          bonusSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rateAll()/100)};
 }
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
 function applyPurchase(q, channel, doc){
@@ -1344,7 +1408,10 @@ function applyPurchase(q, channel, doc){
   S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
-  if(first){ S.visits.push(S.day); if(S.plus){ S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); } }
+  let mile=null;
+  if(first){ S.visits.push(S.day); if(S.plus){ S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: любой напиток −50% — 3 дня',4500),mile?6000:3400); } }
+  (q.giftsUsed||[]).forEach(id=>{ const g=S.rw.gifts.find(x=>x.id===id); if(g) g.used=S.day; });
+  if(mile) setTimeout(()=>celebrateMile(mile),2600);
   const cw=weekOf(S.day), cd=weekDays(cw);
   if(first && S.plus && isRecord(cd) && S.recWeek!==cw){ S.recWeek=cw; setTimeout(()=>{ confetti(); toast(`🏆 Новый рекорд — ${cd} ${plural(cd,'день','дня','дней')} за неделю! +${REC_BONUS} бонусов придут в понедельник`,4500); },3200); }
   S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
@@ -1362,7 +1429,7 @@ function applyPurchase(q, channel, doc){
   const wd=weekDays(weekOf(S.day));
   let msg = first ? `<b>🔥 ${S.ser.n}! День засчитан: ${wd} ${plural(wd,'день','дня','дней')}</b> на этой неделе → на следующей ${Math.min(wd,rateCap())}% бонусов.` : counted ? `<b>Покупка сохранена.</b> Этот день уже был засчитан.` : `<b>Покупка сохранена.</b> День засчитается, когда покупок за сегодня наберётся на ${MIN_DAY} ₽ (сейчас ${rub(dayTotal)}).`;
   if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
-  msg+=` Бонусы +${q.bonus} (${rate()}% за ритм)${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
+  msg+=` Бонусы +${q.bonus} (${rateWhy()})${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
   if(got.length) msg+=` Новое достижение: «${got.join('», «')}».`;
   return msg;
 }
@@ -1388,12 +1455,17 @@ function nextDay(){
   let msg='Новый день: '+fmt(S.day)+'.';
   if(weekOf(S.day)!==w){
     const d=weekDays(w), met=serDays(w)>=SER_MIN, was=Math.min(rawRate(),rateCap()), rec=isRecord(d); S.weekHist.push({week:w,days:d,met});
-    msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rate()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
+    msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rateAll()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     if(!met && S.ser.n){ const end=w*7+6;
       if(serDays(w)===SER_MIN-1 && (S.plus||!weekFrozen(w)) && fzLeft(end)>0){ useFz(end); S.ser.frozen.push(w); msg+=` ❄️ Заморозка спасла твои ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')}.`; }
       else { S.ser.lost=S.ser.n; S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); msg+=` Счётчик ${S.ser.n} ${plural(S.ser.n,'посещение','посещения','посещений')} сгорел — начинаем с нуля. Лучший результат (${S.ser.best}) остаётся.`; S.ser.n=0; } }
     if(rec&&S.plus){ S.bonus+=REC_BONUS; msg+=` 🏆 Новый рекорд: +${REC_BONUS} бонусов!`; }
+    if(S.plus&&d>=CHEST_MIN){ S.rw.chest={week:w,open:false}; msg+=` 🎁 За ${d} ${plural(d,'посещение','посещения','посещений')} — сундук с призом! Открой в «Турбо».`; }
+    if(givePlat()) msg+=' 💎 Подарок Платинового: любой напиток −50% — 3 дня.';
   }
+  const gone=S.rw.gifts.filter(g=>!g.used&&!g.gone&&g.until<S.day); gone.forEach(g=>g.gone=true);
+  if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>GIFT_KIND[g.kind].t.toLowerCase()).join(', ')}.`;
+  if(S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week<weekOf(S.day)-1) S.rw.chest.open='gone';
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
@@ -1604,6 +1676,7 @@ function home(){
       </div>
     </article>
 
+    ${giftsBlock()}
     ${bdBanner()}
 
     <div class="stack"${F(16)}><div class="wowhead"><h2>Самое выгодное</h2>${WOW}</div>
@@ -1834,7 +1907,7 @@ function cart(){
       ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
       ${del?`<div class="r"><span>Доставка</span><span class="money">${qt.fee?rub(qt.fee):'бесплатно'}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С баланса</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
-      <div class="r"><span>Начислим бонусов (${rate()}% за ритм)</span><span class="money">+${qt.bonus}</span></div>
+      <div class="r"><span>Начислим бонусов (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
       <div class="r tot"><span>К оплате</span><span class="money">${rub(qt.card)}</span></div>
     </div>
     <div class="row between" style="position:sticky;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0;border-top:1px solid var(--line)"><div class="stack" style="gap:0"><span class="small muted">К оплате</span><strong style="font-size:22px" class="money">${rub(qt.card)}</strong></div><button class="btn" ${minLeft||(S.mode==='table'&&!S.table)?'disabled':''} onclick="checkout()">${minLeft?`Минимум ${rub(DELIVERY.min)}`:co.when==='asap'?'Оформить заказ':'Оформить предзаказ'}</button></div>
@@ -1978,6 +2051,7 @@ function serWeek(w){
 /* Статус гостя — по счётчику «посещений подряд». Сгорел счётчик — статус возвращается к Серебряному (лучший результат остаётся). */
 const TIERS=[{k:'silver',n:'Серебряный',to:'Серебряного',from:0},{k:'gold',n:'Золотой',to:'Золотого',from:30},{k:'plat',n:'Платиновый',to:'Платинового',from:100}];
 const tierOf=n=>TIERS.filter(t=>n>=t.from).pop();
+const TIER_TXT={silver:'Бонусы за ритм', gold:'+1% к бонусам', plat:'+2% к бонусам и напиток −50% каждую неделю'};
 // Шапка «Турбо» (как панель в Дуолинго): лучший · посещения подряд · место — закреплена при прокрутке
 function serHead(){
   const st=serState(), rank=lbRank();
@@ -1995,6 +2069,7 @@ function statusCard(st){
     <div class="stc-top" onclick="openTiers()">
       <span class="stc-chip">Твой статус</span>
       <b class="stc-name">${t.n}</b>
+      <span class="stc-perk">${TIER_TXT[t.k]}</span>
       ${nx?`<div class="stc-prog"><span>До ${nx.to}</span><span class="money">${S.ser.n} / ${nx.from}</span></div><div class="stc-bar"><i style="width:${Math.round((S.ser.n-t.from)/(nx.from-t.from)*100)}%"></i></div>`
         :`<div class="stc-prog"><span>Высший статус. Держи счётчик!</span></div>`}
       <button class="stc-btn">Все статусы</button>
@@ -2007,11 +2082,19 @@ function statusCard(st){
     </div>
   </div>`;
 }
+const TIER_FULL={silver:'Бонусы за ритм: сколько дней заходил — столько %', gold:'Всё, что у Серебряного, и +1% к бонусам с каждой покупки', plat:'+2% к бонусам и каждый понедельник любой напиток −50%'};
+// Демо: догнать счётчик до 100 — увидеть праздник и подарок Платинового
+function demoPlat(){ closeSheet(); S.ser.n=Math.max(S.ser.n,99); S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); const m=checkMile(); givePlat(); save(); render(); if(m) celebrateMile(m); else toast('💎 Ты Платиновый!'); }
 function openTiers(){
   const cur=tierOf(S.ser.n);
   sheet(`<h2>Статусы</h2><p class="small muted">Статус зависит от того, сколько посещений подряд. Сгорит счётчик — статус вернётся к Серебряному. 👑 Лучший результат останется.</p>
-    ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой статус':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div></div></div>`; }).join('')}
-    <p class="small muted">Что даёт каждый статус — добавим.</p>`);
+    ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой статус':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div><span class="stc-perk big">${TIER_FULL[t.k]}</span></div></div>`; }).join('')}
+    <h3 style="margin:18px 0 6px">А ещё</h3>
+    <div class="gift-row"><span class="gi">🎁</span><span class="tx"><b>Сундук с призом</b><small>Неделя, где ${CHEST_MIN} и больше посещений, — приз в понедельник</small></span></div>
+    <div class="gift-row"><span class="gi">🎉</span><span class="tx"><b>Праздник на 30, 50, 100, 200</b><small>Подарок за каждую круглую цифру посещений подряд</small></span></div>
+    <div class="gift-row hot"><span class="gi">⏳</span><span class="tx"><b>Подарок живёт ${GIFT_DAYS} дня</b><small>Не успел — сгорел. Копить подарки нельзя</small></span></div>
+    <p class="small muted">Заморозка ❄️ спасает счётчик, но подарки — только за настоящие посещения</p>
+    ${cur.k!=='plat'&&S.plus?`<button class="btn ghost block" onclick="demoPlat()">Демо: стать Платиновым</button>`:''}`);
 }
 const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function openVisits(){
@@ -2167,6 +2250,7 @@ function progress(){
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
     ${PL_OPEN('Турбо — только с ★ Кофейная+','Счётчик посещений, статус, бонусы за ритм, каждый 6-й −30% и приз за рекорд')}
     ${serHead()}
+    ${giftsBlock()}
     ${pwLink()}
     <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
     ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">🎁</span><span class="tx"><b>Пригласи друга — +${REF_REWARD} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
@@ -2186,7 +2270,7 @@ function powerItems(){
   const lw=lastWeekDays(), wal=walletTotal(), fr=S.ref.friends.filter(f=>!f.blocked).length, spent=S.orders.some(o=>o.bonusSpend>0);
   return [
     {ic:'☀️', t:'Предложение дня',  on:S.funnel.used>0,                 yes:'Пользуешься — каждый день новое',            no:'Каждый день новая скидка только для тебя',     btn:"go('home')"},
-    {ic:'📈', t:'Твой ритм',        on:lw>=3,                           yes:`${rate()}% бонусами с каждой покупки`,      no:'Заходи 3+ дня в неделю — бонусов станет больше', btn:"go('progress')"},
+    {ic:'📈', t:'Твой ритм',        on:lw>=3,                           yes:`${rateAll()}% бонусами с каждой покупки`,      no:'Заходи 3+ дня в неделю — бонусов станет больше', btn:"go('progress')"},
     {ic:'☕', t:'Каждый 6-й −30%',  on:Object.values(S.stamps).some(n=>n>0), yes:'Копишь отметки',                       no:'Каждый 6-й капучино, круассан… на 30% дешевле', btn:"go('progress')"},
     {ic:'💰', t:'Депозит',          on:wal>0,                           yes:`На депозите ${rub(Math.floor(wal))}`,         no:`Пополни на 3 000 ₽ — получишь +150 ₽ в подарок`, btn:"go('wallet')"},
     {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ${VAC_DAYS} дней в год`, no:`Бонусы до ${PLUS_CAP}% вместо ${FREE_CAP}% и свои цены недели`, btn:"go('plus')"},
@@ -2225,7 +2309,7 @@ function power(){
   </section>`;
 }
 /* «Выгода от приложения»: сколько заплатил бы без приложения и сколько заплатил с ним — и откуда разница. Бонусы на счёте — отдельной строкой (это не деньги) */
-const BEN_SRC=[['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Подарок депозита','#2e9e5b']];
+const BEN_SRC=[['rw','Подарки за посещения','#e6a700'],['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Подарок депозита','#2e9e5b']];
 // Период для «Выгоды от приложения»: сегодня / неделя / месяц / всё время / свои даты
 let benPer='all', benFrom=null, benTo=null;
 const dayOff=d=>Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-DAY0)/864e5);
@@ -2295,7 +2379,7 @@ function dashboard(){
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на баланс с подарком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
     <div class="stat3">
-      <button class="s3 y"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money" style="${fs}">${COIN}${S.bonus}</b><small>${rate()}% с покупки</small></button>
+      <button class="s3 y"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money" style="${fs}">${COIN}${S.bonus}</b><small>${rateAll()}% с покупки</small></button>
       <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money" style="${fs}">${rub(S.saved)}</b><small>за всё время</small></div>
       <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money" style="${fs}">${giftT}</b><small>за всё время</small></button>
     </div>
@@ -2334,6 +2418,16 @@ const RULES=[
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
   ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — <b>${VAC_DAYS} дней в год, как отпуск в спортклубе</b>: хоть 2 недели два раза, в том числе задним числом — нажми на красный ✕ или «Вернуть счётчик», если он уже сгорел. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
+  ['Награды за посещения 🎁',`<p class="rl-main">Чем больше посещений подряд — тем выше статус и больше выгода.</p>
+    <ul class="rl-list">
+      <li><b>🥈 Серебряный</b> (0–29) — бонусы за ритм.</li>
+      <li><b>🥇 Золотой</b> (30–99) — +1% к бонусам с каждой покупки.</li>
+      <li><b>💎 Платиновый</b> (100+) — +2% к бонусам и каждый понедельник любой напиток −50%.</li>
+      <li><b>🎁 Сундук</b> — за неделю, где ${CHEST_MIN} и больше посещений. Открываешь в понедельник — внутри случайный приз.</li>
+      <li><b>🎉 Праздник</b> на 30, 50, 100 и 200 посещений подряд — подарок, каждый один раз.</li>
+      <li><b>⏳ Подарок живёт ${GIFT_DAYS} дня</b> — потом сгорает. Копить подарки нельзя, забрать оптом тоже.</li>
+      <li><b>Только настоящие посещения.</b> Заморозка спасает счётчик, но подарков за неё нет.</li>
+    </ul>`],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
   ['Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: пять отметок — шестой со скидкой.'],
@@ -2628,7 +2722,7 @@ function drawKassa(){
       ${qt.saved?`<div class="r save"><span>Экономия</span><span class="money">−${rub(qt.saved)}</span></div>`:''}
       ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С баланса</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
-      <div class="r"><span>Бонусы за покупку (${rate()}% за ритм)</span><span class="money">+${qt.bonus}</span></div>
+      <div class="r"><span>Бонусы за покупку (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
       <div class="r tot"><span>К оплате картой</span><span class="money">${rub(qt.card)}</span></div></div>
     <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
   const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=st; } else sheet(html);
