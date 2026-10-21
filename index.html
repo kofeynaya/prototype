@@ -1262,6 +1262,9 @@ const fzLeft = (d=S.day) => fzMonthLeft(d)+fzVacLeft();
 function useFz(day,n=1){ const m=monthKey(S.day), a=Math.min(n,fzMonthLeft());
   S.ser.fzm = S.ser.fzm&&S.ser.fzm.m===m?{m,used:S.ser.fzm.used+a}:{m,used:a}; S.ser.vacUsed=(S.ser.vacUsed||0)+n-a; }
 // Неделя не набрала 3 — счётчик не сгорает сразу: в понедельник предложение «заморозь N дней», 7 дней на решение
+const timesTxt=n=>n?`${n} ${plural(n,'раз','раза','раз')}`:'ни разу';
+// «На прошлой неделе ты был 2 раза, а нужно хотя бы 3» — без загадочного «2 из 3»
+function pendTxt(){ const p=S.ser.pend; if(!p) return ''; return p.weeks.length>1?`${p.weeks.length} ${plural(p.weeks.length,'неделю','недели','недель')} подряд ты заходил реже ${SER_MIN} раз в неделю`:`На прошлой неделе ты был ${timesTxt(serDays(p.weeks[0]))}, а нужно хотя бы ${SER_MIN}`; }
 function pendNeed(){ const p=S.ser.pend; return p?p.weeks.reduce((a,w)=>a+Math.max(0,SER_MIN-serDays(w)),0):0; }
 function burnPend(){ const p=S.ser.pend; if(!p) return; S.ser.lost=p.n; S.ser.lostWeek=p.weeks[0]; S.ser.burnt=[...(S.ser.burnt||[]),...p.weeks]; S.ser.n=Math.max(0,S.ser.n-p.n); S.ser.pend=null; }
 const lastWeekDays = () => { const w=weekOf(S.day)-1; return w>=0 ? weekDays(w) : ((S.past||[]).slice(-1)[0]||0); };
@@ -1468,7 +1471,7 @@ function nextDay(){
     msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rateAll()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     if(!met && S.ser.n){
       if(S.ser.pend){ S.ser.pend.weeks.push(w); S.ser.pend.until=S.day+PEND_DAYS-1; } else S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1};
-      msg+=` 😟 На прошлой неделе ${serDays(w)} из ${SER_MIN}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')} — заморозь ${pendNeed()} ${plural(pendNeed(),'день','дня','дней')} ❄️ до ${fmt(S.ser.pend.until)}, иначе счётчик сгорит.`; }
+      msg+=` 😟 ${pendTxt()}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')} — заморозь ${pendNeed()} ${plural(pendNeed(),'день','дня','дней')} ❄️ до ${fmt(S.ser.pend.until)}, иначе счётчик сгорит.`; }
     if(rec&&S.plus){ S.bonus+=REC_BONUS; msg+=` 🏆 Новый рекорд: +${REC_BONUS} бонусов!`; }
     if(S.plus&&d>=CHEST_MIN){ S.rw.chest={week:w,open:false}; msg+=` 🎁 За ${d} ${plural(d,'посещение','посещения','посещений')} — сундук с призом! Открой в «Турбо».`; }
     if(givePlat()) msg+=' 💎 Подарок Платинового: любой напиток −50% — 3 дня.';
@@ -2045,7 +2048,7 @@ function serState(){
   else if(!need){ k='safe'; msg=`<b>На этой неделе счётчик не сгорит ✓</b> Каждое посещение — ещё +1.`; }
   else if(need>left){ k=fz>=need-left?'freeze':'doomed'; msg=fz>=need-left?`<b>Не хватит ${D(need-left)}.</b> Нажми на красный ✕ и заморозь пропуск ❄️ — или ${P(S.ser.n)} сгорят`:`<b>В этот раз ${SER_MIN} дня уже не набрать</b>, а заморозок нет. 👑 Лучший результат (${S.ser.best}) останется.`; }
   else if(need===left){ k='danger'; msg=`<b>Заходи ${when} — или ${P(S.ser.n)} сгорят!</b>`; }
-  else { k='need'; msg=`На этой неделе <b>${cur} из ${SER_MIN}</b> посещений. Ещё ${need} — и счётчик не сгорит.`; }
+  else { k='need'; msg=`На этой неделе ты был <b>${timesTxt(cur)}</b>. Зайди ещё ${timesTxt(need)} — и счётчик не сгорит.`; }
   return {k,msg,cur,left};
 }
 // Дни этой недели у счётчика посещений: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
@@ -2086,7 +2089,7 @@ function statusCard(st){
     </div>
     <div class="stc-band">
       <div class="stc-bh"><span>Эта неделя</span><button onclick="openFreeze()">❄️ ${fzLeft()} ${fzWord(fzLeft())}</button></div>
-      ${S.ser.pend?`<button class="restore" onclick="openPend()"><span>😟</span><span class="tx"><b>Прошлая неделя — ${S.ser.pend.weeks.map(w=>serDays(w)).join(' и ')} из ${SER_MIN}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}</b><small>${S.plus?`Заморозь ${pendNeed()} ${plural(pendNeed(),'день','дня','дней')} ❄️ до ${fmt(S.ser.pend.until)}`:'Спасти можно с ★ Кофейная+'}</small></span><span class="go">Решить ›</span></button>`:''}
+      ${S.ser.pend?`<button class="restore" onclick="openPend()"><span>😟</span><span class="tx"><b>${pendTxt()}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}</b><small>${S.plus?`Заморозь ${pendNeed()} ${plural(pendNeed(),'день','дня','дней')} ❄️ до ${fmt(S.ser.pend.until)}`:'Спасти можно с ★ Кофейная+'}</small></span><span class="go">Решить ›</span></button>`:''}
       ${serWeek(w)}
       <p class="ser-msg">${st.msg}</p>
     </div>
@@ -2137,9 +2140,8 @@ function doFreeze(day){ useFz(day); (S.ser.fzDays=S.ser.fzDays||[]).push(day);
   save(); closeSheet(); render(); toast(`❄️ ${fmt(day)} заморожен — счётчик не сгорит.`); }
 // Предложение после недели с пропусками: заморозить недостающие дни — или счётчик сгорит через 7 дней
 function openPend(){ const p=S.ser.pend; if(!p) return; const need=pendNeed(), left=fzLeft(), P=n=>plural(n,'посещение','посещения','посещений');
-  const was=p.weeks.map(w=>serDays(w)).join(' и ');
-  if(!S.plus) return sheet(`<h2>😟 Счётчик в опасности</h2><p>На прошлой неделе ${was} ${plural(+was||0,'посещение','посещения','посещений')} из ${SER_MIN}. Твои <b>${p.n} ${P(p.n)} подряд</b> сгорят ${fmt(p.until+1)}.</p><p class="small muted">Спасти их можно заморозкой — только с ★ Кофейная+.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
-  sheet(`<h2>😟 Сохрани счётчик</h2><p>На прошлой неделе было <b>${was} из ${SER_MIN}</b> посещений. Заморозь недостающие дни — и <b>${p.n} ${P(p.n)} подряд</b> не сгорят 🔥</p>
+  if(!S.plus) return sheet(`<h2>😟 Счётчик в опасности</h2><p>${pendTxt()}. Твои <b>${p.n} ${P(p.n)} подряд</b> сгорят ${fmt(p.until+1)}.</p><p class="small muted">Спасти их можно заморозкой — только с ★ Кофейная+.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
+  sheet(`<h2>😟 Сохрани счётчик</h2><p>${pendTxt()}. Заморозь недостающие дни — и <b>${p.n} ${P(p.n)} подряд</b> не сгорят 🔥</p>
     <div class="panel"><div class="row between"><span>Нужно заморозок</span><b>${need}</b></div><div class="row between"><span>У тебя есть</span><b>${left}</b></div><div class="row between"><span>Решить до</span><b>${fmt(p.until)}</b></div></div>
     ${need<=left?`<button class="btn block" onclick="doPend()">Заморозить ${need} ${plural(need,'день','дня','дней')} ❄️</button>`
       :`<p class="small muted">Заморозок не хватает: нужно ${need}, есть ${left}. На тарифе на полгода или год есть ещё отпускные ❄️</p><button class="btn block" onclick="closeSheet();go('plus')">Смотреть тарифы</button>`}
