@@ -327,6 +327,12 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .card .wrap{position:relative}
 .card .ltag{position:absolute;right:6px;bottom:6px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--blue);color:#f9f9f9;white-space:nowrap}
 .card .ltag.six{background:var(--teal)}
+:root{--prem:linear-gradient(135deg,#2b2b93 0%,#5e35b1 52%,#00657f 100%)}
+.card .ltag.pp{display:inline-flex;align-items:center;gap:4px;background:var(--prem);box-shadow:0 3px 10px rgba(43,43,147,.4)}
+.star-y{width:13px;height:13px;flex:none;fill:#f2c230}
+.pill.pp{background:var(--prem);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(43,43,147,.35)}
+.pill.pp s{color:rgba(255,255,255,.65)}
+.pill.pp.has{box-shadow:0 0 0 2px #2e9e6a,0 4px 12px rgba(43,43,147,.35)}
 .card .ltag.lo{background:var(--sage);color:var(--on-color)}
 .card .ltag.bd{background:var(--pink);color:var(--on-color)}
 .card .nm{font-size:15px;line-height:1.2;margin-top:4px}
@@ -1423,6 +1429,8 @@ function toast(html,ms=2900){ document.querySelectorAll('.toast').forEach(t=>t.r
 const tiles = n => `<span class="tiles">${String(n).split('').map(c=>`<span class="tile">${c}</span>`).join('')}</span>`;
 const blob = (fill,seed=0) => `<svg class="blob" viewBox="0 0 200 200" aria-hidden="true"><path fill="${fill}" d="${['M100 18c30-22 74 4 70 42 30 18 30 64-4 76 6 38-40 58-66 34-26 24-72 4-66-34-34-12-34-58-4-76-4-38 40-64 70-42z','M60 30c40-30 110-10 115 45 35 30 10 95-45 95-30 25-95 20-100-30-35-35-15-95 30-110z'][seed%2]}"/></svg>`;
 const PLUS = '<span class="plus-tag">★ Кофейная+</span>';
+// Единый знак «Премиум / цена недели»: сине-фиолетовый градиент + жёлтая звезда — одинаково в блоке сверху «Меню», на фото блюда и на кнопке с ценой
+const STAR_Y='<svg class="star-y" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
 const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Привилегия подписчиков Премиум</span>`;
 
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
@@ -1466,7 +1474,7 @@ function loyalTag(m){
   const o=S.offer, bd=bdInfo();
   if(o && o.status!=='used' && (o.item===m.id || o.combo?.includes(m.id))) return `<span class="ltag lo">Предложение дня</span>`;
   if(SIXTH.includes(m.id) && S.stamps[m.id]>=5) return `<span class="ltag six">6-й −30%</span>`;
-  const pp=myPrice(m.id); if(pp!=null) return `<span class="ltag">★ ${rub(pp)}</span>`;
+  const pp=myPrice(m.id); if(pp!=null) return `<span class="ltag pp">${STAR_Y}Цена недели</span>`;
   if(bd.active && S.plus) return '';
   return '';
 }
@@ -1476,7 +1484,7 @@ function pillHtml(m){
   if(q>0 && !o) return `<span class="pill in" data-pill="${m.id}"><button aria-label="Убрать ${m.n}" onclick="event.stopPropagation();tapMinus('${m.id}')">−</button><span>${q}</span><button aria-label="Добавить ${m.n}" onclick="event.stopPropagation();tapAdd('${m.id}')">+</button></span>`;
   const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : `${m.o?'от ':''}${rub(m.p)}`;
   // сколько уже в корзине — маленький кружок на углу кнопки, а не текстом (кнопка не растёт и не вылезает из карточки)
-  return `<button class="pill${q>0?' has':''}" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')" aria-label="${m.n}: ${rub(pp??m.p)}${q>0?`, в корзине ${q}`:''}">${price} <b class="plus">+</b>${q>0?`<i class="qb">${q}</i>`:''}</button>`;
+  return `<button class="pill${q>0?' has':''}${pp!=null?' pp':''}" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')" aria-label="${m.n}: ${rub(pp??m.p)}${q>0?`, в корзине ${q}`:''}">${price} <b class="plus">+</b>${q>0?`<i class="qb">${q}</i>`:''}</button>`;
 }
 const CART_TABS=['home','progress','menu','prices']; // где видна плашка корзины
 function cartbarHtml(){
