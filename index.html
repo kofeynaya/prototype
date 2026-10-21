@@ -284,7 +284,6 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .cmp .h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .cmp .y{text-align:center}
 /* Подписка (21.10): вместо таблицы с прочерками — «бесплатно» одной строкой и список того, что открывает Кофейная+, в Премиум-знаке */
-.pk-free{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .pk-box{border-radius:20px;padding:2px;background:var(--prem)}
 .pk-box>*{background:var(--surface)}
 .pk-h{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-radius:18px 18px 0 0;font-size:17px}
@@ -295,7 +294,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .pk-v{font-size:14px;font-weight:700;color:#5e35b1;white-space:nowrap}
 .pk-ck{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--prem)}
 .pk-ck svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.pk-ck.free{background:#2e9e5b}
+
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pk-v{color:#b39dff}}
 :root[data-theme="dark"] .pk-v{color:#b39dff}
 /* сравнение: колонка «★ Плюс» — золотая, богаче бесплатной */
@@ -2626,7 +2625,7 @@ function birthday(){
 }
 function plus(){
   // решение владельца 22.10: бесплатно — только заказ и QR; все выгоды — с Премиум
-  const rows=[['☀️','Предложение дня','каждый день своё'],['🏷️','Цены недели','только для тебя'],['🪙','Бонусы с покупки','до '+PLUS_CAP+'%'],['☕','Каждый 6-й','−30%'],['🎂','День рождения','скидка = возраст'],['💰','Депозит с кэшбэком','до 10%'],['🔥','Счётчик, статусы, сундук',''],['❄️','Заморозки',FZ_MONTH+' в месяц'],['🎁','Пригласи друга','+'+REF_REWARD+' бонусов']];
+  const rows=[['☀️','Предложение дня','каждый день своё'],['🏷️','Цены недели','только для тебя'],['🪙','Бонусы с покупки','до '+PLUS_CAP+'%'],['☕','Каждый 6-й','−30%'],['🎂','День рождения','скидка = возраст'],['💰','Депозит с кэшбэком','до 10%'],['🔥','Счётчик, статусы, сундук',''],['❄️','Пропуск без потерь',FZ_MONTH+' дня в месяц'],['🎁','Пригласи друга','+'+REF_REWARD+' бонусов']];
   const CHK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
   return `<section class="screen">${back()}
     <div class="bday plus-hero"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">${STAR_Y.replace('star-y','star-y hero')}Кофейная+</span>
@@ -2634,7 +2633,6 @@ function plus(){
     ${S.plus&&plusLeft()<=SOON?`<div class="renew"><b>Подписка закончится через ${plusLeft()} ${plural(plusLeft(),'день','дня','дней')}</b><span class="small">Продлите, чтобы не потерять цены недели, бонусы до 7% и скидку в день рождения.</span><button class="btn" onclick="renewPlus()">Продлить — 99 ₽ за месяц</button></div>`:''}
     <div class="panel"><strong>Как получить скидки</strong>
       <div class="howto">${[['1','Нажми «Подключить»',`Бесплатно до ${FREE_UNTIL}, потом 99 ₽ в месяц`],['2','Открываются все скидки ★','Предложение дня, цены недели, бонусы, скидка в день рождения'],['3','Покажи QR на кассе','Или закажи в приложении — скидка посчитается сама']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
-    <div class="pk-free"><span class="pk-ck free">${CHK}</span><span><b>Бесплатно для всех</b><br><span class="small muted">Заказ в приложении и QR на кассе</span></span></div>
     <div class="pk-box"><div class="pk-h">${STAR_Y}<b>Только с Кофейная+</b></div>
       ${rows.map(([ic,t,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}</span>${v?`<span class="pk-v">${v}</span>`:`<span class="pk-ck">${CHK}</span>`}</div>`).join('')}</div>
     <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b><span class="tf-m">${t.k==='m'?'в месяц':`${rub(Math.round(t.p/(t.k==='h'?6:12)))} в месяц`}</span><span class="tf-l">❄️ Можно пропустить</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+ ${t.vac} дней на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
