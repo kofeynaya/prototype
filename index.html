@@ -355,6 +355,31 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .tabs .qrtab{position:relative}
 .tabs .qrtab .ring{width:54px;height:54px;margin-top:-26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .tabs .qrtab .ring svg{stroke:var(--bg)}
+/* ===== «Жидкое стекло» (как в iOS 26) — пробно только на «Сегодня» (.app.glass) =====
+   Стекло — только у слоя управления, который плывёт над контентом: таб-бар, шапка, кнопки. Сам контент не стеклянный.
+   Приёмы: размытие + усиление цвета под стеклом, светлый блик по верхней кромке, тонкая светлая рамка, мягкая тень, форма капсулы */
+:root{--glass-bg:rgba(255,255,255,.68);--glass-line:rgba(255,255,255,.75);--glass-hi:rgba(255,255,255,.9);--glass-shadow:0 10px 30px rgba(20,30,25,.18)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--glass-bg:rgba(34,36,34,.66);--glass-line:rgba(255,255,255,.18);--glass-hi:rgba(255,255,255,.35);--glass-shadow:0 12px 34px rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--glass-bg:rgba(34,36,34,.66);--glass-line:rgba(255,255,255,.18);--glass-hi:rgba(255,255,255,.35);--glass-shadow:0 12px 34px rgba(0,0,0,.45)}
+.app.glass .tabs{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:416px;margin:0 auto;padding:6px;border-radius:32px;border:1px solid var(--glass-line);
+  background:var(--glass-bg);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(28px) saturate(190%);
+  box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 1px rgba(255,255,255,.08),var(--glass-shadow)}
+.app.glass .tabs::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 45%)}
+.app.glass .tabs button{border-radius:24px;padding:7px 0}
+.app.glass .tabs button[aria-current="page"]{background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 0 0 1px var(--glass-line)}
+.app.glass .tabs .qrtab .ring{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));color:#212221;border:1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 #fff,0 8px 22px rgba(0,0,0,.3)}
+.app.glass .tabs .qrtab .ring svg{stroke:#212221}
+.app.glass .tabs .qrtab[aria-current="page"],.app.glass .tabs .qrtab{background:none;box-shadow:none}
+.app.glass main{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+.app.glass .gl-top{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h) + 8px);z-index:12;align-self:flex-start;padding:9px 16px;margin:0 -6px;border-radius:999px;border:1px solid var(--glass-line);
+  background:var(--glass-bg);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
+.app.glass .offer .btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 16px rgba(0,0,0,.22)}
+.app.glass .offer .btn.ghost{background:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.75);color:#212221;
+  -webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 16px rgba(0,0,0,.08)}
+.app.glass .ostat{background:rgba(13,85,63,.72);border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(13,85,63,.3)}
+.app.glass .perk,.app.glass .ptile{box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+
 
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--line)}
 .seg button{padding:9px 4px;border-radius:10px;font-weight:600;font-size:15px;color:var(--muted)}
@@ -1508,7 +1533,7 @@ function home(){
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
   return `<section class="screen">
-    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
+    <div class="topbar gl-top"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
     <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение на сегодня. Завтра будет новое 😉</span></div>
 
     <article class="offer me"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
@@ -2550,7 +2575,7 @@ function render(keep=true){
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
-  app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'');
+  app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+(tab==='home'?' glass':''); // «жидкое стекло» (iOS 26) — пока только на «Сегодня»
   app.innerHTML = demoBar() + `<main>${body}</main>` + cartbarHtml() +
     `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='qr'
       ? `<button class="qrtab"${F(10)} onclick="openQR()" aria-label="Показать QR на кассе"><span class="ring">${IC.qr.replace('<svg','<svg width="26" height="26" fill="none" stroke-width="2"')}</span>QR</button>`
