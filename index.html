@@ -873,6 +873,13 @@ img.ava{object-fit:cover}
 .t-plat .ser-week i{background:rgba(255,255,255,.14)}
 .t-plat .ser-week .v i{background:rgba(255,255,255,.3)}
 .stc.mini{box-shadow:none}.stc.mini .stc-top{cursor:default}.stc.mini .stc-prog{padding-right:0}
+.ladder{display:flex;align-items:flex-start;margin:2px 0}
+.ld{display:flex;flex-direction:column;align-items:center;gap:3px;width:74px;flex:none;text-align:center}
+.ld b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid currentColor;opacity:.45;font-size:15px}
+.ld small{font-size:12px;line-height:1.15;opacity:.7}
+.ld.ok b{opacity:1;background:#2e9e5b;border-color:#2e9e5b;color:#fff}.ld.ok small{opacity:1;font-weight:700}
+.ld.next b{opacity:1;box-shadow:0 0 0 4px rgba(255,255,255,.45)}.ld.next small{opacity:1}
+.ld-line{flex:1;height:2px;margin-top:15px;background:currentColor;opacity:.25;border-radius:1px}.ld-line.ok{background:#2e9e5b;opacity:1}
 .stc-perk{align-self:flex-start;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.5);margin-right:118px}
 .t-plat .stc-perk{background:rgba(255,255,255,.16)}
 .stc.mini .stc-perk{margin-right:0}.stc-perk.big{font-weight:400;border-radius:10px;padding:5px 10px}
@@ -2038,6 +2045,21 @@ function rhythm(){
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
 /* ---------- Серия 🔥: шапка «Турбо» (как верхняя панель Дуолинго) ---------- */
 const FLAME_P='M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z';
+/* Лестница недели (решение владельца 21.10): 3 — счётчик спасён, 4 — +1% бонусов, 5 — сундук.
+   После тройки не пишем «готово» — всегда показываем, что даст следующий визит. 4 и 5 — только настоящие посещения */
+function nextStep(left){
+  const real=weekDays(weekOf(S.day)), tp=tierPlus(), pc=d=>Math.min(d,PLUS_CAP)+tp;
+  if(!left) return `<b>Неделя в копилке ✓</b> В понедельник бонусы станут ${pc(real)}%`;
+  if(real<CHEST_MIN-1) return `<b>Счётчик спасён ✓</b> Зайди ещё 1 раз — бонусы на следующей неделе станут ${pc(real+1)}% вместо ${pc(real)}%`;
+  if(real<CHEST_MIN) return `<b>Ещё 1 раз — и сундук с призом 🎁</b> А бонусы станут ${pc(real+1)}%`;
+  if(real<7) return `<b>Сундук твой! 🎁</b> Каждый следующий день — ещё +1% бонусов`;
+  return `<b>Идеальная неделя! 🎉</b> Максимум бонусов`;
+}
+function ladder(){
+  const w=weekOf(S.day), real=weekDays(w), st=[[SER_MIN,serDays(w)>=SER_MIN,'счётчик спасён'],[CHEST_MIN-1,real>=CHEST_MIN-1,'+1% бонусов'],[CHEST_MIN,real>=CHEST_MIN,'🎁 сундук']];
+  const nx=st.findIndex(x=>!x[1]);
+  return `<div class="ladder" aria-label="Лестница недели">${st.map(([n,ok,t],i)=>`${i?'<i class="ld-line'+(ok?' ok':'')+'"></i>':''}<span class="ld ${ok?'ok':i===nx?'next':''}"><b>${ok?'✓':n}</b><small>${t}</small></span>`).join('')}</div>`;
+}
 function serState(){
   const w0=weekOf(S.day), cur=serDays(w0), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0);
   const need=Math.max(0,SER_MIN-cur), fz=fzLeft(), P=n=>`${n} ${plural(n,'посещение','посещения','посещений')}`, D=n=>`${n} ${plural(n,'день','дня','дней')}`;
@@ -2045,7 +2067,7 @@ function serState(){
   let k, msg;
   if(S.ser.pend){ k='danger'; msg=`<b>Счётчик ждёт решения до ${fmt(S.ser.pend.until)}</b> — заморозь пропуски, или ${P(S.ser.pend.n)} сгорят`; }
   else if(!S.ser.n){ k='zero'; msg=S.ser.lost?`Твои ${P(S.ser.lost)} сгорели. Начни заново — с первой покупки.`:`Зайди сегодня — и счётчик пойдёт.`; }
-  else if(!need){ k='safe'; msg=`<b>На этой неделе счётчик не сгорит ✓</b> Каждое посещение — ещё +1.`; }
+  else if(!need){ k='safe'; msg=nextStep(left); }
   else if(need>left){ k=fz>=need-left?'freeze':'doomed'; msg=fz>=need-left?`<b>Не хватит ${D(need-left)}.</b> Нажми на красный ✕ и заморозь пропуск ❄️ — или ${P(S.ser.n)} сгорят`:`<b>В этот раз ${SER_MIN} дня уже не набрать</b>, а заморозок нет. 👑 Лучший результат (${S.ser.best}) останется.`; }
   else if(need===left){ k='danger'; msg=`<b>Заходи ${when} — или ${P(S.ser.n)} сгорят!</b>`; }
   else { k='need'; msg=`На этой неделе ты был <b>${timesTxt(cur)}</b>. Зайди ещё ${timesTxt(need)} — и счётчик не сгорит.`; }
@@ -2091,6 +2113,7 @@ function statusCard(st){
       <div class="stc-bh"><span>Эта неделя</span><button onclick="openFreeze()">❄️ ${fzLeft()} ${fzWord(fzLeft())}</button></div>
       ${S.ser.pend?`<button class="restore" onclick="openPend()"><span>😟</span><span class="tx"><b>${pendTxt()}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}</b><small>${S.plus?`Заморозь ${pendNeed()} ${plural(pendNeed(),'день','дня','дней')} ❄️ до ${fmt(S.ser.pend.until)}`:'Спасти можно с ★ Кофейная+'}</small></span><span class="go">Решить ›</span></button>`:''}
       ${serWeek(w)}
+      ${S.ser.n&&!S.ser.pend?ladder():''}
       <p class="ser-msg">${st.msg}</p>
     </div>
   </div>`;
