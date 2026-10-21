@@ -383,6 +383,20 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .app.glass .offer .btn.ghost{background:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.75);color:#212221;
   -webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 16px rgba(0,0,0,.08)}
 .app.glass .perk{box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+/* --- «Жидкое стекло» на остальных вкладках: только элементы управления и навигации --- */
+.app.glass .catbar,.app.glass .ser-pin{background:var(--glass-bg);-webkit-backdrop-filter:blur(24px) saturate(180%) brightness(1.05);backdrop-filter:blur(24px) saturate(180%) brightness(1.05);border-bottom:1px solid var(--glass-line);box-shadow:inset 0 -1px 0 rgba(255,255,255,.06),0 8px 18px -14px rgba(0,0,0,.5)}
+.app.glass .modechip,.app.glass .iconbtn,.app.glass .softbtn,.app.glass .back{background:var(--glass-bg);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:inset 0 1px 0 var(--glass-hi),inset 1px 0 0 rgba(255,255,255,.12),inset -1px 0 0 rgba(255,255,255,.12),0 6px 16px -8px rgba(0,0,0,.35);transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.app.glass .back{padding:7px 14px 7px 12px;border-radius:999px;color:var(--ink)}
+.app.glass .modechip:active,.app.glass .iconbtn:active,.app.glass .softbtn:active,.app.glass .back:active,.app.glass .cartbar button:active{transform:scale(1.04);background-image:radial-gradient(closest-side,rgba(255,255,255,.4),rgba(255,255,255,0))}
+.app.glass .cartbar{bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+.app.glass .cartbar button{background:rgba(23,47,40,.8);border:1px solid rgba(255,255,255,.22);border-radius:22px;-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 1px 0 0 rgba(255,255,255,.14),inset -1px 0 0 rgba(255,255,255,.14),0 10px 22px -8px rgba(13,85,63,.6);transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.app.glass.has-cart main{padding-bottom:calc(180px + env(safe-area-inset-bottom,0px))}
+body:has(.app.glass) .toast{bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+body:has(.app.glass.has-cart) .toast{bottom:calc(166px + env(safe-area-inset-bottom,0px))}
+body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);box-shadow:inset 0 1px 0 var(--glass-hi),0 6px 16px -6px rgba(0,0,0,.4)}
+
 
 
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--line)}
@@ -2578,7 +2592,7 @@ function render(keep=true){
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
-  app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+(tab==='home'?' glass':''); // «жидкое стекло» (iOS 26) — пока только на «Сегодня»
+  app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+' glass'; // «жидкое стекло» (iOS 26) — на всех вкладках
   app.innerHTML = demoBar() + `<main>${body}</main>` + cartbarHtml() +
     `<nav class="tabs" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='qr'
       ? `<button class="qrtab"${F(10)} onclick="openQR()" aria-label="Показать QR на кассе"><span class="ring">${IC.qr.replace('<svg','<svg width="26" height="26" fill="none" stroke-width="2"')}</span>QR</button>`
