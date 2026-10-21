@@ -907,8 +907,10 @@ img.ava{object-fit:cover}
 .gift-row .tx small{color:var(--muted);font-size:13px}
 .gift-row .gw{font-size:13px;font-weight:700;white-space:nowrap;color:#b26a00}
 .gift-row.hot{border-color:#e53935}.gift-row.hot .gw{color:#e53935}
-.gift-row.chest{background:linear-gradient(135deg,#fff3c4,#ffd36b);border-color:#e6a700;color:#3a2408;cursor:pointer}
-.gift-row.chest .tx small{color:#6b4a10}.gift-row .go{font-weight:700;white-space:nowrap}
+/* Сундук — бирюзовый (фирменный #00657f), чтобы не сливаться ни с одним статусом: серебро — серое, золото — жёлтое, платина — тёмно-синяя */
+.gift-row.chest{background:linear-gradient(135deg,#00657f,#1aa39a);border:none;color:#fff;cursor:pointer;box-shadow:0 8px 22px -10px rgba(0,101,127,.8)}
+.gift-row.chest .tx small{color:rgba(255,255,255,.85)}
+.gift-row.chest .go{background:#fff;color:#00657f;padding:7px 12px;border-radius:999px;font-size:14px}.gift-row .go{font-weight:700;white-space:nowrap}
 .mile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
 .mile h2{margin:4px 0 0}.mile p{margin:4px 0}.mile .gift-row{text-align:left}
 .mile-n{font-size:54px;line-height:1;display:flex;align-items:center;gap:8px}.mile-n b{font-size:64px}
