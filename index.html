@@ -378,7 +378,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .app.glass .offer .btn.ghost{background:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.75);color:#212221;
   -webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 16px rgba(0,0,0,.08)}
 .app.glass .ostat{background:rgba(13,85,63,.72);border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(13,85,63,.3)}
-.app.glass .perk,.app.glass .ptile{box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.app.glass .perk{box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 
 
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--line)}
@@ -567,11 +567,11 @@ img.ava{object-fit:cover}
 .ptile .batt.big .bb{width:118px;height:44px;border-color:#f4f7ec;border-radius:10px}
 .ptile .batt.big .bb i{background:rgba(255,255,255,.08)}
 .ptile .batt.big .bb i.on{background:var(--lv);box-shadow:0 0 8px rgba(var(--lv-rgb),.8)}
+.ptile .batt .bb i.edge,.ptile .batt .bb i.gap{animation:none!important}
 .ptile .batt.big .bt{background:#f4f7ec;height:16px}
 .ptile .pt-s{font-size:13px;opacity:.8}
 .ptile .pt-s b{color:var(--lv);opacity:1;filter:brightness(1.25)}
 .ptile .pt-btn{margin-top:2px;padding:7px 12px;border-radius:999px;background:var(--lv);color:#fff;font-weight:700;font-size:13px;box-shadow:0 0 14px rgba(var(--lv-rgb),.6)}
-@media (prefers-reduced-motion:no-preference){.ptile{animation:neon 2.8s ease-in-out infinite}}
 @keyframes neon{50%{box-shadow:0 0 34px -2px rgba(var(--lv-rgb),.8),inset 0 0 18px rgba(var(--lv-rgb),.12)}}
 .batt .bb i.gap{box-shadow:inset 0 0 0 2px #ff9100;background:rgba(255,145,0,.18)!important}
 @media (prefers-reduced-motion:no-preference){.batt .bb i.gap{animation:serblink 1.2s ease-in-out infinite}
@@ -580,7 +580,6 @@ img.ava{object-fit:cover}
 .ptile.lv-almost{background:radial-gradient(70% 60% at 100% 40%,rgba(255,145,0,.28),rgba(255,145,0,0) 70%),radial-gradient(120% 80% at 30% 0%,rgba(46,158,91,.25),rgba(46,158,91,0) 60%),#121512;border-color:rgba(46,158,91,.45);border-right-color:rgba(255,145,0,.7);box-shadow:-6px 0 22px -6px rgba(46,158,91,.6),10px 0 26px -6px rgba(255,145,0,.7)}
 .ptile.lv-almost .pt-s .miss{color:#ff9100}
 .ptile.lv-almost .pt-btn{background:linear-gradient(90deg,#2e9e5b,#ff9100)}
-@media (prefers-reduced-motion:no-preference){.ptile.lv-almost{animation:neon2 2.8s ease-in-out infinite}}
 @keyframes neon2{50%{box-shadow:-6px 0 30px -4px rgba(46,158,91,.75),12px 0 34px -4px rgba(255,145,0,.9)}}
 .ptile.lv-perfect .pt-s b{color:#b3e5fc}
 .hscroll:has(.ptile){padding-top:12px;padding-bottom:16px;margin-top:-12px;margin-bottom:-16px}
