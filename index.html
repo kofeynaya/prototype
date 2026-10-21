@@ -2324,14 +2324,18 @@ function progress(){
 
 
 /* ---------- Заряд выгоды: сколько выгод приложения гость уже берёт (как заряд батарейки) ---------- */
-function powerItems(){
+/* Без подписки все выгоды под замком — значит, ни одна не «включена»: заряд 0%, первым советом — Кофейная+ (баг 21.10: было 75–88% без подписки) */
+function powerItems(){ const it=powerAll(); if(S.plus) return it;
+  const pl=it.find(x=>x.t==='Кофейная+');
+  return [pl,...it.filter(x=>x!==pl).map(x=>({...x,on:false,no:'Откроется с ★ Кофейная+',btn:"go('plus')"}))]; }
+function powerAll(){
   const lw=lastWeekDays(), wal=walletTotal(), fr=S.ref.friends.filter(f=>!f.blocked).length, spent=S.orders.some(o=>o.bonusSpend>0);
   return [
     {ic:'☀️', t:'Предложение дня',  on:S.funnel.used>0,                 yes:'Пользуешься — каждый день новое',            no:'Каждый день новая скидка только для тебя',     btn:"go('home')"},
     {ic:'📈', t:'Твой ритм',        on:lw>=3,                           yes:`${rateAll()}% бонусами с каждой покупки`,      no:'Заходи 3+ дня в неделю — бонусов станет больше', btn:"go('progress')"},
     {ic:'☕', t:'Каждый 6-й −30%',  on:Object.values(S.stamps).some(n=>n>0), yes:'Копишь отметки',                       no:'Каждый 6-й капучино, круассан… на 30% дешевле', btn:"go('progress')"},
     {ic:'💰', t:'Депозит',          on:wal>0,                           yes:`На депозите ${rub(Math.floor(wal))}`,         no:`Пополни на 3 000 ₽ — получишь 150 ₽ кэшбэком`, btn:"go('wallet')"},
-    {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ${FZ_MONTH} заморозки в месяц`, no:`Бонусы до ${PLUS_CAP}% вместо ${FREE_CAP}% и свои цены недели`, btn:"go('plus')"},
+    {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ${FZ_MONTH} заморозки в месяц`, no:`Открывает все выгоды: бонусы до ${PLUS_CAP}%, цены недели, депозит. Бесплатно до ${FREE_UNTIL}`, btn:"go('plus')"},
     {ic:'🪙', t:'Платить бонусами', on:spent,                           yes:'Оплачиваешь бонусами часть чека',            no:`У тебя ${S.bonus} бонусов = ${S.bonus} ₽. Оплати ими до 30% чека`, btn:"go('menu')"},
     {ic:'🎂', t:'День рождения',    on:!!(S.birth&&S.birth.d),          yes:'Дата указана — скидка будет',               no:'Укажи дату — в день рождения скидка = возраст',  btn:"go('birthday')"},
     {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_REWARD} ₽ тебе и другу`,                  btn:"go('invite')"},
@@ -2751,9 +2755,9 @@ function openQR(){
     <p class="timer muted small" id="qrt"></p>
     ${pwLink(true)}
     <div class="panel small">
-      <div class="row between"><span>Бонусы · баланс</span><strong class="money">${S.bonus} · ${rub(walletTotal())}</strong></div>
-      <div class="row between"><span>Предложение дня</span><strong>${o.status==='activated'?o.title:o.status==='used'?'использовано':'не активировано'}</strong></div>
-      ${bd.active?`<div class="row between"><span>День рождения</span><strong>−${bd.pct}%</strong></div>`:''}
+      <div class="row between"><span>Бонусы · баланс</span><strong class="money">${S.plus?`${S.bonus} · ${rub(walletTotal())}`:'★ с подпиской'}</strong></div>
+      <div class="row between"><span>Предложение дня</span><strong>${!S.plus?'★ с подпиской':o.status==='activated'?o.title:o.status==='used'?'использовано':'не активировано'}</strong></div>
+      ${bd.active?`<div class="row between"><span>День рождения</span><strong>${S.plus?`−${bd.pct}%`:'★ с подпиской'}</strong></div>`:''}
       <div class="row between"><span>Цены недели</span><strong>${S.plus?`${S.prices.length} ${plural(S.prices.length,'блюдо','блюда','блюд')}`:'★ с подпиской'}</strong></div></div>
     <p class="hint">Код обновляется каждую минуту — скриншот не сработает. Скидки посчитает касса.</p>
     <button class="btn block" onclick="openKassa()">Демо: сымитировать покупку на кассе</button>`);
