@@ -302,7 +302,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .cmp.gold{gap:0 12px}
 .tariffs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tf{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 6px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);color:var(--ink);text-align:center}
-.tf b{font-size:20px}.tf-n{font-size:13px;font-weight:700}.tf-m{font-size:12px;color:var(--muted)}.tf-f{font-size:12px;margin-top:4px;line-height:1.3}
+.tf b{font-size:20px}.tf-l{font-size:11px;color:var(--muted);margin-top:6px}.tf-f b{font-size:13px}.tf-v{font-size:12px;line-height:1.25;font-weight:700;color:#00897b}.tf-n{font-size:13px;font-weight:700}.tf-m{font-size:12px;color:var(--muted)}.tf-f{font-size:12px;margin-top:4px;line-height:1.3}
 .tf.on{border:2px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--prem) border-box;box-shadow:0 6px 18px -8px rgba(94,53,177,.6)}
 .tf.on .tf-n{color:#5e35b1}
 .cmp.gold>span{padding:9px 0;align-self:stretch;display:flex;align-items:center}
@@ -2183,7 +2183,7 @@ function openPend(){ const p=S.ser.pend; if(!p) return; const need=pendNeed(), l
   sheet(`<h2>😟 Сохрани счётчик</h2><p>${pendTxt()}. Заморозь недостающие дни — и <b>${p.n} ${P(p.n)} подряд</b> не сгорят 🔥</p>
     <div class="panel"><div class="row between"><span>Нужно заморозок</span><b>${need}</b></div><div class="row between"><span>У тебя есть</span><b>${left}</b></div><div class="row between"><span>Решить до</span><b>${fmt(p.until)}</b></div></div>
     ${need<=left?`<button class="btn block" onclick="doPend()">Заморозить ${need} ${plural(need,'день','дня','дней')} ❄️</button>`
-      :`<p class="small muted">Заморозок не хватает: нужно ${need}, есть ${left}. На тарифе на полгода или год есть ещё отпускные ❄️</p><button class="btn block" onclick="closeSheet();go('plus')">Смотреть тарифы</button>`}
+      :`<p class="small muted">Заморозок не хватает: нужно ${need}, есть ${left}. На тарифе на полгода или год есть ещё дни на отпуск 🏖️</p><button class="btn block" onclick="closeSheet();go('plus')">Смотреть тарифы</button>`}
     <button class="btn ghost block" onclick="noPend()">Не надо — пусть сгорит</button>`); }
 function doPend(){ const p=S.ser.pend, need=pendNeed(); if(!p||need>fzLeft()) return;
   for(const w of p.weeks){ let k=Math.max(0,SER_MIN-serDays(w)); for(let i=6;i>=0&&k>0;i--){ const d=w*7+i; if(!S.visits.includes(d)&&!(S.ser.fzDays||[]).includes(d)){ (S.ser.fzDays=S.ser.fzDays||[]).push(d); k--; } } }
@@ -2192,12 +2192,12 @@ function doPend(){ const p=S.ser.pend, need=pendNeed(); if(!p||need>fzLeft()) re
 function noPend(){ const n=S.ser.pend.n; burnPend(); save(); closeSheet(); render(); toast(`💔 Счётчик ${n} ${plural(n,'посещение','посещения','посещений')} сгорел. 👑 Лучший результат (${S.ser.best}) остаётся.`,4500); }
 function openFreeze(){ const ml=fzMonthLeft(), vl=fzVacLeft(), t=tariff();
   sheet(`<h2>❄️ Заморозки</h2>
-    <p>Счётчик сгорает, если за неделю меньше ${SER_MIN} посещений. <b>1 заморозка = 1 пропущенный день</b> — он засчитается, как будто ты зашёл.</p>
-    ${S.plus?`<div class="vac"><b class="money">${ml}</b><span>из ${FZ_MONTH} на этот месяц — новые 1-го числа, не копятся</span><i style="width:${Math.round(ml/FZ_MONTH*100)}%"></i></div>
-      ${t.vac?`<div class="vac"><b class="money">${vl}</b><span>отпускных из ${t.vac} — на весь тариф «${t.n}»</span><i style="width:${Math.round(vl/t.vac*100)}%"></i></div>`:''}
+    <p>Посещения подряд сгорают, если за неделю ты был меньше ${SER_MIN} раз. <b>Заморозка — это пропуск без потерь:</b> день засчитается, как будто ты зашёл.</p>
+    ${S.plus?`<div class="vac"><b class="money">${ml}</b><span>${plural(ml,'день','дня','дней')} можно пропустить в этом месяце (из ${FZ_MONTH}). 1-го числа снова будет ${FZ_MONTH}</span><i style="width:${Math.round(ml/FZ_MONTH*100)}%"></i></div>
+      ${t.vac?`<div class="vac"><b class="money">${vl}</b><span>${plural(vl,'день','дня','дней')} на отпуск 🏖️ (из ${t.vac}) — на весь тариф «${t.n}»</span><i style="width:${Math.round(vl/t.vac*100)}%"></i></div>`:''}
       <p class="small muted">Сами заморозки не включаются — решаешь ты. Пропустил день — нажми на красный ✕. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить, на решение ${PEND_DAYS} дней</p>`
     :`<p class="small muted">Заморозки — только с ★ Кофейная+</p>`}
-    <div class="panel">${TARIFFS.map(x=>`<div class="row between"><span>${x.n} — ${rub(x.p)}</span><b>${FZ_MONTH} в месяц${x.vac?` + ${x.vac} отпускных`:''}</b></div>`).join('')}</div>
+    <div class="panel">${TARIFFS.map(x=>`<div class="row between"><span>${x.n} — ${rub(x.p)}</span><b>${FZ_MONTH} дня в месяц${x.vac?` + ${x.vac} на отпуск`:''}</b></div>`).join('')}</div>
     ${S.plus?'':`<button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`}`);
 }
 
@@ -2479,7 +2479,7 @@ const RULES=[
       <li><b>Бонусы не сгорают.</b> 1 бонус = 1 ₽, ими можно оплатить до 30% чека.</li>
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
-  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — 1 заморозка = 1 пропущенный день, <b>только вручную</b>: нажми на красный ✕. На любом тарифе — ${FZ_MONTH} в месяц (не копятся), на тарифе на полгода — ещё 6 отпускных, на год — 12. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить пропуски; на решение ${PEND_DAYS} дней, потом счётчик сгорит. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
+  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — 1 заморозка = 1 пропущенный день, <b>только вручную</b>: нажми на красный ✕. На любом тарифе — ${FZ_MONTH} в месяц (не копятся), на тарифе на полгода — ещё 6 дней на отпуск, на год — 12. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить пропуски; на решение ${PEND_DAYS} дней, потом счётчик сгорит. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
   ['Награды за посещения 🎁',`<p class="rl-main">Чем больше посещений подряд — тем выше статус и больше выгода.</p>
     <ul class="rl-list">
       <li><b>🥈 Серебряный</b> (0–29) — бонусы за ритм.</li>
@@ -2637,8 +2637,8 @@ function plus(){
     <div class="pk-free"><span class="pk-ck free">${CHK}</span><span><b>Бесплатно для всех</b><br><span class="small muted">Заказ в приложении и QR на кассе</span></span></div>
     <div class="pk-box"><div class="pk-h">${STAR_Y}<b>Только с Кофейная+</b></div>
       ${rows.map(([ic,t,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}</span>${v?`<span class="pk-v">${v}</span>`:`<span class="pk-ck">${CHK}</span>`}</div>`).join('')}</div>
-    <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b><span class="tf-m">${t.k==='m'?'в месяц':`${rub(Math.round(t.p/(t.k==='h'?6:12)))} в месяц`}</span><span class="tf-f">❄️ ${FZ_MONTH} в месяц${t.vac?`<br>+ ${t.vac} отпускных`:''}</span></button>`).join('')}</div>
-    <p class="small muted" style="margin:-6px 0 0;text-align:center">Тариф начнёт действовать после ${FREE_UNTIL}. Отпускные заморозки — на весь срок тарифа</p>
+    <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b><span class="tf-m">${t.k==='m'?'в месяц':`${rub(Math.round(t.p/(t.k==='h'?6:12)))} в месяц`}</span><span class="tf-l">❄️ Можно пропустить</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+ ${t.vac} дней на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
+    <p class="small muted" style="margin:-6px 0 0;text-align:center">Пропустил день — посещения подряд не сгорят. Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт.<br>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p>
     <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
     ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
     <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
