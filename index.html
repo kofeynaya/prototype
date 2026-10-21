@@ -283,6 +283,22 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .cmp{display:grid;grid-template-columns:1fr auto auto;gap:8px 12px;font-size:14px;align-items:center}
 .cmp .h{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .cmp .y{text-align:center}
+/* сравнение: колонка «★ Плюс» — золотая, богаче бесплатной */
+.cmp.gold{gap:0 12px}
+.cmp.gold>span{padding:9px 0;align-self:stretch;display:flex;align-items:center}
+.cmp.gold>.y{justify-content:center}
+.cmp.gold .free{color:var(--muted);opacity:.7}
+.cmp.gold .g{padding:9px 10px;background:linear-gradient(180deg,rgba(242,194,48,.22),rgba(255,145,0,.14));color:#e0a800;border-left:1px solid rgba(242,194,48,.45);border-right:1px solid rgba(242,194,48,.45)}
+.cmp.gold .g strong{color:#f2c230;text-shadow:0 0 10px rgba(242,194,48,.45)}
+.cmp.gold .g.top{border-top:1px solid rgba(242,194,48,.45);border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:center;gap:4px;color:#f2c230;font-weight:800}
+.cmp.gold .g.bot{border-bottom:1px solid rgba(242,194,48,.45);border-radius:0 0 14px 14px}
+:root:not([data-theme="dark"]) .cmp.gold .g strong{color:#a87900;text-shadow:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cmp.gold .g strong{color:#f2c230;text-shadow:0 0 10px rgba(242,194,48,.45)}}
+:root:not([data-theme="dark"]) .cmp.gold .g.top{color:#a87900}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cmp.gold .g.top{color:#f2c230}}
+.plus-hero{background:var(--prem)!important}
+.plus-hero .big{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:clamp(28px,9.4vw,40px)}
+.star-y.hero{width:1em;height:1em}
 
 /* v0.4: заказ (меню Starter), доставка / самовывоз / за столик, корзина */
 :root{--demo-h:44px}
@@ -1118,6 +1134,7 @@ const TYPO_RX=[
   [/(\d)[ \u202F](₽|%|руб\.?|бонус)/g,'$1'+NB+'$2'],                          // 320 ₽, 30 %, 64 бонуса
   [/([+−\-–]) (?=\d)/g,'$1'],
   [new RegExp('(^|[\\s\u00A0«„"(—–-])('+TYPO_SHORT+') (?=\\S)','gi'),'$1$2'+NB],   // в, на, с, и, за, для… + следующее слово
+  [/(\d)-(?=[а-яё]{1,3}(?![а-яё]))/g,'$1\u2011'],                                    // 6-й, 2-го — дефис не рвётся
   [/(\d) (?!(?:по|до|и|или|а)[\s ])(?=[А-ЯЁа-яёA-Za-z])/g,'$1'+NB],                                       // число + слово: 11 октября, 3 дня, 87 посещений, 4 из 8
   [/(январ\S*|феврал\S*|март\S*|апрел\S*|ма[яй]|июн\S*|июл\S*|август\S*|сентябр\S*|октябр\S*|ноябр\S*|декабр\S*) (?=\d{4}(?!\d))/gi,'$1'+NB], // 11 октября 2026
   [/(^|[\s(«])(пн|вт|ср|чт|пт|сб|вс), (?=\d)/gi,'$1$2,'+NB],                    // вт, 20 октября
@@ -2455,14 +2472,15 @@ function plus(){
   // решение владельца 22.10: бесплатно — только заказ и QR; все выгоды — с Премиум
   const rows=[['Заказ в приложении и QR на кассе',1,1],['Персональное предложение дня','—','✓'],['Цены недели только для вас','—','✓'],['Бонусы с покупки (ритм)','—',`до ${PLUS_CAP}%`],['Каждый 6-й −30%','—','✓'],['Скидка в день рождения','—','= возраст'],['Депозит с подарком','—','до +10%'],['Счётчик посещений, статусы, приз за рекорд','—','✓'],['Заморозки ❄️','—',`${VAC_DAYS} дней в год`],['Пригласи друга','—',`+${REF_REWARD} бонусов`]];
   return `<section class="screen">${back()}
-    <div class="bday"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">★ Кофейная+</span>
+    <div class="bday plus-hero"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">${STAR_Y.replace('star-y','star-y hero')}Кофейная+</span>
       <span>${S.plus?`Подключена до ${plusEndTxt()}.`:`Бесплатно для всех до ${FREE_UNTIL}, потом 99 ₽ в месяц.`}</span></div>
     ${S.plus&&plusLeft()<=SOON?`<div class="renew"><b>Подписка закончится через ${plusLeft()} ${plural(plusLeft(),'день','дня','дней')}</b><span class="small">Продлите, чтобы не потерять цены недели, бонусы до 7% и скидку в день рождения.</span><button class="btn" onclick="renewPlus()">Продлить — 99 ₽ за месяц</button></div>`:''}
-    <div class="panel"><strong>Как это работает</strong>
-      <div class="howto">${[['1','Подключаете в один клик','Оплата картой раз в месяц. Отменить можно в любой момент.'],['2','Сразу открывается ★','Цены недели, бонусы до 7%, скидка в день рождения = ваш возраст.'],['3','Везде, где звёздочка ★','На кассе по QR и в заказах из приложения — без промокодов.']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
-    <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Плюс</span>
-      ${rows.map(([t,a,b])=>`<span>${t}</span><span class="y">${a===1?'✓':a}</span><span class="y"><strong>${b===1?'✓':b}</strong></span>`).join('')}</div></div>
-    <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':'Подключить за 99 ₽/мес (демо)'}</button>
+    <div class="panel"><strong>Как получить скидки</strong>
+      <div class="howto">${[['1','Нажми «Подключить»',`Бесплатно до ${FREE_UNTIL}, потом 99 ₽ в месяц`],['2','Открываются все скидки ★','Предложение дня, цены недели, бонусы, скидка в день рождения'],['3','Покажи QR на кассе','Или закажи в приложении — скидка посчитается сама']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
+    <div class="panel"><div class="cmp gold">${'<span class="h"></span><span class="h y">Бесплатно</span><span class="h y g top">'+STAR_Y+'Плюс</span>'}
+      ${rows.map(([t,a,b],i)=>`<span>${t}</span><span class="y free">${a===1?'✓':a}</span><span class="y g${i===rows.length-1?' bot':''}"><strong>${b===1?'✓':b}</strong></span>`).join('')}</div></div>
+    <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
+    ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
     <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
   </section>`;
 }
