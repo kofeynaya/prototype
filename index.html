@@ -362,22 +362,26 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--glass-bg:rgba(34,36,34,.66);--glass-line:rgba(255,255,255,.18);--glass-hi:rgba(255,255,255,.35);--glass-shadow:0 12px 34px rgba(0,0,0,.45)}}
 :root[data-theme="dark"]{--glass-bg:rgba(34,36,34,.66);--glass-line:rgba(255,255,255,.18);--glass-hi:rgba(255,255,255,.35);--glass-shadow:0 12px 34px rgba(0,0,0,.45)}
 .app.glass .tabs{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:416px;margin:0 auto;padding:6px;border-radius:32px;border:1px solid var(--glass-line);
-  background:var(--glass-bg);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(28px) saturate(190%);
-  box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 -1px 1px rgba(255,255,255,.08),var(--glass-shadow)}
-.app.glass .tabs::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 45%)}
-.app.glass .tabs button{border-radius:24px;padding:7px 0}
+  background:var(--glass-bg);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(28px) saturate(190%) brightness(1.06);
+  box-shadow:inset 0 1px 0 var(--glass-hi),inset 1.5px 0 0 rgba(255,255,255,.28),inset -1.5px 0 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.22),
+    -10px 8px 22px -12px rgba(0,0,0,.45),10px 8px 22px -12px rgba(0,0,0,.45),0 14px 26px -18px rgba(0,0,0,.5)}
+/* отражающий слой: блик сверху и по бокам; центр светлее (контрастный слой) */
+.app.glass .tabs::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 40%),linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,0) 12%,rgba(255,255,255,0) 88%,rgba(255,255,255,.12)),radial-gradient(60% 90% at 50% 55%,rgba(255,255,255,.06),rgba(255,255,255,0))}
+.app.glass .tabs button{border-radius:24px;padding:7px 0;transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
 .app.glass .tabs button[aria-current="page"]{background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 var(--glass-hi),inset 0 0 0 1px var(--glass-line)}
 .app.glass .tabs .qrtab .ring{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));color:#212221;border:1px solid rgba(255,255,255,.9);
   -webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 #fff,0 8px 22px rgba(0,0,0,.3)}
 .app.glass .tabs .qrtab .ring svg{stroke:#212221}
 .app.glass .tabs .qrtab[aria-current="page"],.app.glass .tabs .qrtab{background:none;box-shadow:none}
 .app.glass main{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
-.app.glass .gl-top{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--demo-h) + 8px);z-index:12;align-self:flex-start;padding:9px 16px;margin:0 -6px;border-radius:999px;border:1px solid var(--glass-line);
-  background:var(--glass-bg);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:inset 0 1px 0 var(--glass-hi),var(--glass-shadow)}
-.app.glass .offer .btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 16px rgba(0,0,0,.22)}
+.app.glass .offer .btn{position:relative;transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .2s}
+.app.glass .offer .btn:not(.ghost){background:rgba(23,47,40,.78);color:#fff;border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 1px 0 0 rgba(255,255,255,.15),inset -1px 0 0 rgba(255,255,255,.15),0 8px 18px -6px rgba(13,85,63,.55)}
+/* при нажатии стекло подсвечивается изнутри — свет собирается в центре, кнопка чуть «набухает», как капля */
+.app.glass .offer .btn:active,.app.glass .tabs button:active{transform:scale(1.05);background-image:radial-gradient(closest-side,rgba(255,255,255,.55),rgba(255,255,255,0))}
 .app.glass .offer .btn.ghost{background:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.75);color:#212221;
   -webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 6px 16px rgba(0,0,0,.08)}
-.app.glass .ostat{background:rgba(13,85,63,.72);border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(12px) saturate(180%);backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 12px rgba(13,85,63,.3)}
 .app.glass .perk{box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 
 
@@ -1532,7 +1536,7 @@ function home(){
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
   return `<section class="screen">
-    <div class="topbar gl-top"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
+    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
     <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение на сегодня. Завтра будет новое 😉</span></div>
 
     <article class="offer me"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
