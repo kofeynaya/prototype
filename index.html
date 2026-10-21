@@ -1017,6 +1017,11 @@ img.ava{object-fit:cover}
 .rl-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.35;color:var(--muted)}
 .rl-list b{color:var(--ink)}
 .stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bon-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:18px;color:var(--ink);background:linear-gradient(160deg,rgba(242,194,48,.22),rgba(242,194,48,.06));border:1px solid rgba(242,194,48,.55)}
+.bon-row .coin{width:30px;height:30px;flex:none}
+.bon-row .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.bon-row .tx b{font-size:16px}.bon-row small{font-size:12.5px;color:var(--muted);line-height:1.2}
+.bon-row .pc{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.bon-row .pc b{font-size:18px}
+.bon-row .go{font-size:20px;color:var(--muted)}
 .s3{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 10px 9px;border-radius:14px;background:var(--surface);border:1px solid var(--line);text-align:left;min-width:0}
 .s3 .l{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .s3 b{font-family:var(--f-num);font-size:18px;height:24px;line-height:24px;white-space:nowrap;display:flex;align-items:center}
@@ -1031,6 +1036,7 @@ img.ava{object-fit:cover}
 .subchip .ystar{color:#f2c230;font-weight:700}
 .subchip.soon{background:linear-gradient(135deg,#e53935,#ff6d00);box-shadow:0 4px 14px rgba(229,57,53,.4)}
 .subchip.soon .s{opacity:1;font-weight:700}
+@media (max-width:374px){.subchip{padding:7px 10px}.subchip .sx{display:none}}
 .pdot{width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block}
 @media (prefers-reduced-motion:no-preference){.subchip.soon .pdot{animation:pdot 1s ease-in-out infinite}}
 @keyframes pdot{50%{opacity:.25;transform:scale(.6)}}
@@ -2370,7 +2376,7 @@ function power(){
   </section>`;
 }
 /* «Выгода от приложения»: сколько заплатил бы без приложения и сколько заплатил с ним — и откуда разница. Бонусы на счёте — отдельной строкой (это не деньги) */
-const BEN_SRC=[['rw','Подарки за посещения','#e6a700'],['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Кэшбэк депозита','#2e9e5b']];
+const BEN_SRC=[['rw','Подарки за посещения','#e6a700'],['offer','Предложение дня','#ff6d00'],['pp','Цены недели','#7c4dff'],['six','6-й −30%','#00897b'],['bd','День рождения','#ec407a'],['disc','Другие скидки','#a7d2b9'],['bonus','Оплата бонусами','#f2c230'],['gift','Оплачено кэшбэком','#2e9e5b']];
 // Период для «Выгоды от приложения»: сегодня / неделя / месяц / всё время / свои даты
 let benPer='all', benFrom=null, benTo=null;
 const dayOff=d=>Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-DAY0)/864e5);
@@ -2412,7 +2418,6 @@ function benefit(){
     <div class="ben-r me"><span>С приложением заплатил</span><span class="bar"><i data-w="${Math.round(paid/without*100)}" style="width:${Math.round(paid/without*100)}%"></i></span><b class="money">${rub(paid)}</b></div>
     <div class="ben-st">${parts.map(([k,,c])=>`<i data-f data-g="${by[k]}" style="flex-grow:${by[k]};background:${c}"></i>`).join('')}</div>
     <div class="ben-lg">${parts.map(([k,t,c])=>`<span><i style="background:${c}"></i>${t} <b class="money">${rub(by[k])}</b></span>`).join('')}</div>
-    ${S.bonus&&benPer==='all'?`<p class="ben-b">И ещё ${COIN}<b>${S.bonus}</b> бонусов на счёте — это ${rub(S.bonus)} к следующей покупке.</p>`:''}
     ${boost}
   </div>`;
 }
@@ -2427,23 +2432,17 @@ const plusEndTxt=()=>{ const e=plusEnd(); return `${e.getDate()} ${MON[e.getMont
 const SOON=5; // за сколько дней до конца подписки начинаем напоминать
 function subChip(){
   const left=plusLeft(), soon=left<=SOON;
-  return `<button class="subchip${soon?' soon':''}"${F(13)} onclick="go('plus')"><span class="t"><b class="ystar">★</b> Кофейная+</span><span class="s">${soon?`<i class="pdot"></i>осталось ${left} ${plural(left,'день','дня','дней')} · продлить`:`активна · ещё ${left} ${plural(left,'день','дня','дней')}`}</span></button>`;
+  return `<button class="subchip${soon?' soon':''}"${F(13)} onclick="go('plus')"><span class="t"><b class="ystar">★</b> Кофейная+</span><span class="s">${soon?`<i class="pdot"></i><span class="sx">осталось </span>${left} ${plural(left,'день','дня','дней')} · продлить`:`<span class="sx">активна · </span>ещё ${left} ${plural(left,'день','дня','дней')}`}</span></button>`;
 }
 function renewPlus(){ S.plusSoon=false; save(); render(); toast(`Кофейная+ продлена до ${plusEndTxt()} (демо).`); }
 function soonPlus(){ S.plusSoon=true; save(); render(); }
 function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
-  // один кегль для всех трёх чисел — по самому длинному, чтобы строки стояли на одной линии
-  const giftT='+'+rub((S.wallet.ops||[]).filter(o=>o.k==='gift').reduce((a,o)=>a+o.sum,0));
-  const fs=fitNum('x'.repeat(Math.max(String(S.bonus).length+2, rub(S.saved).length, giftT.length)));
+  // 21.10: плитки «Сэкономлено» и «За пополнения» убраны — дублировали карту депозита и «Выгоду от приложения» и расходились с ней (3 379 vs 3 499 ₽)
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на депозит с кэшбэком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
-    <div class="stat3">
-      <button class="s3 y"${F(5)} onclick="go('progress')"><span class="l">Бонусы</span><b class="money" style="${fs}">${COIN}${S.bonus}</b><small>${rateAll()}% с покупки</small></button>
-      <div class="s3"${F(6)}><span class="l">Сэкономлено</span><b class="money" style="${fs}">${rub(S.saved)}</b><small>за всё время</small></div>
-      <button class="s3 g"${F(14)} onclick="go('wallet')"><span class="l">За пополнения</span><b class="money" style="${fs}">${giftT}</b><small>за всё время</small></button>
-    </div>
+    <button class="bon-row" onclick="go('progress')">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
     ${benefit()}
     ${PL_CLOSE()}
     ${S.plus?'':`<div class="dash">
@@ -2510,7 +2509,7 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:0;overflow:hidden"><h1>${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
+    <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:56px;overflow:hidden"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
       <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
