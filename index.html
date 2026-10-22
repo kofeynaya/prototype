@@ -301,6 +301,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 /* Пульт теста — инструмент демо, не часть приложения */
 .demo .lab-btn{margin-left:auto}
 .learn-empty{display:flex;gap:12px;align-items:center}.learn-empty span{font-size:28px}.learn-empty p{margin:0}
+.bd-in{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;margin:8px 0}
 .lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
 .lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .lab-b h2{font-size:20px}.lab-b p{margin:0}
@@ -1408,11 +1409,14 @@ function giftsBlock(){
 
 function bdInfo(){
   const b=S.birth; const today=dateOf(S.day); let best=null;
+  if(!b||!b.d) return {set:false,active:false,diff:null,age:0,pct:0,date:null,from:null,to:null,capLeft:0};   // дату ещё не указали
   for(const y of [today.getFullYear()-1,today.getFullYear(),today.getFullYear()+1]){
     const bd=new Date(y,b.m,b.d); const diff=Math.round((bd-today)/864e5);
     if(!best||Math.abs(diff)<Math.abs(best.diff)) best={diff,age:y-b.y,date:bd};
   }
-  best.active=Math.abs(best.diff)<=7; best.pct=S.plus?best.age:BD_FREE;
+  best.set=true; best.active=Math.abs(best.diff)<=7;
+  // дату указывают минимум за 30 дней до дня рождения — иначе скидка начнёт работать со следующего года
+  if(b.setDay!=null && Math.round((best.date-dateOf(b.setDay))/864e5)<30) best.active=false, best.tooLate=true; best.pct=S.plus?best.age:BD_FREE;
   best.from=new Date(+best.date-7*864e5); best.to=new Date(+best.date+7*864e5);
   best.capLeft=Math.max(0,BD_CAP-(S.bdUsed[S.day]||0));
   return best;
@@ -1581,7 +1585,9 @@ function friendBuy(i){
   else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
   save(); render();
 }
-function demoBirthdayToday(){ const t=dateOf(S.day); S.birth.m=t.getMonth(); S.birth.d=t.getDate(); save(); render(); toast('Демо: день рождения перенесён на сегодня.'); }
+function setBirth(){ const v=document.getElementById('bd-in')?.value; if(!v) return toast('Выбери дату'); const [y,m,d]=v.split('-').map(Number);
+  S.birth={y,m:m-1,d,verified:false,setDay:S.day}; save(); render(); const bd=bdInfo(); toast(bd.tooLate?'Сохранили. До дня рождения меньше 30 дней — скидка будет со следующего года':`Сохранили! Скидка −${bd.age}% будет с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}`,4500); }
+function demoBirthdayToday(){ const t=dateOf(S.day); delete S.birth.setDay; S.birth.m=t.getMonth(); S.birth.d=t.getDate(); save(); render(); toast('Демо: день рождения перенесён на сегодня.'); }
 const refLink = () => 'https://kofeynaya.github.io/prototype/?ref='+S.ref.code;
 function copyText(t){ const done=()=>toast('Скопировано.'); try{ navigator.clipboard.writeText(t).then(done,()=>toast('Не получилось скопировать — выделите текст вручную.')) }catch(e){ toast('Не получилось скопировать — выделите текст вручную.') } }
 
@@ -1758,7 +1764,7 @@ function home(){
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
     {power:true},
-    {n:12, t:'День рождения', s:bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
+    {n:12, t:'День рождения', s:!bd.set?'Скидка = возраст<br>Укажи дату':bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
     {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
@@ -2512,7 +2518,7 @@ function dashboard(){
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
         <span class="dv" style="font-size:22px">★ Кофейная+</span>
-        <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ДР −${bd.age}%. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 7% и скидку в ДР −${bd.age}%. бесплатно до ${FREE_UNTIL}, потом 99 ₽/мес.`}</span>
+        <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ${bd.set?`ДР −${bd.age}%`:'скидка в ДР = возраст'}. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 7% и скидку в день рождения = возраст. Бесплатно до ${FREE_UNTIL}, потом 99 ₽ в месяц.`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
     
@@ -2573,7 +2579,7 @@ function profile(){
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:56px;overflow:hidden"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
-      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}<span class="n">3</span></button></div></div>
+      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}${S.orders.length?'<span class="n">3</span>':''}</button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
     ${dashboard()}
     <div class="stack"${F(7)}><h2>Достижения</h2>
@@ -2581,7 +2587,7 @@ function profile(){
     <div class="list">
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
-      ${row('user','Мои данные',"go('birthday')",`<small class="muted">ДР ${S.birth.d} ${MON[S.birth.m]}</small>`,12)}
+      ${row('user','Мои данные',"go('birthday')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
@@ -2674,12 +2680,13 @@ function birthday(){
   return `<section class="screen">${back()}
     <div class="stack"${F(12)}><div class="row between"><span class="label">День рождения</span>${PLUS}</div><h1>Скидка = ваш возраст</h1>
       <p class="muted small">7 дней до и 7 дней после — на всё меню, на кассе и в заказах, до ${rub(BD_CAP)} скидки в день.</p></div>
-    ${bd.active?bdBanner():`<div class="panel"><div class="row between"><span>Ближайший день рождения</span><strong>${fmtDate(bd.date)}</strong></div><span class="small muted">Скидка с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}.</span></div>`}
-    <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Кофейная+</span><span>Скидка</span><span class="y">${BD_FREE}%</span><span class="y">${bd.age}% (возраст)</span></div></div>
-    <div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
+    ${!bd.set?`<div class="panel"><strong>Когда у тебя день рождения?</strong><input id="bd-in" type="date" class="bd-in" max="${isoOf(S.day)}"><button class="btn block" onclick="setBirth()">Сохранить</button><span class="small muted">Указать можно один раз. Скидка начнёт работать, если до дня рождения больше 30 дней</span></div>`
+      :bd.active?bdBanner():`<div class="panel"><div class="row between"><span>Ближайший день рождения</span><strong>${fmtDate(bd.date)}</strong></div><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}.`}</span></div>`}
+    <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Кофейная+</span><span>Скидка</span><span class="y">${BD_FREE}%</span><span class="y">${bd.set?bd.age+'% (возраст)':'= возраст'}</span></div></div>
+    ${bd.set?`<div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
       <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
-      <ul class="rules"><li>Дату можно указать один раз. Изменить — через поддержку.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>
-    <button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>
+      <ul class="rules"><li>Дату можно указать один раз. Изменить — через поддержку.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>`:''}
+    ${bd.set?`<button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>`:''}
   </section>`;
 }
 function plus(){
@@ -2703,13 +2710,13 @@ function plus(){
 }
 function setTariff(k){ if(S.tariff!==k){ S.tariff=k; S.ser.vacUsed=0; } save(); render(); }
 function plusBanner(){
-  const bd=bdInfo();
-  if(S.plus) return `<button class="plusb on"${F(13)} onclick="go('plus')"><span class="pt">★ Кофейная+ активна</span><span class="small">Цены недели, бонусы ${rawRate()}%, ДР −${bd.age}% · 99 ₽/мес</span></button>`;
+  const bd=bdInfo(), bdt=bd.set?'−'+bd.age+'%':'= возраст';
+  if(S.plus) return `<button class="plusb on"${F(13)} onclick="go('plus')"><span class="pt">★ Кофейная+ активна</span><span class="small">Цены недели, бонусы ${rawRate()}%, ДР ${bdt} · 99 ₽/мес</span></button>`;
   const lost=Math.max(0,rawRate()-FREE_CAP);
   return `<button class="plusb"${F(13)} onclick="go('plus')">${blob('rgba(249,249,249,.1)',1)}
     <span class="pt">★ Кофейная+</span>
     <span>С подпиской у вас было бы:</span>
-    <span class="pl">• предложение дня и цены недели<br>• бонусы с покупки до ${PLUS_CAP}% и депозит с кэшбэком<br>• каждый 6-й −30%, скидка в день рождения −${bd.age}%</span>
+    <span class="pl">• предложение дня и цены недели<br>• бонусы с покупки до ${PLUS_CAP}% и депозит с кэшбэком<br>• каждый 6-й −30%, скидка в день рождения ${bdt}</span>
     <span class="pbtn">Подключить — 99 ₽/мес</span><span class="small" style="opacity:.8">Бесплатно до ${FREE_UNTIL}</span></button>`;
 }
 
@@ -2913,7 +2920,7 @@ function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=la
   if(serDays(w)>=SER_MIN){ S.visits=S.visits.filter(d=>weekOf(d)!==w); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==w); S.visits.push(w*7+1); }
   if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1}; }); }
 function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
-function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth.m=t.getMonth(); S.birth.d=t.getDate(); S.birth.verified=false; }); }
+function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.birth.y||1993,m:t.getMonth(),d:t.getDate(),verified:false}; }); }
 function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }); }
 function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
@@ -2943,7 +2950,7 @@ function labApplyPreset(k){
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
     if(k==='new'){ Object.assign(S,{plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
-      funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
+      weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; SIXTH.forEach(id=>S.stamps[id]=0); S.offer=null; }
     if(k==='three'){ labLastWeek(3); S.visits=S.visits.filter(d=>weekOf(d)!==wk); if(S.day%7>0) S.visits.push(wk*7); S.ser.n=24; S.ser.best=30; }
     if(k==='g29'){ keep(); S.ser.n=29; S.ser.best=Math.max(29,S.ser.best); S.rw.miles={}; }
@@ -3000,7 +3007,7 @@ function lab(){
       <span class="lab-l">Предложение дня</span>
       <div class="lab-wd">${[['shown','Показано'],['activated','Активировано'],['used','Использовано']].map(([k,n])=>`<button class="${S.offer&&S.offer.status===k?'on':''}" onclick="labOffer('${k}')">${n}</button>`).join('')}</div>
       ${rng('Отметок 6-го у капучино',S.stamps[ID.cap]||0,0,5,'labStamp',' из 5')}
-      ${rng('День рождения через (дней)',bd.diff,-10,40,'labBd')}
+      ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
       ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
