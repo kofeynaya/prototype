@@ -328,6 +328,9 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .plus-float{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:14;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;background:var(--prem);color:#fff;font-weight:700;font-size:15px;white-space:nowrap;box-shadow:0 10px 24px -8px rgba(43,43,147,.7);transition:opacity .25s,transform .25s}
 .plus-float.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(12px)}
 .plus-float .star-y{width:16px;height:16px}
+/* Без висячих слов (владелец 22.10): короткие тексты — ровные строки (balance), абзацы — без одинокого слова в конце (pretty) */
+body *{text-wrap:pretty}
+h1,h2,h3,h4,button,.btn,b,strong,small,.nm,.title,.meta,.hint,.tx,.stc-perk,.six-rule,.ds,label,em{text-wrap:balance}
 .lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
 .lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .lab-b h2{font-size:20px}.lab-b p{margin:0}
@@ -981,7 +984,7 @@ img.ava{object-fit:cover}
 .t-plat .ser-week .v i{background:rgba(255,255,255,.3)}
 .stc.mini{box-shadow:none}.stc.mini .stc-top{cursor:default}.stc.mini .stc-prog{padding-right:0}
 .ladder{display:flex;align-items:flex-start;margin:2px 0}
-.ld{display:flex;flex-direction:column;align-items:center;gap:3px;width:74px;flex:none;text-align:center}
+.ld{display:flex;flex-direction:column;align-items:center;gap:3px;width:96px;flex:none;text-align:center}
 .ld b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid currentColor;opacity:.45;font-size:15px}
 .ld small{font-size:12px;line-height:1.15;opacity:.7}
 .ld.ok b{opacity:1;background:#2e9e5b;border-color:#2e9e5b;color:#fff}.ld.ok small{opacity:1;font-weight:700}
@@ -1307,11 +1310,32 @@ function dropDot(n){ const v=n.nodeValue; if(!/\.\s*$/.test(v)||DOT_KEEP.test(v.
   const all=blk.textContent.trim(); if(all.length>160||/[.!?…]["»)]?\s+\S/.test(all)) return;   // несколько фраз — точку не трогаем
   const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let last=null,x; while((x=w.nextNode())) if(x.nodeValue.trim()) last=x;
   if(last!==n) return; n.nodeValue=v.replace(/\.(\s*)$/,'$1'); }
+/* Красная строка по смыслу и «без висячего слова» (владелец 22.10) — для всего текста автоматически:
+   1) подпись из ДВУХ фраз (до 160 символов) — вторая фраза всегда с новой строки, а не «как получится»;
+   2) последнее слово абзаца не остаётся одно на строке — склеиваем его с предыдущим неразрывным пробелом. */
+const blockOf=n=>{ let b=n.parentNode; while(b&&b.nodeType===1&&b.parentElement&&getComputedStyle(b).display.startsWith('inline')) b=b.parentElement; return b&&b.nodeType===1?b:null; };
+function splitTwo(blk){ if(!blk||/^(BUTTON|H1|H2|H3|INPUT|TEXTAREA|SELECT|OPTION|LABEL)$/.test(blk.nodeName)||blk.closest('button,.money,.demo,.lab')||blk.querySelector('br')) return;
+  const all=blk.textContent.trim(); if(all.length>160) return;
+  const rx=/(?<!(?:^|[\s(«\u00A0])(?:ул|пр|пер|им|св|руб|мин|тыс|шт|г|д|т|е|п))[.!?…]["»)]?[ \u00A0]+(?=[А-ЯЁA-Z0-9«])/g, hits=all.match(rx); if(!hits||hits.length!==1) return;
+  const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let n;
+  while((n=w.nextNode())){ const m=/(?<!(?:^|[\s(«\u00A0])(?:ул|пр|пер|им|св|руб|мин|тыс|шт|г|д|т|е|п))[.!?…]["»)]?[ \u00A0]+(?=[А-ЯЁA-Z0-9«])/.exec(n.nodeValue); if(!m) continue;
+    const cut=m.index+m[0].length, rest=n.splitText(cut); n.nodeValue=n.nodeValue.replace(/[ \u00A0]+$/,''); rest.parentNode.insertBefore(document.createElement('br'),rest); return; } }
+function noWidow(blk){ if(!blk||blk.closest('.demo')) return; const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let last=null,x;
+  while((x=w.nextNode())) if(x.nodeValue.trim()) last=x; if(!last) return;
+  const v=last.nodeValue, t=v.trimEnd(), sep=Math.max(t.lastIndexOf(' '),t.lastIndexOf(NB)); if(sep<0||t[sep]===NB||t.slice(sep+1).includes(NB)) return;   // уже склеено или хвост и так из нескольких слов («за 550 ₽») — не клеим
+  const prev=Math.max(t.lastIndexOf(' ',sep-1),-1), run=t.slice(prev+1);   // кусок, который станет неразрывным
+  const cw=blk.clientWidth; if(!cw) return; const cs=getComputedStyle(last.parentElement||blk); _cv.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  if(_cv.measureText(run).width>cw) return;   // склеенный кусок должен влезать в строку, иначе браузер разорвёт его посреди слова
+  last.nodeValue=v.slice(0,sep)+NB+v.slice(sep+1); }
+const _cv=document.createElement('canvas').getContext('2d');
 function typo(str){ let t=str; for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
-function typoNode(root){ if(root.nodeType===3){ if(root.parentNode&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(root.parentNode.nodeName)) return; const t=typo(root.nodeValue); if(t!==root.nodeValue) root.nodeValue=t; dropDot(root); return; }
+function typoNode(root){ if(root.nodeType===3){ if(root.parentNode&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(root.parentNode.nodeName)) return; const t=typo(root.nodeValue); if(t!==root.nodeValue) root.nodeValue=t; dropDot(root); const b=blockOf(root); if(b){ splitTwo(b); noWidow(b); } return; }
   if(root.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(root.nodeName)) return;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT), ns=[]; let n; while((n=w.nextNode())){ if(/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) continue; const t=typo(n.nodeValue); if(t!==n.nodeValue) n.nodeValue=t; ns.push(n); }
-  ns.forEach(dropDot); }
+  ns.forEach(dropDot); const bl=new Set(); ns.forEach(t=>{ const b=blockOf(t); if(b) bl.add(b); }); bl.forEach(b=>{ splitTwo(b); noWidow(b); }); }
+// шрифты догружаются позже — пересчитать переносы, когда они готовы, и при смене ширины экрана
+try{ document.fonts.ready.then(()=>typoNode(document.body)); }catch(e){}
+addEventListener('resize',()=>{ clearTimeout(window.__tyT); window.__tyT=setTimeout(()=>typoNode(document.body),200); });
 new MutationObserver(ms=>{ for(const m of ms){ if(m.type==='characterData') typoNode(m.target); else m.addedNodes.forEach(typoNode); } }).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
 const dateOf = d => { const x=new Date(DAY0); x.setDate(x.getDate()+d); return x; };
 const fmt = d => { const x=dateOf(d); return WD[(d%7)]+', '+x.getDate()+' '+MON[x.getMonth()]; };
