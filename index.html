@@ -1011,11 +1011,11 @@ img.ava{object-fit:cover}
 .promo-h h2{margin:0;font-size:26px}
 .tstack{--page:var(--bg);display:flex;flex-direction:column}
 .tk{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:24px;background:var(--tkbg)}
-.tk+.tk{margin-top:7px;padding-top:34px}
-.tk-bulge{position:absolute;left:50%;bottom:-25px;width:220px;height:26px;transform:translateX(-50%);fill:var(--tkbg);z-index:3}
-.tk-notch{position:absolute;left:50%;top:-1px;width:240px;height:28px;transform:translateX(-50%);fill:var(--page);z-index:1}
+.tk+.tk{margin-top:8px;padding-top:40px}   /* margin = TK_GAP */
+.tk-bulge{position:absolute;left:50%;bottom:-26px;width:300px;height:26px;margin-left:-150px;fill:var(--tkbg);z-index:3;overflow:visible}
+.tk-notch{position:absolute;left:50%;top:0;width:300px;height:26px;margin-left:-150px;fill:var(--page);stroke:var(--page);z-index:1}
 .tk:last-child .tk-bulge,.tk:first-child .tk-notch{display:none}
-.tk-h{display:flex;align-items:center;gap:10px}
+.tk-h{display:flex;align-items:baseline;gap:10px}
 .tk-h .num{flex:none;font-family:var(--f-num);font-size:22px;line-height:1;color:var(--ink)}
 .tk-h h2{margin:0;font-size:20px;line-height:1.15}
 .tk>.rhythm,.tk>.panel{background:transparent;border:0;padding:0;box-shadow:none}
@@ -2446,8 +2446,12 @@ function sendMsg(id){ const el=document.getElementById('msgin'), t=(el&&el.value
   setTimeout(()=>{ const ms=S.chats[id]; ms.push({me:false,t:AUTO_REPLY[ms.length%AUTO_REPLY.length]}); save(); if(document.getElementById('chat')) openChat(id); },1300); }
 // Карточки акций стыкуются, как в референсе: у каждой сверху выступ по центру, у предыдущей снизу — такой же вырез; выступ входит в вырез с тонким зазором. Карточки разного цвета
 // как в референсе: у верхней карточки низ по центру выгибается вниз широким плато, у нижней сверху — такой же вырез; зазор ровный
-const TK_BULGE='<svg class="tk-bulge" viewBox="0 0 220 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0C30 0 34 26 64 26H156C186 26 190 0 220 0Z"/></svg>';
-const TK_NOTCH='<svg class="tk-notch" viewBox="0 0 240 27" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0C33 0 37 27 70 27H170C203 27 207 0 240 0Z"/></svg>';
+/* Стыковка карточек (переделано 22.10 по просьбе владельца — «кристально ровно»): выступ и вырез — ОДНА и та же фигура.
+   Вырез = выступ, «раздутый» обводкой на TK_GAP со всех сторон, поэтому зазор везде одинаковый; фигура симметрична относительно центра;
+   одни координаты (центр 0, верх = низ верхней карточки), без растягивания (preserveAspectRatio не «none»). */
+const TK_GAP=8, TK_D=26, TK_PATH='M-106 0C-80 0-80 26-54 26H54C80 26 80 0 106 0Z';
+const TK_BULGE=`<svg class="tk-bulge" viewBox="-150 0 300 ${TK_D}" aria-hidden="true"><path d="${TK_PATH}"/></svg>`;
+const TK_NOTCH=`<svg class="tk-notch" viewBox="-150 ${TK_GAP} 300 ${TK_D}" aria-hidden="true"><path d="${TK_PATH}" stroke-width="${TK_GAP*2}" stroke-linejoin="round"/></svg>`;
 function tcard(id,n,title,body,cls=''){ return `<div class="tk ${cls}" id="${id}">${TK_BULGE}${TK_NOTCH}<div class="tk-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2></div>${body}</div>`; }
 function tsec(n,title,body,aside=''){ return `<div class="tsec"><div class="tsec-h"><span class="num">${String(n).padStart(2,'0')}</span><h2>${title}</h2>${aside?`<span class="aside">${aside}</span>`:''}</div>${body}</div>`; }
 function progress(){
