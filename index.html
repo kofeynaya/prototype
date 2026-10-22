@@ -300,6 +300,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 
 /* Пульт теста — инструмент демо, не часть приложения */
 .demo .lab-btn{margin-left:auto}
+.learn-empty{display:flex;gap:12px;align-items:center}.learn-empty span{font-size:28px}.learn-empty p{margin:0}
 .lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
 .lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .lab-b h2{font-size:20px}.lab-b p{margin:0}
@@ -1433,7 +1434,7 @@ function makeOffer(){
   if(mech==='combo'){ const c=rnd([ID.cap,ID.latte,ID.flat]), p=rnd([ID.croissant,ID.muffin]); o.combo=[c,p]; o.item=c;
     const full=byId(c).p+byId(p).p; o.comboPrice=Math.round(full*0.85/10)*10;
     o.title=`${byId(c).n} + ${byId(p).n.toLowerCase()}`; o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
-  o.why = explore ? 'Пробуем новое: так приложение узнаёт, что вам нравится.' : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
+  o.why = explore||!S.orders.length ? 'Пробуем новое: так приложение узнаёт, что вам нравится.' : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
   o.art = S.day % ARTS.length; o.bg = ARTS[o.art].bg; S.funnel.shown++;
   return o;
 }
@@ -2587,10 +2588,7 @@ function profile(){
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
     <div class="panel"${F(9)}><h3>Что приложение о вас узнало</h3>
-      <p class="small muted">По этим данным подбираются предложения дня, рекомендации и цены недели.</p>
-      ${(()=>{const cats=Object.entries(S.w.cat).sort((a,b)=>b[1]-a[1]),mx=Math.max(...cats.map(c=>c[1])),mechs=Object.entries(S.w.mech).sort((a,b)=>b[1]-a[1]),mm=Math.max(...mechs.map(c=>c[1]));
-        return `<span class="label">Что вы любите</span><div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
-        <span class="label">Какие акции вам ближе</span><div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>`})()}</div>
+      ${learnBlock()}</div>
     <div class="panel"><h3>Уведомления</h3>
       ${[['offer','Новое предложение дня'],['streak','Напоминание: не дай посещениям сгореть 🔥'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
     <div class="stack"><button class="btn ghost block" onclick="logout()">Выйти</button>
@@ -2855,6 +2853,17 @@ function drawKassa(){
 }
 function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); }
 
+/* «Что приложение о вас узнало» — ТОЛЬКО по настоящим данным гостя (баг 22.10: у новичка показывались готовые полоски).
+   Что любит — по позициям в его покупках; какие акции ближе — только по тем, что он уже пробовал. Нет данных — честно пишем, что пока не знаем */
+function learnBlock(){
+  const cnt={}; S.orders.forEach(o=>(o.items||[]).forEach(id=>{ const m=byId(id); if(m){ const c=LCAT(m); cnt[c]=(cnt[c]||0)+1; } }));
+  const cats=Object.entries(cnt).sort((a,b)=>b[1]-a[1]), tried=Object.keys(S.mechTried||{}).filter(k=>MECH[k]);
+  if(!cats.length) return `<div class="learn-empty"><span>🌱</span><p class="small">Пока ничего — ты у нас недавно. После первой покупки приложение начнёт подбирать скидки под твой вкус</p></div>`;
+  const mx=cats[0][1], mechs=tried.map(k=>[k,S.w.mech[k]||1]).sort((a,b)=>b[1]-a[1]), mm=Math.max(1,...mechs.map(m=>m[1]));
+  return `<p class="small muted">По этим данным подбираются предложения дня, рекомендации и цены недели</p>
+    <span class="label">Что вы любите</span><div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
+    <span class="label">Какие акции вам ближе</span>${mechs.length?`<div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>`:'<p class="small muted" style="margin:0">Пока не знаем — воспользуйся предложением дня</p>'}`;
+}
 /* ===================== Онбординг (22.10, тексты согласованы с критиком) =====================
    4 экрана, одна мысль на экран; «Дальше» — крупная кнопка внизу, «Пропустить» — сверху. Показывается один раз после входа (S.onb) и из пульта */
 const ONB=[
@@ -2934,7 +2943,7 @@ function labApplyPreset(k){
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
     if(k==='new'){ Object.assign(S,{plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
-      funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},ach:{},pastryCount:0,myOrders:[],onb:0});
+      funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; SIXTH.forEach(id=>S.stamps[id]=0); S.offer=null; }
     if(k==='three'){ labLastWeek(3); S.visits=S.visits.filter(d=>weekOf(d)!==wk); if(S.day%7>0) S.visits.push(wk*7); S.ser.n=24; S.ser.best=30; }
     if(k==='g29'){ keep(); S.ser.n=29; S.ser.best=Math.max(29,S.ser.best); S.rw.miles={}; }
