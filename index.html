@@ -1060,7 +1060,7 @@ img.ava{object-fit:cover}
 .lbr{display:flex;align-items:center;gap:10px;padding:7px 4px;border-radius:12px;text-align:left;width:100%}
 .lbr .pos{width:22px;text-align:center;font-family:var(--f-num);font-size:14px;color:var(--muted)}
 .lbr .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lbr .st{font-weight:700;white-space:nowrap}
+.lbr .st{font-weight:700;white-space:nowrap;line-height:1.1;display:inline-flex;align-items:center;gap:2px}
 .lbr.me{background:rgba(255,109,0,.14)}
 .lbr.me .nm{font-weight:700}
 .ava{flex:none;border-radius:50%}
@@ -1202,6 +1202,63 @@ img.ava{object-fit:cover}
 .privi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .privi-name{font-family:'Dela Gothic One',sans-serif;font-size:30px;line-height:1.05;color:#f9f9f9}
 .privi .plus-on{flex:none;max-width:118px;white-space:normal;font-size:11px;line-height:1.2;text-align:left}
+
+/* Поиск */
+.sheet.sr-sheet{min-height:86%}
+.srch-bar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 16px;border-radius:999px;background:var(--surface);border:1.5px solid var(--line);color:var(--muted);font-size:16px;text-align:left}
+.srch-bar svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;flex:none}
+.app.glass .srch-bar{background:var(--glass-bg);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%)}
+.search svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+.sr-in{border-radius:999px;padding:12px 14px;border-color:var(--ink)}.sr-in input{font-size:17px}.sr-in input::-webkit-search-cancel-button{display:none}
+.sr-x{width:28px;height:28px;border-radius:50%;background:var(--line);color:var(--ink);font-size:13px;flex:none}
+#srout{display:flex;flex-direction:column;gap:16px;margin-top:4px}
+.sr-g{display:flex;flex-direction:column;gap:4px}
+.sr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.sr-chip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;font-weight:600}
+.sr-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 4px;text-align:left;border-radius:14px;color:var(--ink)}
+.sr-row:active{background:var(--line)}
+.sr-ph{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}
+.sr-row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.sr-row .nm{font-size:15.5px;line-height:1.2}.sr-row small{font-size:12.5px;color:var(--muted);line-height:1.25}
+.sr-row .pr{font-weight:700;white-space:nowrap;font-size:15px;text-align:right}.sr-row .pr s{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.sr-ic{width:52px;height:52px;border-radius:14px;background:var(--prem,#2b2b93);color:#f2c230;display:grid;place-items:center;font-size:24px;flex:none;font-weight:800}
+.sr-row .chev{font-size:22px;color:var(--muted)}
+.sr-hit{font-weight:800;background:linear-gradient(transparent 60%,rgba(242,194,48,.55) 60%)}
+.sr-empty{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 0 6px}.sr-big{font-size:44px}.sr-empty b{font-size:18px}
+/* Подарки */
+.gift{display:flex;flex-direction:column;gap:12px}
+.gf-steps{display:flex;gap:4px;justify-content:space-between;padding-right:54px;min-height:30px;align-items:center;font-size:12px;color:var(--muted)}
+.gf-steps span{display:flex;align-items:center;gap:4px}.gf-steps i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-size:12px;font-weight:700}
+.gf-steps .on{color:var(--ink);font-weight:700}.gf-steps .on i{background:var(--ink);color:var(--bg);border-color:var(--ink)}.gf-steps .done i{background:#2e9e5b;color:#fff;border-color:#2e9e5b}
+.gf-ph{gap:8px}.gf-ph input{font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.gf-people{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gf-people button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--ink)}
+.gf-av{width:40px;height:40px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:20px;flex:none}.gf-av.big{width:52px;height:52px;font-size:24px}
+.gf-to{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:16px;border:1px solid var(--line);background:var(--surface);text-align:left;color:var(--ink)}
+.gf-to .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-to small{color:var(--muted);font-size:12px}
+.gf-kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gf-kind{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border-radius:20px;border:2px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.gf-kind .big{font-size:36px}.gf-kind b{font-size:18px}.gf-kind small{font-size:12.5px;color:var(--muted);line-height:1.25}
+.gf-kind.on{border-color:#2e9e5b;background:rgba(46,158,91,.1)}.gf-kind.off{opacity:.55}
+.gf-amts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gf-amts button{display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.gf-amts b{font-size:24px;font-family:var(--f-num)}.gf-amts small{font-size:12px;color:var(--muted)}.gf-amts .on{border-color:#2e9e5b;background:rgba(46,158,91,.1)}
+.gf-dishes{display:flex;flex-direction:column;max-height:52vh;overflow:auto}
+.gf-item{display:flex;align-items:center;gap:12px}.gf-item .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-item small{color:var(--muted)}
+.gf-check{gap:10px}.gf-check .row{align-items:flex-start;gap:12px}.gf-check b{text-align:right}
+.gf-card{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;border-radius:22px;color:#f9f9f9;background:linear-gradient(140deg,#d6264f,#ff6d00);box-shadow:0 10px 24px rgba(214,38,79,.3)}
+.gf-card b{font-size:18px;line-height:1.2}.gf-card span{font-size:14px;opacity:.92}
+.gf-bow{font-size:40px}.gf-bow.big{font-size:72px}
+.gf-done{align-items:center;text-align:center;padding-top:10px}.gf-done .btn{width:100%}
+.gf-link{padding:10px 14px;border-radius:12px;background:var(--line);font-size:15px}
+.gf-go{background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;border:0}
+.gf-share{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:20px;background:linear-gradient(160deg,rgba(214,38,79,.14),rgba(255,109,0,.08));border:1px solid rgba(214,38,79,.35)}
+.gf-share>b{font-size:18px}.gf-share>span{font-size:14px;color:var(--muted)}
+.gf-h{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.gf-h .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-h small{font-size:12.5px;color:var(--muted)}
+.bon-big{display:flex;align-items:center;gap:12px;font-size:20px}.bon-big .coin{width:44px;height:44px}.bon-big b{font-size:34px;font-family:var(--f-num)}
+.lb-gift{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none;background:rgba(214,38,79,.1)}
+span.lb-gift{background:none}
+.lbr .st::before{display:none}
+.lbr{cursor:pointer}
 </style>
 
 <div class="app" id="app"></div>
@@ -1445,6 +1502,7 @@ const GIFT_KIND={
 // Вехи: 30, 50, 100, а дальше каждые 100 — до бесконечности (200, 300, 400…)
 const mileAt=n=>n===30?{n,g:['drink30']}:n===50?{n,g:['drink50']}:n===100?{n,g:['drink100']}:n>100&&n%100===0?{n,g:['drink100','sweet100']}:null;
 const CHEST_PRIZES=['drink30','sweet50','drink50','sweet50','drink30'];
+if(!S.gft) S.gft={sent:[],recent:[]}; // подарки другим людям
 if(!S.rw) S.rw={gifts:[],miles:{30:1,50:1},chest:{week:weekOf(S.day)-1,open:false},platWeek:null}; // демо: вехи 30 и 50 уже пройдены, сундук за прошлую неделю ждёт
 const tierPlus=()=>S.plus?(TIER_PLUS[tierOf(S.ser.n).k]||0):0;
 const rateAll=()=>rate()+tierPlus();                                   // % бонусов с покупки: ритм + статус
@@ -1642,6 +1700,7 @@ function nextDay(){
     if(sl.n>=5 && sl.ready!=null && S.day>sl.ready+GIFT_DAYS-1){ sl.n=0; sl.ready=null; if(S.plus) msg+=` 😢 Не успел забрать шестое: ${nm} — отметки сгорели.`; }
     else if(sl.n>0 && sl.n<5 && S.day-sl.last>SIX_BURN){ sl.n=0; if(S.plus) msg+=` 😢 ${byId(sl.id).n}: 30 дней без покупки — отметки сгорели.`; } });
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_T} бонусов.`; } }
+  msg+=giftDay();
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
 function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
@@ -1872,7 +1931,7 @@ function home(){
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
   return `<section class="screen">
-    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
+    <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span><button class="softbtn" onclick="openSearch()" aria-label="Поиск">${IC.search}</button></div>
     <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение <span class="nowrap">на <span class="hl-today">сегодня</span></span>. Завтра будет новое 😉</span></div>
 
     ${PL_OPEN('Твоё предложение дня — с ★ Кофейная+','Каждый день своя скидка, подарок в день рождения и все выгоды приложения')}
@@ -1938,6 +1997,7 @@ function menu(){
   const secs = CATS.map(c=>({c, items:MENU.filter(m=>m.cat===c.id && ok(m))})).filter(s=>s.items.length);
   return `<section class="screen" style="gap:16px">
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
+    <button class="srch-bar" onclick="openSearch()">${IC.search}<span>Найти блюдо, скидку или ответ</span></button>
     <div class="panel privi"${F(8)}>
       <div class="privi-head"><div class="stack" style="gap:2px"><span class="privi-name">${S.name},</span><h3>это твои персональные цены этой недели</h3></div>${PLUS_ON}</div>
       ${S.plus ? `<div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Сниженные цены — только для вас',`Ниже обычной цены на ${S.prices.length} ${plural(S.prices.length,'ваше любимое блюдо','ваших любимых блюда','ваших любимых блюд')}. Доступно только с подпиской&nbsp;★&nbsp;Кофейная+`)}
@@ -2438,7 +2498,8 @@ function cropDraw(){ const c=CROP, k=c.base*c.z, w=c.im.width*k, h=c.im.height*k
 function cropSave(){ const c=CROP, k=c.base*c.z, n=256, cv=document.createElement('canvas'); cv.width=cv.height=n;
   cv.getContext('2d').drawImage(c.im,-c.x/k,-c.y/k,c.S/k,c.S/k,0,0,n,n); S.photo=cv.toDataURL('image/jpeg',.85); save(); closeSheet(); render();
   toast('Фото сохранено. Его видят гости в «У кого больше посещений».'); }
-function lbRow(g,i){ return `<button class="lbr ${g.me?'me':''}" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span></button>`; }
+function lbRow(g,i){ return `<div class="lbr ${g.me?'me':''}" role="button" tabindex="0" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span>${g.me?'<span class="lb-gift" aria-hidden="true"></span>':`<button class="lb-gift" aria-label="Подарить ${g.n}" onclick="event.stopPropagation();giftGuestOpen('${g.id}')">🎁</button>`}</div>`; }
+function giftGuestOpen(id){ if(!S.plus) return openGift(); const g=GUESTS.find(x=>x.id===id); openGift({to:{key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}}); }
 function leaderboard(){
   const all=lbAll(), r=all.findIndex(g=>g.me);
   const idx=new Set([0,1,2]); if(r>=0) for(let k=r-2;k<=r+2;k++) if(k>=0&&k<all.length) idx.add(k);
@@ -2453,12 +2514,12 @@ function leaderboard(){
     <p class="rh-foot">В прототипе гости вымышленные. В приложении — только те, кто сам согласился показывать себя.</p>
   </div>`;
 }
-function openLb(){ sheet(`<h2>У кого больше посещений</h2><p class="small muted">Гости кофейной: у кого больше посещений подряд 🔥. Нажми на гостя, чтобы познакомиться.</p><div class="lb">${lbAll().map(lbRow).join('')}</div>`); }
+function openLb(){ sheet(`<h2>У кого больше посещений</h2><p class="small muted">Гости кофейной: у кого больше посещений подряд 🔥<br>Нажми на гостя — можно написать ему, а 🎁 — подарить бонусы или блюдо</p><div class="lb">${lbAll().map(lbRow).join('')}</div>`); }
 function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x=>x.id===id)+1;
   sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'посещение','посещения','посещений')} подряд</span></div>
     <p class="gp-bio">«${g.bio}»</p>
     <div class="panel"><div class="row between"><span class="muted">Любимый напиток</span><b>${g.fav}</b></div><div class="row between"><span class="muted">Чаще всего</span><b>${SHOPS[g.shop%SHOPS.length].n}</b></div></div>
-    <button class="btn block" onclick="openChat('${id}')">Написать</button>`); }
+    <div class="row" style="gap:8px"><button class="btn block" style="flex:1" onclick="giftGuestOpen('${id}')">🎁 Подарить</button><button class="btn ghost block" style="flex:1" onclick="openChat('${id}')">Написать</button></div>`); }
 const AUTO_REPLY=['Привет! 😊','О, привет! Ты тоже в Кофейной часто?','Давай как-нибудь пересечёмся на кофе ☕','Ха, спасибо! А у тебя сколько посещений?','Я обычно бываю утром, часов в 9','Супер, буду рада познакомиться!'];
 function openChat(id){ const g=GUESTS.find(x=>x.id===id), ms=S.chats[id]||[];
   sheet(`<div class="chat-h">${ava(GUESTS.indexOf(g),40)}<b>${g.n}</b></div>
@@ -2615,7 +2676,7 @@ function dashboard(){
   return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на депозит с кэшбэком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
-    <button class="bon-row" onclick="go('progress')">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
+    <button class="bon-row" onclick="openBonus()">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
     ${benefit()}
     ${PL_CLOSE()}
     ${S.plus?'':`<div class="dash">
@@ -2677,6 +2738,282 @@ function openRules(){
   sheet(`<h2>Как всё устроено</h2><div class="pl-card" style="position:static;transform:none;width:auto;padding:14px">${STAR_Y.replace('star-y','star-y big')}<b>Все выгоды — с ★ Кофейная+</b><span>Бесплатно — заказ и QR на кассе. Предложение дня, цены недели, бонусы, депозит, каждый 6-й, день рождения, счётчик посещений и заморозки открываются с подпиской. бесплатно до ${FREE_UNTIL}, потом 99 ₽/мес</span></div>
     ${RULES.map(([t,d],i)=>`<div class="panel${i?'':' rl-hero'}"><h3>${t}</h3>${d.startsWith('<')?d:`<p class="small muted">${d}</p>`}</div>`).join('')}`);
 }
+
+/* ---------- Поиск по приложению (владелец 22.10: «очень точный, с полуслова»; модель согласована с критиком) ----------
+   Ищем в одном списке: блюда меню + разделы и ответы приложения (словарь SRCH_PAGES).
+   Понимает: регистр, ё/е, неправильную раскладку (ghbdtn → привет), латиницу (latte, kapuchino), разговорное и синонимы (капуч, латэ, пироженка, «без молока»),
+   окончания (сырника → сырники), начало слова с 2 букв, опечатки (5–7 букв — 1 ошибка, 8+ — 2; короче — без опечаток).
+   Очки: точное 100 > начало слова 80 > синоним 60 > кусок слова 50 > опечатка 30; сверху +15 «ты это брал», +8 популярное. */
+const SRCH_N = s => (s||'').toLowerCase().replace(/ё/g,'е').replace(/[«»"'.,!?:;()\-–—/+]+/g,' ').replace(/\s+/g,' ').trim();
+const KB_EN='qwertyuiop[]asdfghjkl;\'zxcvbnm,.`', KB_RU='йцукенгшщзхъфывапролджэячсмитьбюё';
+const srchLayout = s => [...s].map(c=>{ const i=KB_EN.indexOf(c); return i<0?c:KB_RU[i]; }).join('');
+const TRL=[['shch','щ'],['sch','щ'],['ch','ч'],['sh','ш'],['zh','ж'],['kh','х'],['ts','ц'],['ya','я'],['yu','ю'],['yo','е'],['ck','к'],['ph','ф'],['th','т'],['oo','у'],['ee','и'],['a','а'],['b','б'],['c','к'],['d','д'],['e','е'],['f','ф'],['g','г'],['h','х'],['i','и'],['j','дж'],['k','к'],['l','л'],['m','м'],['n','н'],['o','о'],['p','п'],['q','к'],['r','р'],['s','с'],['t','т'],['u','у'],['v','в'],['w','в'],['x','кс'],['y','и'],['z','з']];
+function srchTrl(s){ let o='', i=0; while(i<s.length){ const t=TRL.find(([a])=>s.startsWith(a,i)); if(t){ o+=t[1]; i+=t[0].length; } else { o+=s[i]; i++; } } return o; }
+// латинские слова, которые транслитом не угадать
+const SRCH_EN={cappuccino:'капучино',capuccino:'капучино',cappucino:'капучино',latte:'латте',late:'латте',espresso:'эспрессо',expresso:'эспрессо',americano:'американо',flat:'флет',white:'уайт',raf:'раф',matcha:'матча',macha:'матча',tea:'чай',coffee:'кофе',cocoa:'какао',cacao:'какао',cheesecake:'чизкейк',croissant:'круассан',muffin:'маффин',cookie:'печенье',caesar:'цезарь',cesar:'цезарь',soup:'суп',salad:'салат',pasta:'паста',burger:'бургер',breakfast:'завтрак',qr:'qr',bonus:'бонусы',premium:'кофейная+',plus:'кофейная+',cold:'колд',brew:'брю',tonic:'тоник',bumble:'бамбл',pourover:'пуровер',fresh:'фреш'};
+// разговорное и синонимы → слова, которые есть в названиях (или ключах разделов)
+const SRCH_SYN={
+  'капуч':['капучино'],'капуча':['капучино'],'капучо':['капучино'],'капуччино':['капучино'],'каппучино':['капучино'],'капчик':['капучино'],
+  'лате':['латте'],'латэ':['латте'],'латтэ':['латте'],'флэт':['флет'],'флат':['флет'],'американа':['американо'],'амер':['американо'],'экспрессо':['эспрессо'],'эспресо':['эспрессо'],
+  'кофеек':['кофе'],'кофейку':['кофе'],'кофэ':['кофе'],'капучинка':['капучино'],
+  'сырник':['сырники'],'сырнички':['сырники'],'пироженка':['десерт','чизкейк','тарталетка','орешек'],'пирожное':['десерт','чизкейк','тарталетка','орешек'],'тортик':['чизкейк','тарталетка'],'торт':['чизкейк','тарталетка'],
+  'сладкое':['десерт','выпечка','чизкейк','тарталетка','орешек','круассан','маффин','печенье','шоколад','какао','шейк'],'сладенькое':['десерт','чизкейк','тарталетка','орешек','круассан','маффин','печенье'],'десертик':['десерт'],'вкусняшка':['десерт','чизкейк','орешек'],
+  'выпечка':['круассан','маффин','печенье','бриошь','бейгл','выпечка'],'булочка':['круассан','бриошь','бейгл','маффин'],'булка':['круассан','бриошь','бейгл'],'круасан':['круассан'],'круссан':['круассан'],
+  'поесть':['завтрак','салат','суп','паста','бургер','основные'],'пожрать':['завтрак','салат','суп','паста','бургер','основные'],'обед':['суп','салат','основные','паста'],'горячее':['основные','суп'],'еда':['завтрак','салат','суп','паста','бургер','основные'],
+  'супчик':['суп'],'борщик':['борщ'],'кашка':['каша'],'яичница':['омлет','шакшука'],'яйца':['омлет','шакшука','бенедикт','пашот'],
+  'холодное':['айс','черри','тоник','фреш','бамбл','колд'],'холодный':['айс','тоник','колд'],'лед':['айс'],'со льдом':['айс'],'освежиться':['айс','тоник','фреш','лимонад'],'лимонад':['лимон','черри','тоник','орешек'],'сок':['фреш'],
+  'чаек':['чай'],'чайку':['чай'],'шоколадка':['шоколад'],'какава':['какао'],'детям':['детский','какао','милкшейк'],'ребенку':['детский','какао','милкшейк'],'детское':['детский','какао'],
+  'рыба':['лосось','тунец'],'лосось':['лосось','лососем'],'семга':['лосось'],'креветка':['креветки','креветкой','креветками'],'курица':['курица','куриная','куриный','куриные','курицей','цыпленок','цыпленком'],'мясо':['говядина','говядиной','свиная','стейк','бефстроганов'],
+  'скидка':['скидка'],'скидки':['скидка'],'акция':['скидка'],'акции':['скидка'],'халява':['скидка','подарок'],'бесплатно':['подарок','скидка'],
+  'днюха':['рождения'],'др':['рождения'],'именины':['рождения'],'рождение':['рождения'],'чай':['чай','чая','чайник'],'кешбек':['кэшбэк'],'кэшбек':['кэшбэк'],'кешбэк':['кэшбэк'],'кеш':['кэшбэк'],
+  'счет':['депозит'],'баланс':['депозит'],'деньги':['депозит'],'кошелек':['депозит'],'пополнить':['депозит'],'карта':['депозит','карты'],
+  'куар':['qr'],'кьюар':['qr'],'кр':['qr'],'код':['qr'],'штрихкод':['qr'],'касса':['qr'],
+  'премиум':['кофейная+'],'плюс':['кофейная+'],'подписка':['кофейная+'],'кофейная+':['кофейная+'],
+  'огонь':['посещения'],'огонек':['посещения'],'серия':['посещения'],'стрик':['посещения'],'отпуск':['заморозка'],'пропустил':['заморозка'],'снежинка':['заморозка'],
+  'друг':['друг'],'подруга':['друг'],'пригласить':['друг'],'подарить':['подарить'],'поделиться':['подарить'],'отправить':['подарить'],'перевести':['подарить'],
+  'шестой':['6-й'],'6й':['6-й'],'шестое':['6-й'],'штампы':['6-й'],'отметки':['6-й'],
+  'уровень':['уровни'],'статус':['уровни'],'золотой':['уровни'],'платиновый':['уровни'],'серебряный':['уровни'],
+};
+// фразы целиком (смотрим до разбивки на слова)
+const SRCH_PHRASE={'без молока':['американо','эспрессо','пуровер','чай','чая','тоник','фреш','растительном'],'что то сладкое':['десерт','чизкейк','тарталетка','орешек','круассан'],'день рождения':['рождения'],'со льдом':['айс'],'на растительном':['растительном'],'как получить скидку':['скидка'],'пригласить друга':['друг'],'подарить бонусы':['подарить']};
+const SRCH_STOP=new Set(['и','в','во','на','с','со','к','у','о','а','по','для','что','как','мне','хочу','где','есть','то','бы','ли','же','можно','нужно','купить','заказать','найти','мой','моя','мои']);
+// разделы и ответы — каждый ведёт на свой экран
+const SRCH_PAGES=[
+  {ic:'🏷️',t:'Как получить скидку',s:'Подключи Кофейная+|Скидка посчитается сама на кассе и в заказе',k:'скидка скидки акции выгода дешевле экономия',go:"go('plus')"},
+  {ic:'★',t:'Кофейная+',s:'Подписка, которая открывает все выгоды|Бесплатно до '+FREE_UNTIL,k:'кофейная+ подписка премиум тариф подключить отменить',go:"go('plus')"},
+  {ic:'☀️',t:'Предложение дня',s:'Персональная скидка на сегодня',k:'предложение дня скидка сегодня персональное',go:"goTo('home','#offer')"},
+  {ic:'⭐',t:'Цены недели',s:'Твои цены ниже обычных|Держатся всю неделю',k:'цены недели цена недели скидка персональные',go:"go('menu')"},
+  {ic:'🔥',t:'Посещения подряд',s:'Счётчик в «Турбо»|Сгорит, если за неделю меньше 3 посещений',k:'посещения подряд счетчик турбо огонь сгорит',go:"go('progress')"},
+  {ic:'❄️',t:'Заморозка',s:'Спасает счётчик, если пропустил день|Нажми на красный ✕',k:'заморозка заморозить пропуск пропустил отпуск сгорит',go:"go('progress');setTimeout(openFreeze,80)"},
+  {ic:'🏅',t:'Уровни',s:'Серебряный, Золотой, Платиновый|Чем больше посещений подряд — тем больше бонусов',k:'уровни уровень статус золотой платиновый серебряный',go:"go('progress');setTimeout(openTiers,80)"},
+  {ic:'🪙',t:'Бонусы',s:'1 бонус = 1 ₽|Ими можно оплатить до 30% чека',k:'бонусы бонус баллы ритм начисление оплатить бонусами',go:"go('profile');setTimeout(openBonus,80)"},
+  {ic:'🎁',t:'Подарить бонусы или блюдо',s:'Другу, маме, любому человеку|По номеру телефона или ссылкой',k:'подарить подарок бонусы блюдо другу отправить поделиться',go:"openGift()"},
+  {ic:'6',t:'Каждый 6-й дешевле',s:'Выбери до 3 блюд|Шестое — до −50%',k:'6-й шестой каждый отметки штампы',go:"goTo('progress','#pr-six')"},
+  {ic:'💳',t:'Депозит',s:'Положи деньги — вернём кэшбэк|До +1 000 ₽',k:'депозит баланс пополнить кэшбэк деньги счет',go:"go('wallet')"},
+  {ic:'🎂',t:'День рождения',s:'Скидка в процентах = твой возраст',k:'день рождения др скидка возраст',go:"go('birthday')"},
+  {ic:'👋',t:'Пригласи друга',s:'+'+REF_T+' бонусов тебе и другу',k:'друг пригласить приглашение реферал',go:"go('invite')"},
+  {ic:'🔋',t:'Заряд выгоды',s:'Сколько выгод ты уже включил',k:'заряд выгоды батарейка',go:"go('power')"},
+  {ic:'▦',t:'QR на кассе',s:'Покажи код бариста|Скидки и бонусы посчитаются сами',k:'qr код касса показать бариста',go:"openQR()"},
+  {ic:'🏆',t:'У кого больше посещений',s:'Гости кофейной|Можно написать и подарить',k:'рейтинг гости место посещения',go:"go('progress');setTimeout(openLb,80)"},
+  {ic:'🛍️',t:'Мои заказы',s:'Где сейчас твой заказ',k:'заказы заказ где доставка статус',go:"go('myorders')"},
+  {ic:'📍',t:'Кофейни и доставка',s:'Адреса, самовывоз, столик',k:'кофейни адрес адреса доставка самовывоз столик где',go:"openMode('pickup')"},
+  {ic:'📄',t:'Как всё устроено',s:'Все правила простыми словами',k:'правила как работает помощь вопросы',go:"openRules()"},
+  {ic:'📜',t:'История покупок',s:'Что покупал и сколько сэкономил',k:'история покупки экономия чеки',go:"go('profile');setTimeout(openHistory,80)"},
+];
+// Дамерау–Левенштейн с ранним выходом
+function srchDL(a,b,max){ if(Math.abs(a.length-b.length)>max) return max+1; const m=a.length, n=b.length; let p2=[], p=[...Array(n+1).keys()];
+  for(let i=1;i<=m;i++){ const c=[i]; let best=i; for(let j=1;j<=n;j++){ const cost=a[i-1]===b[j-1]?0:1; c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+cost);
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) c[j]=Math.min(c[j],p2[j-2]+1); best=Math.min(best,c[j]); }
+    if(best>max) return max+1; p2=p; p=c; } return p[n]; }
+const srchTol = n => n>=8?2:n>=5?1:0;
+const srchStem = w => w.length>4 ? w.replace(/(ами|ями|ого|ему|ыми|ими|ой|ей|ий|ый|ая|яя|ое|ее|ие|ые|ом|ем|ам|ям|ах|ях|ов|ев|ую|юю|ы|и|а|я|у|ю|е|о|ь)$/,'') : w;
+// сравнение слова запроса со словом документа → очки
+function srchMatch(t,w,strict){
+  if(t===w) return 100;
+  if(strict) return t.length>=3 && w.startsWith(t) ? 75 : 0;
+  if(t.length>=2 && w.startsWith(t)) return 70+Math.round(20*t.length/w.length);
+  const ts=srchStem(t), ws=srchStem(w); if(ts.length>=3 && ts===ws) return 95;
+  if(t.length>=3 && w.includes(t)) return 50;
+  const tol=srchTol(t.length); if(tol){ if(srchDL(t,w,tol)<=tol) return 30+ (t.length>=w.length-1?8:0); if(w.length>t.length && srchDL(t,w.slice(0,t.length),tol)<=tol) return 28; }
+  return 0; }
+let SRCH_IDX=null;
+function srchIndex(){ if(SRCH_IDX) return SRCH_IDX;
+  const words=s=>SRCH_N(s).split(' ').filter(Boolean), cat=id=>(CATS.find(c=>c.id===id)||{}).name||'';
+  const pop=new Set(KASSA);
+  SRCH_IDX=[...MENU.map(m=>({type:'dish',m,id:m.id,f:[[words(m.n),1],[words(cat(m.cat)),.85],[words(m.c||''),.45]],pop:pop.has(m.id)})),
+    ...SRCH_PAGES.map((p,i)=>({type:'page',p,id:'p'+i,f:[[words(p.t),1],[words(p.k),.9],[words(p.s.replace(/\|/g,' ')),.4]]}))];
+  return SRCH_IDX; }
+// варианты одного слова запроса: само, исправленная раскладка, транслит, английское, синонимы
+function srchAlts(t){ const out=[[t,1]];
+  if(/[a-z]/.test(t)){ if(SRCH_EN[t]) out.push([SRCH_EN[t],1]); out.push([srchLayout(t),.97]); if(t.length>3) out.push([srchTrl(t),.9]); }
+  for(const [x,k] of [...out]) (SRCH_SYN[x]||SRCH_SYN[srchStem(x)]||[]).forEach(s=>out.push([SRCH_N(s),.6*k,1]));
+  // короткое слово, у которого есть синоним («др», «кр»), — это сокращение: начало других слов почти не считаем
+  if(t.length<=3 && out.some(a=>a[2])) out[0][1]=.5;
+  return out; }
+function srchScoreDoc(d,alts){ let best=0, hit=null;
+  for(const [a,k,strict] of alts) for(const aw of a.split(' ')) for(const [ws,fw] of d.f) for(const w of ws){ const s=srchMatch(aw,w,strict)*k*fw; if(s>best){ best=s; hit=w; } }
+  return [best,hit]; }
+function srchRun(raw,opt={}){
+  let q=SRCH_N(raw); if(!q) return [];
+  if(/[a-z]/.test(q) && !/[а-я]/.test(q)){ const lay=srchLayout(q); if(/^[а-я ]+$/.test(lay) && !q.split(' ').every(w=>SRCH_EN[w])) q=q+' '+lay+' '; }
+  const groups=[]; // группа = одно «понятие» запроса (слово или фраза), все группы должны найтись
+  for(const [ph,arr] of Object.entries(SRCH_PHRASE)) if((' '+q+' ').includes(' '+ph+' ')){ groups.push(arr.map(s=>[SRCH_N(s),.75,1])); q=(' '+q+' ').replace(' '+ph+' ',' ').trim(); }
+  const toks=q.split(' ').filter(t=>t && !SRCH_STOP.has(t));
+  // латиница + её русская раскладка — это одно и то же слово, поэтому считаем их одной группой
+  const latin=raw && /[a-z]/i.test(raw) && !/[а-яё]/i.test(raw);
+  if(latin){ const orig=SRCH_N(raw).split(' ').filter(Boolean); orig.forEach(t=>groups.push(srchAlts(t))); }
+  else toks.forEach(t=>groups.push(srchAlts(t)));
+  if(!groups.length) return [];
+  const mine=new Set((S.orders||[]).flatMap(o=>o.items));
+  const res=[];
+  for(const d of srchIndex()){ if(opt.dishes && d.type!=='dish') continue;
+    let sum=0, ok=true, hits=[];
+    for(const g of groups){ const [s,h]=srchScoreDoc(d,g); if(s<20){ ok=false; break; } sum+=s; if(h) hits.push(h); }
+    if(!ok) continue;
+    let sc=sum/groups.length;
+    const nq=SRCH_N(raw), title=SRCH_N(d.type==='dish'?d.m.n:d.p.t); if(nq.length>=3 && title.includes(nq)) sc+=12; // весь запрос целиком есть в названии
+    if(d.type==='dish'){ if(mine.has(d.id)) sc+=15; if(d.pop) sc+=8; } else sc+=6;
+    res.push({d,sc,hits}); }
+  return res.sort((a,b)=>b.sc-a.sc); }
+// «Может, вы имели в виду…» — ближайшее слово из названий
+function srchSuggest(raw){ const t=SRCH_N(raw).split(' ').pop(); if(!t||t.length<3) return null; let best=null, bd=3;
+  for(const d of srchIndex()) for(const w of d.f[0][0]) if(w.length>=3){ const x=srchDL(t,w,2); if(x<bd){ bd=x; best=w; } }
+  return best; }
+let srchQ='';
+function srchHl(name,hits){ if(!hits.length) return name; const set=new Set(hits);
+  return name.replace(/[A-Za-zА-Яа-яЁё0-9+-]+/g,w=>set.has(SRCH_N(w))?`<b class="sr-hit">${w}</b>`:w); }
+function openSearch(){ srchQ=''; sheet(`<h2>Поиск</h2>
+    <div class="search sr-in">${IC.search}<input id="srq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Блюдо, скидка или вопрос" oninput="srchQ=this.value;drawSearch()" onkeydown="if(event.key==='Enter'){srchRemember();this.blur()}"><button class="sr-x" id="srx" hidden aria-label="Очистить" onclick="srchQ='';const i=document.getElementById('srq');i.value='';i.focus();drawSearch()">✕</button></div>
+    <div id="srout"></div>`);
+  document.querySelector('.sheet')?.classList.add('sr-sheet'); drawSearch(); setTimeout(()=>document.getElementById('srq')?.focus(),60); }
+function srchRemember(){ const t=srchQ.trim(); if(t.length<2) return; S.srch=(S.srch||[]).filter(x=>x!==t); S.srch.unshift(t); S.srch=S.srch.slice(0,5); save(); }
+function srchUse(t){ srchQ=t; const i=document.getElementById('srq'); if(i) i.value=t; srchRemember(); drawSearch(); }
+function srchGo(js){ srchRemember(); closeSheet(); setTimeout(()=>new Function(js)(),20); }
+function srDish(m,hits=[]){ const pp=myPrice(m.id), c=CATS.find(x=>x.id===m.cat);
+  return `<button class="sr-row" onclick="srchGo(&quot;openProduct('${m.id}')&quot;)">${photo(m,'sr-ph')}<span class="tx"><span class="nm">${srchHl(m.n,hits)}</span><small>${c?c.name:''}${c&&c.hours?` · ${c.hours}`:''}</small></span><span class="pr money">${pp!=null?`<s>${rub(m.p)}</s> ${rub(pp)}`:rub(m.p)}</span></button>`; }
+function srPage(p,hits=[]){ const [a,b]=p.s.split('|');
+  return `<button class="sr-row pg" onclick="srchGo(&quot;${p.go.replace(/"/g,'&quot;')}&quot;)"><span class="sr-ic">${p.ic}</span><span class="tx"><span class="nm">${srchHl(p.t,hits)}</span><small>${a}${b?'<br>'+b:''}</small></span><span class="chev">›</span></button>`; }
+function drawSearch(){ const out=document.getElementById('srout'); if(!out) return; const x=document.getElementById('srx'); if(x) x.hidden=!srchQ;
+  const chip=t=>`<button class="sr-chip" onclick="srchUse('${t}')">${t}</button>`;
+  if(!srchQ.trim()){
+    const freq={}; (S.orders||[]).forEach(o=>o.items.forEach(i=>freq[i]=(freq[i]||0)+1));
+    const often=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,4).map(byId).filter(Boolean);
+    out.innerHTML=`${(S.srch||[]).length?`<div class="sr-g"><div class="row between"><span class="label">Ты недавно искал</span><button class="link small" onclick="S.srch=[];save();drawSearch()">Очистить</button></div><div class="sr-chips">${S.srch.map(chip).join('')}</div></div>`:''}
+      <div class="sr-g"><span class="label">Попробуй</span><div class="sr-chips">${['Кофе','Сладкое','Без молока','Сырники','Как получить скидку','Заморозка'].map(chip).join('')}</div></div>
+      ${often.length?`<div class="sr-g"><span class="label">Ты часто берёшь</span>${often.map(m=>srDish(m)).join('')}</div>`:''}
+      <div class="sr-g"><span class="label">Популярное в кофейной</span>${KASSA.map(byId).filter(m=>m&&!often.includes(m)).slice(0,4).map(m=>srDish(m)).join('')}</div>`;
+    return; }
+  const r=srchRun(srchQ), pages=r.filter(x=>x.d.type==='page').slice(0,4), dishes=r.filter(x=>x.d.type==='dish').slice(0,30);
+  if(!r.length){ const sg=srchSuggest(srchQ);
+    out.innerHTML=`<div class="sr-empty"><span class="sr-big">🤔</span><b>Не нашли «${srchQ.replace(/</g,'&lt;')}»</b>${sg?`<span>Может, <button class="link" onclick="srchUse('${sg}')">${sg}</button>?</span>`:'<span>Попробуй написать по-другому<br>или выбери ниже</span>'}</div>
+      <div class="sr-chips">${['Кофе','Сладкое','Завтраки','Супы','Как получить скидку'].map(chip).join('')}</div>`; return; }
+  const pageFirst=pages.length && (!dishes.length || pages[0].sc>=dishes[0].sc);
+  const P=pages.length?`<div class="sr-g"><span class="label">В приложении</span>${pages.map(x=>srPage(x.d.p,x.hits)).join('')}</div>`:'';
+  const D=dishes.length?`<div class="sr-g"><span class="label">Блюда · ${dishes.length}</span>${dishes.map(x=>srDish(x.d.m,x.hits)).join('')}</div>`:'';
+  out.innerHTML=pageFirst?P+D:D+P; }
+
+/* ---------- Подарки: бонусы и блюда другим людям (владелец 22.10; правила — с критиком) ----------
+   Дарить — только с ★ Кофейная+; получателю подписка не нужна (придёт СМС или ссылка).
+   Бонусы: до 500 в день и до 1 500 в месяц, не больше 3 людям в месяц, дарить можно после 3 дней с покупкой. В интерфейсе — «подарить», не «перевод».
+   Блюдо: бонусами — до 30% цены (как в любом чеке), остальное — с депозита или картой онлайн. Цена фиксируется. Живёт 30 дней, не забрали — деньги вернутся на депозит, бонусы — бонусами.
+   Подарок не растит получателю счётчик, отметки 6-го и ритм — они только за свои покупки. */
+const GIFT_BON=[100,300,500], GIFT_DAY_MAX=500, GIFT_MONTH_MAX=1500, GIFT_PEOPLE=3, GIFT_MIN_DAYS=3, GIFT_DISH_DAYS=30;
+const monthOf = d => { const x=dateOf(d); return x.getFullYear()*12+x.getMonth(); };
+function giftBonUsed(){ const L=S.gft.sent; return { day:L.filter(g=>g.day===S.day).reduce((a,g)=>a+g.pay.bonus,0), month:L.filter(g=>monthOf(g.day)===monthOf(S.day)).reduce((a,g)=>a+g.pay.bonus,0),
+  people:new Set(L.filter(g=>monthOf(g.day)===monthOf(S.day)&&g.pay.bonus>0).map(g=>g.to.key)) }; }
+// сколько бонусов можно подарить этому человеку прямо сейчас
+function giftBonLeft(to){ const u=giftBonUsed(); if(visitDaysTotal()<GIFT_MIN_DAYS) return 0;
+  if(to && u.people.size>=GIFT_PEOPLE && !u.people.has(to.key)) return 0;
+  return Math.max(0,Math.min(S.bonus, GIFT_DAY_MAX-u.day, GIFT_MONTH_MAX-u.month)); }
+function giftWhyNot(to){ const u=giftBonUsed(), vd=visitDaysTotal();
+  if(vd<GIFT_MIN_DAYS) return `Дарить бонусы можно после ${GIFT_MIN_DAYS} дней с покупкой|Сейчас ${vd} из ${GIFT_MIN_DAYS}`;
+  if(!S.bonus) return 'Бонусов пока нет|Они приходят с покупок';
+  if(to && u.people.size>=GIFT_PEOPLE && !u.people.has(to.key)) return `В этом месяце ты уже дарил бонусы ${GIFT_PEOPLE} людям|Блюдо подарить можно`;
+  if(u.day>=GIFT_DAY_MAX) return `Сегодня уже подарено ${GIFT_DAY_MAX} бонусов|Завтра можно снова`;
+  if(u.month>=GIFT_MONTH_MAX) return `В этом месяце уже подарено ${GIFT_MONTH_MAX.toLocaleString('ru-RU')} бонусов|Блюдо подарить можно`;
+  return ''; }
+let gf=null;
+function openGift(pre={}){
+  if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
+  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', dq:''};
+  drawGift(); }
+function giftTo(to){ gf.to=to; gf.step=2; if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
+function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
+function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d=v.replace(/\D/g,'').replace(/^8/,'7');
+  if(d.length!==11 || d[0]!=='7') return toast('Проверь номер: +7 и ещё 10 цифр');
+  if(d.slice(1)===(S.phone||'').replace(/\D/g,'').slice(-10)) return toast('Это твой номер — себе подарить нельзя 🙂');
+  if(!/^79/.test(d)) return toast('Нужен мобильный номер — он начинается с +7 9');
+  const nm=((document.getElementById('gnm')||{}).value||'').trim();
+  giftTo({key:'p'+d, n:nm||`+7 ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9)}`, short:nm||'получатель', phone:`+7 ${d.slice(1,4)} •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
+function giftLink(){ giftTo({key:'link'+Date.now(), n:'Тот, кому отправишь ссылку', short:'получатель', via:'link'}); }
+function giftPrice(){ if(gf.kind==='bonus') return {bonus:gf.amt||0, dep:0, card:0, total:gf.amt||0};
+  const m=byId(gf.item); if(!m) return {bonus:0,dep:0,card:0,total:0};
+  const total=m.p, maxB=gf.bon?Math.min(giftBonLeft(gf.to), Math.floor(total*BONUS_MAX_SHARE)):0, rest=total-maxB;
+  const dep=gf.rest==='dep'?Math.min(walletTotal(),rest):0;
+  return {bonus:maxB, dep, card:rest-dep, total}; }
+function giftWho(){ const t=gf.to; return t.via==='app'?ava(t.gi,40):`<span class="gf-av">${t.via==='sms'?'📱':'🔗'}</span>`; }
+const GSTEP=['Кому','Что','Оплата','Проверь'];
+function drawGift(){ const s=gf.step, t=gf.to;
+  const head=`<div class="gf-steps">${GSTEP.map((x,i)=>`<span class="${i+1<s?'done':i+1===s?'on':''}"><i>${i+1<s?'✓':i+1}</i>${x}</span>`).join('')}</div>`;
+  const toLine=t?`<button class="gf-to" onclick="gf.step=1;drawGift()">${giftWho()}<span class="tx"><small>Кому</small><b>${t.n}</b></span><span class="link small">Изменить</span></button>`:'';
+  let body='';
+  if(s===1){ const rec=(S.gft.recent||[]).slice(0,4);
+    body=`<h2>Кому подарить?</h2>
+      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><input id="gph" type="tel" inputmode="tel" placeholder="+7 900 000-00-00" autocomplete="off">
+        <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off"><button class="btn block" onclick="giftPhone()">Дальше</button>
+        <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
+      <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
+      ${rec.length?`<span class="label">Недавние</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">📱</span>`}<span>${r.short}</span></button>`).join('')}</div>`:''}
+      <span class="label">Гости кофейной</span><div class="gf-people">${GUESTS.slice(0,8).map(g=>`<button onclick="giftGuest('${g.id}')">${ava(GUESTS.indexOf(g),52)}<span>${g.n.split(' ')[0]}</span></button>`).join('')}</div>`; }
+  if(s===2){ const left=giftBonLeft(t), why=giftWhyNot(t);
+    if(gf.kind==='dish'){ const q=SRCH_N(gf.dq), list=q?srchRun(gf.dq,{dishes:true}).slice(0,20).map(x=>x.d.m):KASSA.map(byId);
+      body=`${toLine}<h2>Какое блюдо?</h2>
+        <div class="search">${IC.search}<input id="gdq" placeholder="Найти блюдо" value="${gf.dq.replace(/"/g,'&quot;')}" autocomplete="off" oninput="gf.dq=this.value;clearTimeout(window._gdq);window._gdq=setTimeout(()=>{drawGift();const i=document.getElementById('gdq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},180)"></div>
+        <div class="gf-dishes">${list.length?list.map(m=>`<button class="sr-row" onclick="gf.item='${m.id}';gf.step=3;drawGift()">${photo(m,'sr-ph')}<span class="tx"><span class="nm">${m.n}</span><small>${wt(m)}</small></span><span class="pr money">${rub(m.p)}</span></button>`).join(''):'<p class="empty-note">Не нашли такое блюдо</p>'}</div>
+        <button class="link" onclick="gf.kind=null;drawGift()">← Подарить бонусы</button>`; }
+    else body=`${toLine}<h2>Что подарить?</h2>
+      <div class="gf-kinds"><button class="gf-kind${gf.kind==='bonus'?' on':''}${left?'':' off'}" onclick="${left?"gf.kind='bonus';drawGift()":`toast('${why.replace('|','. ')}')`}"><span class="big">🪙</span><b>Бонусы</b><small>${left?`Можно до ${left}`:why.split('|')[0]}</small></button>
+        <button class="gf-kind" onclick="gf.kind='dish';drawGift()"><span class="big">☕</span><b>Блюдо</b><small>Кофе, десерт<br>или завтрак</small></button></div>
+      ${gf.kind==='bonus'?`<span class="label">Сколько бонусов</span><div class="gf-amts">${[...new Set([...GIFT_BON.filter(a=>a<=left), ...(left&&!GIFT_BON.includes(left)&&left<GIFT_BON[2]?[left]:[])])].sort((a,b)=>a-b).map(a=>`<button class="${gf.amt===a?'on':''}" onclick="gf.amt=${a};drawGift()"><b class="money">${a}</b><small>${plural(a,'бонус','бонуса','бонусов')}</small></button>`).join('')}</div>
+        <p class="hint">У тебя ${S.bonus} ${plural(S.bonus,'бонус','бонуса','бонусов')}<br>Дарить можно до ${GIFT_DAY_MAX} в день и до 1&nbsp;500 в месяц</p>
+        <button class="btn block" ${gf.amt?'':'disabled'} onclick="gf.step=4;drawGift()">Дальше</button>`:''}`; }
+  if(s===3){ const m=byId(gf.item), p=giftPrice(), canB=Math.min(giftBonLeft(t),Math.floor(m.p*BONUS_MAX_SHARE)), w=walletTotal();
+    body=`${toLine}<h2>Чем оплатить?</h2>
+      <div class="gf-item">${photo(m,'sr-ph')}<span class="tx"><b>${m.n}</b><small>${wt(m)}</small></span><b class="money">${rub(m.p)}</b></div>
+      <div class="panel" style="gap:0">
+        ${canB?`<label class="opt" for="gb"><span>Бонусами <b class="money">−${canB}</b><br><small class="muted">до 30% цены</small></span><input type="checkbox" id="gb" ${gf.bon?'checked':''} onchange="gf.bon=this.checked;drawGift()"></label>`
+          :`<div class="opt"><span class="muted">Бонусами — нельзя<br><small>${S.bonus?giftWhyNot(t).split('|')[0]||'Лимит подарков бонусами исчерпан':'Бонусов пока нет'}</small></span></div>`}
+        <span class="label" style="margin-top:10px">${p.bonus?'Остальное':'Оплатить'} — <span class="money">${rub(m.p-p.bonus)}</span></span>
+        <label class="opt" for="gr1"><span>С депозита<br><small class="muted">${w?`Есть ${rub(w)}${w<m.p-p.bonus?' — не хватит, остальное картой':''}`:'Депозит пустой'}</small></span><input type="radio" name="gr" id="gr1" ${gf.rest==='dep'?'checked':''} ${w?'':'disabled'} onchange="gf.rest='dep';drawGift()"></label>
+        <label class="opt" for="gr2"><span>Картой онлайн<br><small class="muted">${S.card}</small></span><input type="radio" name="gr" id="gr2" ${gf.rest==='card'?'checked':''} onchange="gf.rest='card';drawGift()"></label>
+      </div>
+      <button class="btn block" onclick="gf.step=4;drawGift()">Дальше</button>`; }
+  if(s===4){ const p=giftPrice(), m=gf.kind==='dish'?byId(gf.item):null, until=S.day+GIFT_DISH_DAYS;
+    const parts=[p.bonus?`${p.bonus} ${plural(p.bonus,'бонус','бонуса','бонусов')}`:'', p.dep?`${rub(p.dep)} с депозита`:'', p.card?`${rub(p.card)} картой`:''].filter(Boolean);
+    body=`<h2>Проверь подарок</h2>
+      <div class="panel gf-check">
+        <div class="row between"><span class="muted">Кому</span><b>${t.n}${t.phone&&t.n!==t.phone?`<br><small class="muted money">${t.phone}</small>`:''}</b></div>
+        <div class="row between"><span class="muted">Подарок</span><b>${m?m.n:`${p.bonus} ${plural(p.bonus,'бонус','бонуса','бонусов')}`}</b></div>
+        <div class="row between"><span class="muted">Оплата</span><b>${parts.join('<br>')}</b></div></div>
+      <span class="label">Так увидит ${t.via==='app'?t.short:'получатель'}</span>
+      <div class="gf-card"><span class="gf-bow">🎁</span><b>${S.name} дарит тебе ${m?m.n:`${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`}</b><span>${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Уже на твоём счёте<br>Ими можно оплатить до 30% чека'}</span></div>
+      ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
+      <button class="btn block gf-go" onclick="giftSend()">🎁 Подарить</button><button class="link" onclick="gf.step=${m?3:2};drawGift()">← Назад</button>`; }
+  sheet(`<div class="gift">${s<5?head:''}${body}</div>`);
+  if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
+function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
+  if(p.bonus>giftBonLeft(t)) return toast('Столько бонусов сейчас подарить нельзя');
+  if(p.dep>walletTotal()) return toast('На депозите не хватает');
+  S.bonus-=p.bonus;
+  if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m.n} для ${t.short}`,sum:-p.dep}); }
+  const g={day:S.day, to:{key:t.key,n:t.n,short:t.short,via:t.via,gi:t.gi}, kind:gf.kind, item:m?m.id:null, price:m?m.p:0, pay:{bonus:p.bonus,dep:p.dep,card:p.card}, until:m?S.day+GIFT_DISH_DAYS:null, st:m?'wait':'done'};
+  S.gft.sent.push(g);
+  if(t.via!=='link'){ S.gft.recent=[t,...(S.gft.recent||[]).filter(r=>r.key!==t.key)].slice(0,6); }
+  save(); render();
+  sheet(`<div class="gift gf-done"><span class="gf-bow big">🎁</span><h2>${t.via==='link'?'Подарок готов!':'Подарок отправлен!'}</h2>
+    <p class="muted">${t.via==='sms'?`Мы отправили СМС на ${t.phone}<br>Забрать можно без подписки`:t.via==='link'?'Ссылка скопирована<br>Отправь её в мессенджер':`${t.short} увидит подарок в приложении`}</p>
+    ${t.via==='link'?`<div class="gf-link money">kofeynaya.ru/g/${Math.random().toString(36).slice(2,8)}</div>`:''}
+    <button class="btn block" onclick="closeSheet()">Готово</button><button class="btn ghost block" onclick="openGift({to:${t.via==='link'?'null':JSON.stringify(t).replace(/"/g,'&quot;')}})">Подарить ещё</button></div>`);
+  confetti(); if(t.via==='link') try{ navigator.clipboard.writeText('https://kofeynaya.ru/g/demo'); }catch(e){} }
+// новый день: подарки-блюда гостям из приложения забирают на следующий день (демо), остальные ждут; просроченные — возврат дарителю
+function giftDay(){ let msg=''; for(const g of S.gft.sent){ if(g.st!=='wait') continue;
+    if(g.to.via==='app' && S.day>g.day){ g.st='took'; continue; }
+    if(S.day>g.until){ g.st='back'; S.bonus+=g.pay.bonus; const back=g.pay.dep+g.pay.card; if(back){ S.wallet.money+=back; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:`Возврат: подарок «${byId(g.item).n}» не забрали`,sum:back}); }
+      msg+=` 🎁 Подарок «${byId(g.item).n}» не забрали — ${back?rub(back)+' вернулись на депозит':''}${g.pay.bonus&&back?', ':''}${g.pay.bonus?g.pay.bonus+' бонусов вернулись':''}.`; } }
+  return msg; }
+function giftList(){ const L=S.gft.sent.slice().reverse().slice(0,8); if(!L.length) return '';
+  const st=g=>g.kind==='bonus'?'<span class="save">подарено ✓</span>':g.st==='took'?'<span class="save">забрали ✓</span>':g.st==='back'?'вернулось тебе':`ждёт до ${fmtShort(g.until)}`;
+  return `<div class="stack" style="gap:6px"><span class="label">Ты подарил</span>${L.map(g=>`<div class="gf-h"><span>${g.kind==='bonus'?'🪙':'☕'}</span><span class="tx"><b>${g.kind==='bonus'?`${g.pay.bonus} ${plural(g.pay.bonus,'бонус','бонуса','бонусов')}`:byId(g.item).n}</b><small>${g.to.n} · ${fmtShort(g.day)}</small></span><small>${st(g)}</small></div>`).join('')}</div>`; }
+// экран «Бонусы» — сюда проваливаешься из профиля
+function openBonus(){ const left=giftBonLeft(null), why=giftWhyNot(null);
+  sheet(`<h2>Бонусы</h2>
+    <div class="bon-big">${COIN}<span><b class="money">${S.bonus}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</span></div>
+    <ul class="rl-list"><li>1 бонус = 1 ₽<br>Ими можно оплатить до 30% чека</li><li>Сейчас <b>${rateAll()}%</b> бонусами с каждой покупки</li><li>Бонусы не сгорают</li></ul>
+    <div class="gf-share"><b>🎁 Подари близким</b><span>Бонусы или блюдо — по номеру телефона<br>или ссылкой. Им подписка не нужна</span>
+      <div class="row" style="gap:8px"><button class="btn" style="flex:1" onclick="openGift({kind:'bonus'})" ${S.plus?'':''}>🪙 Бонусы</button><button class="btn" style="flex:1" onclick="openGift({kind:'dish'})">☕ Блюдо</button></div>
+      ${S.plus&&!left&&why?`<small class="muted">${why.replace('|','<br>')}</small>`:''}</div>
+    ${giftList()}
+    <button class="link" onclick="closeSheet();goTo('progress','#pr-ritm')">Мой ритм в «Турбо» ›</button>`); }
 
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
 function profile(){
@@ -3070,7 +3407,7 @@ function labApplyPreset(k){
   const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
-    if(k==='new'){ Object.assign(S,{plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+    if(k==='new'){ Object.assign(S,{gft:{sent:[],recent:[]},srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
       weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; S.six={slots:[null,null,null],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; S.offer=null; }
     if(k==='three'){ labLastWeek(3); S.visits=S.visits.filter(d=>weekOf(d)!==wk); if(S.day%7>0) S.visits.push(wk*7); S.ser.n=24; S.ser.best=30; }
@@ -3132,6 +3469,8 @@ function lab(){
       ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
+      <span class="lab-l">Подарки другим и поиск</span>
+      <div class="lab-row"><button class="btn ghost" onclick="openGift()">🎁 Подарить</button><button class="btn ghost" onclick="openSearch()">🔍 Поиск</button><button class="btn ghost" onclick="labDo(()=>{S.gft={sent:[],recent:[]};S.srch=[]},'Подарки другим и история поиска очищены')">Сбросить подарки</button></div>
       <span class="lab-l">Покупка на кассе (капучино на любую сумму)</span>
       <div class="lab-buy"><input id="lab-sum" type="number" inputmode="numeric" value="150"><span>₽</span><label><input id="lab-bon" type="checkbox"> оплатить бонусами</label><button class="btn" onclick="labBuy()">Купить</button></div>
       <p class="small muted" style="margin:0">Дважды «Купить» в один день — проверка «несколько чеков = один день». 149 ₽ — день не засчитается</p></div>
