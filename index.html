@@ -938,6 +938,7 @@ img.ava{object-fit:cover}
 .stc-bh button{font-size:13px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.45);color:inherit}
 .stc .ser-week i{background:rgba(255,255,255,.45)}
 .stc .ser-week .v i{background:rgba(255,255,255,.85)}
+.ser-week .pre{opacity:.3}.ser-week .gap i{opacity:.5}
 .stc .ser-week .x i{background:rgba(229,57,53,.18)}
 .stc .ser-week span{color:inherit;opacity:.8}
 .stc .ser-week .today{opacity:1}
@@ -2165,11 +2166,13 @@ function serState(){
 }
 // Дни этой недели у счётчика посещений: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
 function serWeek(w){
-  const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d<S.day && !S.visits.includes(d); });
+  // дни до регистрации — не пропуск: их не было в приложении, ✕ не ставим и заморозить нельзя (правило владельца 22.10)
+  const reg=S.regDay??-1e9;
+  const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d>=reg && d<S.day && !S.visits.includes(d); });
   const fzDay=(S.ser.frozen||[]).includes(w)?miss[miss.length-1]:-1, man=fzDaysIn(w).map(d=>d%7);
-  const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend;
+  const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend && S.ser.n>0;   // счётчик ещё не начался — замораживать нечего
   return `<div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
-    const k=v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?'x':day===S.day?'now':'fut';
+    const k=day<reg?'pre':v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':'fut';
     return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':''}</i>${d}</span>`; }).join('')}</div>
     ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на ✕</b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
@@ -2244,6 +2247,8 @@ function openVisits(){
 // Заморозить пропущенный день — только вручную и только с подпиской «Кофейная+»
 const fzWord=n=>plural(n,'заморозка','заморозки','заморозок');
 function freezeDay(day){ const dn=fmt(day);
+  if(day<(S.regDay??-1e9)) return toast('Этого дня ещё не было в приложении — замораживать нечего');
+  if(!S.ser.n && !S.ser.pend) return toast('Счётчик ещё не начался — пока нечего замораживать');
   if(!S.plus) return sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>Пропущенный день можно заморозить — он засчитается в счётчик, и посещения не сгорят.</p><p class="small muted">Это можно только с подпиской <b>★ Кофейная+</b>: ${FZ_MONTH} заморозки каждый месяц.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
   if(fzLeft()<=0) return toast('Заморозки на этот месяц закончились. Новые — 1-го числа.');
   const left=fzLeft()-1;
