@@ -324,6 +324,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .hl-today::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-.15em;height:.75em;border-radius:50%;background:radial-gradient(closest-side,rgba(255,145,0,.75),rgba(255,145,0,0));filter:blur(5px);z-index:-1}
 :root:not([data-theme="dark"]) .hl-today{color:#e65c00}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hl-today{color:#ff9100}}
+.plus-go{align-self:flex-start;margin-top:10px;padding:10px 18px;border-radius:999px;background:#f9f9f9;color:#2b2b93;font-weight:700;font-size:15px}
+.plus-float{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:14;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;background:var(--prem);color:#fff;font-weight:700;font-size:15px;white-space:nowrap;box-shadow:0 10px 24px -8px rgba(43,43,147,.7);transition:opacity .25s,transform .25s}
+.plus-float.hide{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(12px)}
+.plus-float .star-y{width:16px;height:16px}
 .lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
 .lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .lab-b h2{font-size:20px}.lab-b p{margin:0}
@@ -2777,19 +2781,24 @@ function plus(){
     ['👫','Пригласи друга','Бонусы тебе и другу','+'+REF_T]];
   return `<section class="screen">${back()}
     <div class="bday plus-hero"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">${STAR_Y.replace('star-y','star-y hero')}Кофейная+</span>
-      <span>${S.plus?`Подключена до ${plusEndTxt()}.`:`Бесплатно для всех до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`}</span></div>
+      <span>${S.plus?`Подключена до ${plusEndTxt()}.`:`Бесплатно для всех до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`}</span>${S.plus?'':`<button class="plus-go" onclick="toTariffs()">Выбрать тариф <span aria-hidden="true">↓</span></button>`}</div>
     ${S.plus&&plusLeft()<=SOON?`<div class="renew"><b>Подписка закончится через ${plusLeft()} ${plural(plusLeft(),'день','дня','дней')}</b><span class="small">Продлите, чтобы не потерять цены недели, бонусы до 7% и скидку в день рождения.</span><button class="btn" onclick="renewPlus()">Продлить — 99 ₽ за месяц</button></div>`:''}
     <div class="panel"><strong>Как получить скидки</strong>
       <div class="howto">${[['1','Нажми «Подключить»',`Бесплатно до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`],['2','Открываются все скидки ★','Предложение дня, цены недели, бонусы, скидка в день рождения'],['3','Покажи QR на кассе','Или закажи в приложении — скидка посчитается сама']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
     <div class="pk-box"><div class="pk-h">${STAR_Y}<b>Только с Кофейная+</b></div>
       ${rows.map(([ic,t,d,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}<small>${d.split('|').join('<br>')}</small></span>${v?`<span class="pk-v">${v.split('|').join('<br>')}</span>`:''}</div>`).join('')}</div>
-    <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b>${t.k==='m'?'<span class="tf-m">в месяц</span>':(()=>{ const pm=Math.round(t.p/(t.k==='h'?6:12)), off=Math.round((1-pm/TARIFFS[0].p)*100); return `<span class="tf-m good">${rub(pm)} в месяц</span><span class="tf-off">выгода ${off}%</span>`; })()}<span class="tf-l">❄️ Заморозка</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+${t.vac} дней ❄️<br>на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
+    <div class="tariffs" id="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b>${t.k==='m'?'<span class="tf-m">в месяц</span>':(()=>{ const pm=Math.round(t.p/(t.k==='h'?6:12)), off=Math.round((1-pm/TARIFFS[0].p)*100); return `<span class="tf-m good">${rub(pm)} в месяц</span><span class="tf-off">выгода ${off}%</span>`; })()}<span class="tf-l">❄️ Заморозка</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+${t.vac} дней ❄️<br>на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
     <div class="tf-note small muted"><p>Пропустил день — посещения подряд не сгорят</p><p>Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт</p><p>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p></div>
     <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
     ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
     <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
+    ${S.plus?'':`<button class="plus-float" id="plusFloat" onclick="toTariffs()"><span class="star-y-w">${STAR_Y}</span>Тарифы и подключение <span aria-hidden="true">↓</span></button>`}
   </section>`;
 }
+// Тарифы внизу экрана: кнопка в шапке и плавающая плашка ведут к ним; плашка прячется, когда тарифы уже на экране (владелец 22.10)
+function toTariffs(){ const el=document.getElementById('tariffs'); if(!el) return; scrollTo({top:el.getBoundingClientRect().top+scrollY-90,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); }
+function plusFloatWatch(){ const t=document.getElementById('tariffs'), f=document.getElementById('plusFloat'); if(!t||!f||!('IntersectionObserver' in window)) return;
+  new IntersectionObserver(([e])=>f.classList.toggle('hide', e.isIntersecting || e.boundingClientRect.top<0)).observe(t); }
 function setTariff(k){ if(S.tariff!==k){ S.tariff=k; S.ser.vacUsed=0; } save(); render(); }
 function plusBanner(){
   const bd=bdInfo(), bdt=bd.set?'−'+bd.age+'%':'= возраст';
@@ -3118,6 +3127,7 @@ function render(keep=true){
       : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
   if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
+  if(tab==='plus') plusFloatWatch();
 }
 try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
 try{ const k=sessionStorage.getItem('labPreset'); if(k){ sessionStorage.removeItem('labPreset'); labApplyPreset(k); } }catch(e){}
