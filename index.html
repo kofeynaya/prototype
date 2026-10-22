@@ -2148,7 +2148,7 @@ function order(){
     ${o.mode==='pickup'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Код выдачи</span><span class="bigcode">${o.code}</span><span class="small muted">Назовите его бариста</span></div>`:''}
     ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
     <div class="panel"${F(23)}><div class="statusline">${steps.map((s,i)=>`<div class="st ${i<o.status?'done':i===o.status?'cur':''}"><span class="b"></span><span class="tx"><strong>${s[0]}</strong><small>${s[1]}</small></span></div>`).join('')}</div></div>
-    ${o.status<3?`<button class="btn ghost block" onclick="S.myOrders[curOrder].status++;save();render()">Демо: следующий статус</button>`:''}
+    ${o.status<3?`<button class="btn ghost block" onclick="S.myOrders[curOrder].status++;save();render()">Демо: следующий этап</button>`:''}
     <div class="panel"><h3>Состав</h3>${o.lines.map(l=>`<div class="row between small"><span>${byId(l.id).n} × ${l.qty}</span><span class="money">${rub(l.unit*l.qty)}</span></div>`).join('')}<div class="row between"><strong>Оплачено</strong><strong class="money">${rub(o.total)}</strong></div></div>
     <div class="notice">${IC.star}<span>Заказ в приложении засчитан в цель недели — так же, как покупка на кассе.</span></div>
   </section>`;
@@ -2157,7 +2157,7 @@ function myorders(){
   return `<section class="screen">${back('profile','Профиль')}<h1${F(23)}>Мои заказы</h1>
     ${S.myOrders.length?S.myOrders.map((o,i)=>`<div class="panel"><div class="row between"><strong>${o.id} · ${MODES[o.mode]}</strong><span class="muted small">${fmtShort(o.day)}</span></div>
       <span class="small muted">${o.lines.map(l=>byId(l.id).n+(l.qty>1?' × '+l.qty:'')).join(', ')}</span>
-      <div class="row between"><span class="money">${rub(o.total)}</span><div class="row" style="gap:8px"><button class="btn ghost" style="padding:8px 14px" onclick="curOrder=${i};go('order')">Статус</button><button class="btn" style="padding:8px 14px" onclick="repeatOrder(${i})">Повторить</button></div></div></div>`).join(''):'<p class="empty-note">Заказов в приложении пока нет.</p>'}
+      <div class="row between"><span class="money">${rub(o.total)}</span><div class="row" style="gap:8px"><button class="btn ghost" style="padding:8px 14px" onclick="curOrder=${i};go('order')">Где заказ</button><button class="btn" style="padding:8px 14px" onclick="repeatOrder(${i})">Повторить</button></div></div></div>`).join(''):'<p class="empty-note">Заказов в приложении пока нет.</p>'}
   </section>`;
 }
 function repeatOrder(i){ S.myOrders[i].lines.forEach(l=>{ for(let k=0;k<l.qty;k++) addLine(l.id,l.opts,true) }); save(); go('cart'); toast('Добавили в корзину. Скидки пересчитаны на сегодня.'); }
@@ -2288,12 +2288,12 @@ function statusCard(st){
   const t=tierOf(S.ser.n), nx=TIERS[TIERS.indexOf(t)+1], w=weekOf(S.day);
   return `<div class="stc t-${t.k} ser ${st.k}">
     <div class="stc-top" onclick="openTiers()">
-      <span class="stc-chip">Твой статус</span>
+      <span class="stc-chip">Твой уровень</span>
       <b class="stc-name">${t.n}</b>
       <span class="stc-perk">${TIER_TXT[t.k]}</span>
       ${nx?`<div class="stc-prog"><span>До ${nx.to}</span><span class="money">${S.ser.n} / ${nx.from}</span></div><div class="stc-bar"><i style="width:${Math.round((S.ser.n-t.from)/(nx.from-t.from)*100)}%"></i></div>`
-        :`<div class="stc-prog"><span>Высший статус. Держи счётчик!</span></div>`}
-      <button class="stc-btn">Все статусы</button>
+        :`<div class="stc-prog"><span>Высший уровень. Держи счётчик!</span></div>`}
+      <button class="stc-btn">Все уровни</button>
     </div>
     <div class="stc-band">
       <div class="stc-bh"><span>Твои посещения на этой неделе</span><button onclick="openFreeze()">❄️ ${fzLeft()} ${fzWord(fzLeft())}</button></div>
@@ -2309,8 +2309,8 @@ const TIER_FULL={silver:'Бонусы за ритм: сколько дней з�
 function demoPlat(){ closeSheet(); S.ser.n=Math.max(S.ser.n,99); S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); const m=checkMile(); givePlat(); save(); render(); if(m) celebrateMile(m); else toast('💎 Ты Платиновый!'); }
 function openTiers(){
   const cur=tierOf(S.ser.n);
-  sheet(`<h2>Статусы</h2><p class="small muted">Статус зависит от того, сколько посещений подряд. Сгорит счётчик — статус вернётся к Серебряному. 👑 Лучший результат останется.</p>
-    ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой статус':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div><span class="stc-perk big">${TIER_FULL[t.k]}</span></div></div>`; }).join('')}
+  sheet(`<h2>Уровни</h2><p class="small muted">Уровень зависит от того, сколько посещений подряд. Сгорит счётчик — уровень вернётся к Серебряному. 👑 Лучший результат останется.</p>
+    ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой уровень':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div><span class="stc-perk big">${TIER_FULL[t.k]}</span></div></div>`; }).join('')}
     <h3 style="margin:18px 0 6px">А ещё</h3>
     <div class="gift-row"><span class="gi">🎁</span><span class="tx"><b>Сундук с призом</b><small>Неделя, где ${CHEST_MIN} и больше посещений, — приз в понедельник</small></span></div>
     <div class="gift-row"><span class="gi">🎉</span><span class="tx"><b>Праздник на 30, 50, 100, 200, 300…</b><small>30, 50, 100, а дальше каждые 100 посещений подряд</small></span></div>
@@ -2482,7 +2482,7 @@ function progress(){
   return `<section class="screen">
     ${S.turboHide?`<button class="turbo-head" onclick="S.turboHide=false;save();render()" aria-label="Что такое Турбо"><span class="th-ic"><svg viewBox="0 0 24 24">${TURBO_IC}</svg></span><span class="th-tx"><b>Турбо</b><span class="small muted">Самое мощное: все акции за регулярность</span></span></button>`
     :`<div class="turbo-intro"><button class="ti-x" onclick="S.turboHide=true;save();render()" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ti-tx"><span class="label">Турбо</span><b>Самое мощное — здесь</b><span class="small">Все акции, которые делают каждый поход в кофейную выгоднее. Чем чаще заходите — тем больше получаете.</span></div>${WOWMAN}</div>`}
-    ${PL_OPEN('Турбо — только с ★ Кофейная+','Счётчик посещений, статус, бонусы за ритм, каждый 6-й до −50%, сундук и подарки')}
+    ${PL_OPEN('Турбо — только с ★ Кофейная+','Счётчик посещений, уровень, бонусы за ритм, каждый 6-й до −50%, сундук и подарки')}
     ${serHead()}
     ${giftsBlock()}
     ${pwLink()}
@@ -2652,7 +2652,7 @@ const RULES=[
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
   ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — 1 заморозка = 1 пропущенный день, <b>только вручную</b>: нажми на красный ✕. На любом тарифе — ${FZ_MONTH} в месяц (не копятся), на тарифе на полгода — ещё 6 дней на отпуск, на год — 12. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить пропуски; на решение ${PEND_DAYS} дней, потом счётчик сгорит. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
-  ['Награды за посещения 🎁',`<p class="rl-main">Чем больше посещений подряд — тем выше статус и больше выгода.</p>
+  ['Награды за посещения 🎁',`<p class="rl-main">Чем больше посещений подряд — тем выше уровень и больше выгода.</p>
     <ul class="rl-list">
       <li><b>🥈 Серебряный</b> (0–29) — бонусы за ритм.</li>
       <li><b>🥇 Золотой</b> (30–99) — +1% к бонусам с каждой покупки.</li>
@@ -2894,7 +2894,7 @@ const LEGEND = [
  [10,'#18ffff','QR на кассе','Покажите кассиру — скидки и бонусы применятся сами. Код меняется каждую минуту.','Кнопка QR внизу по центру',"openQR()"],
  [11,'#ff6d00','Каждый 6-й','Гость выбирает до 3 блюд: новое −50%, привычное −20%.','«Турбо»',"go('progress')"],
  [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Сегодня», «Профиль → Мои данные»',"go('birthday')"],
- [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 7%, ДР = возраст. Бесплатно до '+FREE_UNTIL+'.','«Профиль» → Мои выгоды (статус), плитка на «Сегодня», значки ★',"go('profile')"],
+ [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 7%, ДР = возраст. Бесплатно до '+FREE_UNTIL+'.','«Профиль» → Мои выгоды (уровень), плитка на «Сегодня», значки ★',"go('profile')"],
  [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
  [15,'#f50057','Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Сегодня» (плитка), «Профиль»',"go('invite')"],
  [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Сегодня»',"go('home')"],
@@ -2904,7 +2904,7 @@ const LEGEND = [
  [20,'#00bfa5','Доставка','Адреса и условия зоны: минимальный заказ, цена, время.','Чип «Доставка» вверху меню',"openMode('delivery')"],
  [21,'#ff3d00','Самовывоз','7 кофеен с часами работы, «Заберу здесь».','Чип «Самовывоз»',"openMode('pickup')"],
  [22,'#651fff','За столик','Отсканируйте QR на столе — принесём заказ к столику.','Чип «За столик»',"openMode('table')"],
- [23,'#aeea00','Заказ и «Мои заказы»','Статус заказа, код выдачи, «Повторить».','«Профиль → Мои заказы»',"go('myorders')"],
+ [23,'#aeea00','Заказ и «Мои заказы»','Где заказ, код выдачи, «Повторить».','«Профиль → Мои заказы»',"go('myorders')"],
  [24,'#b0bec5','Вход по СМС','Номер телефона → код из СМС.','Экран входа («Профиль → Выйти»)',"logout()"],
 ];
 LEGEND.splice(0, LEGEND.length, ...LEGEND.filter(x=>!LEGEND_HIDE.includes(x[0])));
@@ -3002,7 +3002,7 @@ const ONB=[
    art:()=>{ const wk=(n,pc,big)=>`<div class="ob-rh${big?' big':''}"><span class="ob-days">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'v':''}">${i<n?'🔥':''}</i>`).join('')}</span><span class="ob-eq">=</span><b class="money">${pc}%</b></div>`;
      return `<div class="ob-rhs"><span class="ob-cap">Был 2 дня на неделе</span>${wk(2,2)}<span class="ob-cap">Был 5 дней</span>${wk(5,5,1)}<span class="ob-cap">бонусами с каждой покупки на следующей неделе</span></div>`; }},
   // 22.10: «в чём выгода?» — статусы и подарки, а не просто счётчик
-  {t:'Не прерывайся — получай больше', s:'Чем больше посещений подряд, тем выше статус и тем больше выгода. На 30, 50 и 100 посещений — подарок. Главное — хотя бы 3 дня в неделю', prem:1,
+  {t:'Не прерывайся — получай больше', s:'Чем больше посещений подряд, тем выше уровень и тем больше выгода. На 30, 50 и 100 посещений — подарок. Главное — хотя бы 3 дня в неделю', prem:1,
    art:()=>`<div class="ob-tiers">${[['silver','🥈','Серебряный','бонусы с каждой покупки','старт'],['gold','🥇','Золотой','+1% к бонусам','🔥 30'],['plat','💎','Платиновый','+2% и напиток −50% каждую неделю','🔥 100']].map(([k,ic,n,v,f])=>`<div class="ob-t t-${k}"><span class="ob-ti">${ic}</span><span class="tx"><b>${n}</b><small>${v}</small></span><span class="ob-tf">${f}</span></div>`).join('')}</div>`},
   {t:`Всё это — бесплатно до ${FREE_UNTIL}`, s:'Потом 99 ₽ в месяц. Отменить можно в любой момент', last:1,
    art:()=>`<div class="ob-star">${STAR_Y.replace('star-y','star-y ob-big')}<b>Кофейная+</b></div>`},
