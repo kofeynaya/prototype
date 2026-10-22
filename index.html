@@ -297,6 +297,50 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pk-v{color:#b39dff}}
 :root[data-theme="dark"] .pk-v{color:#b39dff}
+
+/* Пульт теста — инструмент демо, не часть приложения */
+.demo .lab-btn{margin-left:auto}
+.lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
+.lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.lab-b h2{font-size:20px}.lab-b p{margin:0}
+.lab-pre{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lab-pre button{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+.lab-pre b{font-size:14px}.lab-pre small{font-size:11.5px;color:var(--muted);line-height:1.25}
+.lab-row{display:flex;flex-wrap:wrap;gap:8px}.lab-row .btn{flex:1 1 auto;padding:10px 12px;font-size:14px}
+.lab-l{font-size:13px;color:var(--muted)}
+.lab-wd{display:flex;gap:6px;flex-wrap:wrap}.lab-wd button{flex:1 1 0;min-width:0;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lab-wd button.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.lab-wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.lab-wk button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);background:none}
+.lab-wk i{display:grid;place-items:center;width:min(34px,100%);aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-style:normal;font-size:16px}
+.lab-wk .x i{color:#e53935;border-color:#e53935}.lab-wk .v i{border-color:#ff9100}.lab-wk .f i{border-color:#29b6f6}.lab-wk .fut{opacity:.35}
+.lab-r{display:flex;flex-direction:column;gap:4px;font-size:14px}.lab-r input{width:100%;accent-color:var(--green)}
+.lab-t{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}.lab-t input{width:22px;height:22px;accent-color:var(--green)}
+.lab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lab-n{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.lab-n input,.lab-buy input[type=number]{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px}
+.lab-buy{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}.lab-buy input[type=number]{width:90px}.lab-buy .btn{margin-left:auto;padding:10px 16px}
+/* Онбординг: на весь экран, одна мысль на экран */
+html.onb-open{overflow:hidden}
+.onb{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;justify-content:center;overflow:auto}
+.onb-in{width:100%;max-width:480px;min-height:100%;display:flex;flex-direction:column;gap:14px;padding:calc(16px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px))}
+.onb-top{display:flex;align-items:center;justify-content:space-between;min-height:40px}
+.onb-dots{display:flex;gap:6px}.onb-dots i{width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .2s}.onb-dots i.on{width:24px;background:var(--ink)}
+.onb-skip{font-size:15px;color:var(--muted);padding:8px}
+.onb-art{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:240px}
+.onb h2{font-size:30px;line-height:1.1}.onb p{margin:0;font-size:17px;color:var(--muted);line-height:1.35}
+.onb-prem{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:var(--prem);color:#fff;font-size:13px;font-weight:700}
+.onb-btns{display:flex;gap:10px;margin-top:6px}.onb-btns .btn{flex:1;padding:16px;font-size:17px}.onb-btns .btn.ghost{flex:0 0 auto}
+.ob-offer{position:relative;width:240px;padding:18px;border-radius:24px;background:var(--pink);color:#2b1d0e;display:flex;flex-direction:column;gap:8px;box-shadow:0 14px 30px -14px rgba(0,0,0,.4)}
+.ob-offer .ob-tag{font-size:12px;opacity:.75}.ob-offer b{font-size:26px;line-height:1.05}.ob-qr{align-self:flex-end;background:#fff;border-radius:12px;padding:6px;color:#212221}
+.ob-coin{display:flex;align-items:center;gap:14px;font-size:28px;font-weight:700}.ob-pay{padding:10px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.ob-got{display:inline-flex;align-items:center;gap:6px;color:#b08400}.ob-got .coin{width:26px;height:26px}.ob-arr{color:var(--muted)}
+.ob-lad{width:310px}.ob-lad .ld-line{min-width:30px;height:3px}
+.star-y.ob-big{width:56px;height:56px}
+.ob-fire{display:flex;flex-direction:column;align-items:center}.ob-fl{font-size:64px;line-height:1}.ob-fire b{font-size:64px;line-height:1}.ob-fire small{color:var(--muted);font-size:15px}
+.ob-week{display:grid;grid-template-columns:repeat(7,36px);gap:6px}.ob-week span{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted)}
+.ob-week i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-style:normal}.ob-week .x i{color:#e53935;border-color:#e53935}
+.ob-star{display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 36px;border-radius:28px;background:var(--prem);color:#fff}.ob-star b{font-size:32px}
 /* сравнение: колонка «★ Плюс» — золотая, богаче бесплатной */
 .cmp.gold{gap:0 12px}
 .tariffs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -1650,7 +1694,8 @@ function demoBar(){
   return `<div class="demo"><b>демо</b>
     ${LEGEND_ON?`<button class="legend-btn" onclick="openLegend()">Легенда</button>`:''}
     <button class="primary" onclick="openKassa()" aria-label="Имитировать покупку в кофейне">Касса</button>
-    <button onclick="nextDay()" aria-label="Перемотать на завтра">Завтра →</button></div>`;
+    <button onclick="nextDay()" aria-label="Перемотать на завтра">Завтра →</button>
+    <button class="lab-btn" onclick="go('lab')" aria-label="Пульт для теста">⚙️ Пульт</button></div>`;
 }
 function bdBanner(){
   const bd=bdInfo(); if(!bd.active) return '';
@@ -2662,7 +2707,7 @@ const TABS=[
   ['menu','Меню','<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
-const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders,power};
+const SCREENS={home,menu,progress,profile,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
 const TAB_OF={power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
 function go(t){ if(t==='qr'){ openQR(); return; } tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 
@@ -2684,7 +2729,7 @@ function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) 
   const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7'; if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
 function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); toast('Добро пожаловать! Это демо: можно заказать из меню или сымитировать покупку на кассе кнопкой сверху.',4200); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! Это демо: можно заказать из меню или сымитировать покупку на кассе кнопкой сверху.',4200); }
 function logout(){ S.authed=false; authStep='phone'; save(); render(false); }
 function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); tab='home'; render(false); toast('Демо-данные сброшены.'); }
 
@@ -2795,6 +2840,153 @@ function drawKassa(){
 }
 function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); }
 
+/* ===================== Онбординг (22.10, тексты согласованы с критиком) =====================
+   4 экрана, одна мысль на экран; «Дальше» — крупная кнопка внизу, «Пропустить» — сверху. Показывается один раз после входа (S.onb) и из пульта */
+const ONB=[
+  {t:'Каждый день — своя скидка', s:'Покажи QR на кассе или закажи в приложении — скидка посчитается сама', prem:1,
+   art:()=>`<div class="ob-offer"><span class="ob-tag">Только для тебя · сегодня</span><b>Капучино −20%</b><span class="ob-qr">${IC.qr.replace('<svg','<svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="2"')}</span></div>`},
+  {t:'Ходишь чаще — получаешь больше', s:'3 дня на прошлой неделе = 3% бонусами с каждой покупки. 1 бонус = 1 ₽', prem:1,
+   art:()=>`<div class="ob-coin"><span class="ob-pay">100 ₽</span><span class="ob-arr">→</span><span class="ob-got">${COIN}+3</span></div>
+     <div class="ladder ob-lad"><span class="ld ok"><b>3</b><small>3%</small></span><i class="ld-line ok"></i><span class="ld ok"><b>4</b><small>4%</small></span><i class="ld-line"></i><span class="ld next"><b>5</b><small>🎁 сундук</small></span></div>`},
+  {t:'Считаем посещения подряд', s:'Приходи хотя бы 3 дня в неделю — счётчик не сгорит. Уезжаешь — заморозь ❄️', prem:1,
+   art:()=>`<div class="ob-fire"><span class="ob-fl">🔥</span><b class="money">12</b><small>посещений подряд</small></div>
+     <div class="ob-week">${['🔥','🔥','✕','❄️','🔥','',''].map((x,i)=>`<span class="${x==='✕'?'x':x?'v':''}"><i>${x}</i>${WD[i]}</span>`).join('')}</div>`},
+  {t:`Всё это — бесплатно до ${FREE_UNTIL}`, s:'Потом 99 ₽ в месяц. Отменить можно в любой момент', last:1,
+   art:()=>`<div class="ob-star">${STAR_Y.replace('star-y','star-y ob-big')}<b>Кофейная+</b></div>`},
+];
+let onbI=0;
+function openOnb(){ onbI=0; closeOnb(); const d=document.createElement('div'); d.className='onb'; d.id='onb'; document.body.appendChild(d); document.documentElement.classList.add('onb-open'); drawOnb(); }
+function drawOnb(){ const o=ONB[onbI], d=document.getElementById('onb'); if(!d) return;
+  d.innerHTML=`<div class="onb-in">
+    <div class="onb-top"><span class="onb-dots">${ONB.map((_,i)=>`<i class="${i===onbI?'on':''}"></i>`).join('')}</span>${o.last?'':`<button class="onb-skip" onclick="endOnb()">Пропустить</button>`}</div>
+    <div class="onb-art">${o.art()}</div>
+    <h2>${o.t}</h2><p>${o.s}</p>
+    ${o.prem?`<span class="onb-prem">${STAR_Y} С Кофейная+</span>`:''}
+    <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>
+  </div>`; }
+function closeOnb(){ document.getElementById('onb')?.remove(); document.documentElement.classList.remove('onb-open'); }
+function endOnb(){ S.onb=1; save(); closeOnb(); }
+
+/* ===================== Пульт теста (демо-инструмент, не часть приложения) =====================
+   4 блока: Сценарии · Время · Гость · Выгоды и подарки. Изменения применяются сразу. Невозможные состояния не собираются: лучший результат ≥ счётчика */
+const labWk=()=>weekOf(S.day);
+function labDo(fn,msg){ fn(); save(); render(); if(msg) toast(msg); }
+function labWeekday(i){ labDo(()=>{ S.day=labWk()*7+i; S.visits=S.visits.filter(d=>d<=S.day); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>d<=S.day); S.offer=null; }); }
+function labCell(i){ const d=labWk()*7+i; if(d>S.day) return; labDo(()=>{ const v=S.visits.includes(d), f=(S.ser.fzDays||[]).includes(d);
+  S.visits=S.visits.filter(x=>x!==d); S.ser.fzDays=(S.ser.fzDays||[]).filter(x=>x!==d);
+  if(d===S.day){ if(!v) S.visits.push(d); return; }
+  if(!v&&!f) S.visits.push(d); else if(v) S.ser.fzDays.push(d); }); }   // был → заморозка → пропуск → был
+function labLastWeek(k){ labDo(()=>{ const w=labWk()-1; if(w<0){ (S.past=S.past||[0]).splice(-1,1,k); return; }
+  S.visits=S.visits.filter(d=>weekOf(d)!==w); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==w);
+  [0,2,4,1,3,5,6].slice(0,k).forEach(i=>S.visits.push(w*7+i)); }); }
+function labAge(n){ labDo(()=>{ S.regDay=S.day-n; S.histPast=(S.histPast||[]).filter(d=>d>=S.regDay); S.visits=S.visits.filter(d=>d>=S.regDay); S.orders=S.orders.filter(o=>o.day>=S.regDay); }); }
+function labSer(n){ labDo(()=>{ S.ser.n=n; S.ser.best=Math.max(S.ser.best||0,n); }); }
+function labBest(n){ labDo(()=>{ S.ser.best=Math.max(n,S.ser.n); }); }
+function labFzMonth(m){ labDo(()=>{ S.ser.fzm={m:monthKey(S.day),used:FZ_MONTH-m}; }); }
+function labFzVac(v){ labDo(()=>{ S.ser.vacUsed=Math.max(0,tariff().vac-v); }); }
+function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=labWk()-1; if(w<0) return toast('Нужна прошлая неделя — нажми «+1 неделя»');
+  if(serDays(w)>=SER_MIN){ S.visits=S.visits.filter(d=>weekOf(d)!==w); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==w); S.visits.push(w*7+1); }
+  if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1}; }); }
+function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
+function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth.m=t.getMonth(); S.birth.d=t.getDate(); S.birth.verified=false; }); }
+function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }); }
+function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
+function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
+function labGift(kind,today){ labDo(()=>{ const g=giveGift(kind,today?'Проверка: сгорает сегодня':'Выдан в пульте'); if(today){ g.from=S.day-GIFT_DAYS+1; g.until=S.day; } },'Подарок выдан'); }
+function labBuy(){ const n=Math.max(1,Math.round(+document.getElementById('lab-sum').value||0)), cap=byId(ID.cap), bon=document.getElementById('lab-bon')?.checked;
+  const q=quote([{id:ID.cap,qty:1,sur:n-cap.p}],{bonus:bon}); const msg=applyPurchase(q,'Касса'); save(); render(); toast(msg,4500); }
+function labCopy(){ copyText(JSON.stringify(S)); }
+function labLoad(){ let t; try{ t=prompt('Вставь скопированное состояние'); }catch(e){} if(!t) return; try{ const x=JSON.parse(t); if(!x||!x.ser) throw 0; S=x; save(); render(); toast('Состояние загружено'); }catch(e){ toast('Не получилось прочитать состояние'); } }
+// Готовые сценарии: сбрасываем демо и собираем ситуацию с нуля (через перезагрузку — так проходит вся обычная инициализация)
+const LAB_PRESETS=[
+  {k:'new',  t:'Новичок, первый день',     c:'Пустые экраны, онбординг, без подписки — понятно ли, с чего начать', go:'home'},
+  {k:'three',t:'Ходит 3 раза в неделю',    c:'Лестница недели, проценты бонусов, что даст 4-й визит', go:'progress'},
+  {k:'g29',  t:'Почти Золотой — 29',       c:'Купи на кассе → праздник 30, Золотой, +1% к бонусам', go:'progress'},
+  {k:'p99',  t:'Почти Платиновый — 99',    c:'Купи → праздник 100, напиток в подарок и −50% Платинового', go:'progress'},
+  {k:'plat', t:'Платиновый — 150',         c:'Подарок недели, +2%, тёмная карточка', go:'progress'},
+  {k:'pend', t:'Пропустил неделю',         c:'Плашка «Сохрани счётчик», заморозок хватает / нет', go:'progress'},
+  {k:'short',t:'Пропустил, заморозок мало', c:'Нужно 2 дня, осталась 1 заморозка — что предложит приложение', go:'progress'},
+  {k:'burn', t:'Счётчик сгорел',           c:'Серебряный снова, лучший результат остался, грусть', go:'progress'},
+  {k:'free', t:'Без подписки',             c:'Всё под замком, заряд 0%, окно QR', go:'home'},
+  {k:'full', t:'Всё включено — 100%',      c:'Голубая батарейка, «Идеально!»', go:'power'},
+  {k:'bday', t:'ДР сегодня + всё сразу',   c:'Одна лучшая скидка на строку, предел 1 500 ₽, бонусы до 30%', go:'home'},
+];
+function labPreset(k){ try{ localStorage.removeItem(KEY); sessionStorage.setItem('labPreset',k); }catch(e){ return toast('Браузер не даёт сохранить — открой не в приватном окне'); } location.reload(); }
+function labApplyPreset(k){
+  const p=LAB_PRESETS.find(x=>x.k===k); if(!p) return; S.authed=true; S.onb=1; S.plus=true; S.plusSoon=false; ensureDaily();
+  const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
+  const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
+  set(()=>{
+    if(k==='new'){ Object.assign(S,{plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+      funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},ach:{},pastryCount:0,myOrders:[],onb:0});
+      S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; SIXTH.forEach(id=>S.stamps[id]=0); S.offer=null; }
+    if(k==='three'){ labLastWeek(3); S.visits=S.visits.filter(d=>weekOf(d)!==wk); if(S.day%7>0) S.visits.push(wk*7); S.ser.n=24; S.ser.best=30; }
+    if(k==='g29'){ keep(); S.ser.n=29; S.ser.best=Math.max(29,S.ser.best); S.rw.miles={}; }
+    if(k==='p99'){ keep(); S.ser.n=99; S.ser.best=112; S.rw.miles={30:1,50:1}; S.rw.platWeek=null; }
+    if(k==='plat'){ S.ser.n=150; S.ser.best=150; S.rw.miles={30:1,50:1,100:1}; givePlat(); }
+    if(k==='pend'||k==='short'){ labPend(true); if(k==='short'){ S.visits=S.visits.filter(d=>weekOf(d)!==wk-1); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==wk-1); S.visits.push((wk-1)*7+2); S.tariff='m'; labFzMonth(1); } }
+    if(k==='burn'){ labBurn(); }
+    if(k==='free'){ S.plus=false; }
+    if(k==='full'){ S.funnel.used=Math.max(1,S.funnel.used); labLastWeek(4); S.wallet.money=Math.max(S.wallet.money,1000); labFriend(true);
+      S.orders.push({day:S.day-1,items:[ID.cap],sum:150,goods:190,saved:0,src:{},giftSpend:0,bonus:4,bonusSpend:40,walletSpend:0,ch:'Касса'}); }
+    if(k==='bday'){ labBd(0); S.stamps[ID.cap]=5; S.ser.n=150; S.ser.best=150; S.rw.miles={30:1,50:1,100:1}; givePlat(); S.bonus=800; }
+  });
+  tab=p.go; try{ localStorage.setItem(KEY+'-tab',tab); }catch(e){}
+  save(); setTimeout(()=>{ toast(`Сценарий «${p.t}»: ${p.c}`,5000); if(!S.onb) openOnb(); },400);
+}
+function labState(){ const w=labWk(), lw=lastWeekDays();
+  return [`${fmt(S.day)}`, S.plus?`★ подписка (${tariff().n})`:'без подписки', `🔥 ${S.ser.n} подряд, 👑 ${S.ser.best}`, `прошлая неделя ${lw} → ${rateAll()}%`, `эта неделя ${weekDays(w)}`, `❄️ ${fzLeft()}`, `заряд ${powerPct()}%`, S.ser.pend?'⚠️ счётчик ждёт решения':''].filter(Boolean).join(' · '); }
+function lab(){
+  const w=labWk(), lw=lastWeekDays(), t=tariff(), bd=bdInfo(), age=S.day-(S.regDay??S.day), fd=new Set(S.ser.fzDays||[]);
+  const rng=(lbl,val,min,max,fn,suf='')=>`<label class="lab-r"><span>${lbl} <b class="money">${val}${suf}</b></span><input type="range" min="${min}" max="${max}" value="${val}" onchange="${fn}(+this.value)"></label>`;
+  const tg=(lbl,on,fn)=>`<label class="lab-t"><span>${lbl}</span><input type="checkbox" ${on?'checked':''} onchange="${fn}(this.checked)"></label>`;
+  const num=(lbl,val,fn)=>`<label class="lab-n"><span>${lbl}</span><input type="number" inputmode="numeric" value="${Math.round(val)}" onchange="labDo(()=>{${fn}=Math.max(0,+this.value||0)})"></label>`;
+  return `<section class="screen lab">${back()}
+    <div class="stack" style="gap:4px"><span class="label">Только для теста</span><h1>⚙️ Пульт</h1><p class="small muted" style="margin:0">Собирай любую ситуацию и смотри, как выглядит приложение. Меняется сразу</p></div>
+    <div class="lab-now"><b>Сейчас</b><span>${labState()}</span><div class="row" style="gap:8px"><button class="btn ghost" onclick="labCopy()">Скопировать состояние</button><button class="btn ghost" onclick="labLoad()">Загрузить</button></div></div>
+
+    <div class="lab-b"><h2>1. Готовые ситуации</h2><p class="small muted">Нажми — демо соберётся заново. Под названием — что проверить</p>
+      <div class="lab-pre">${LAB_PRESETS.map(p=>`<button onclick="labPreset('${p.k}')"><b>${p.t}</b><small>${p.c}</small></button>`).join('')}</div></div>
+
+    <div class="lab-b"><h2>2. Время</h2>
+      <div class="lab-row"><button class="btn ghost" onclick="nextDay()">+1 день</button><button class="btn ghost" onclick="for(let i=0;i<7;i++) nextDay()">+1 неделя</button><button class="btn ghost" onclick="while(S.day%7) nextDay()">До понедельника</button></div>
+      <span class="lab-l">Сегодня — день недели</span>
+      <div class="lab-wd">${WD.map((x,i)=>`<button class="${S.day%7===i?'on':''}" onclick="labWeekday(${i})">${x}</button>`).join('')}</div>
+      ${rng('Дней в приложении',age,0,400,'labAge')}</div>
+
+    <div class="lab-b"><h2>3. Гость</h2>
+      ${tg('★ Подписка Кофейная+',S.plus,'labPlus')}
+      <div class="lab-wd">${TARIFFS.map(x=>`<button class="${S.tariff===x.k?'on':''}" onclick="setTariff('${x.k}')">${x.n}</button>`).join('')}</div>
+      ${rng('Посещений подряд',S.ser.n,0,400,'labSer')}
+      ${rng('Лучший результат',S.ser.best,S.ser.n,500,'labBest')}
+      <span class="lab-l">Эта неделя — нажимай на день: 🔥 был → ❄️ заморозка → ✕ пропуск</span>
+      <div class="lab-wk">${WD.map((x,i)=>{ const d=w*7+i, v=S.visits.includes(d), f=fd.has(d), fut=d>S.day;
+        return `<button class="${fut?'fut':v?'v':f?'f':d===S.day?'':'x'}" ${fut?'disabled':''} onclick="labCell(${i})"><i>${fut?'':v?'🔥':f?'❄️':d===S.day?'?':'✕'}</i>${x}</button>`; }).join('')}</div>
+      ${rng('Посещений на прошлой неделе',lw,0,7,'labLastWeek',` → ${Math.min(lw,PLUS_CAP)}%`)}
+      ${rng('Заморозок осталось в этом месяце',fzMonthLeft(),0,FZ_MONTH,'labFzMonth')}
+      ${t.vac?rng('Дней на отпуск осталось',fzVacLeft(),0,t.vac,'labFzVac'):''}
+      ${tg('Счётчик ждёт решения (пропустил неделю)',!!S.ser.pend,'labPend')}
+      <button class="btn ghost block" onclick="labBurn()">💔 Сжечь счётчик</button>
+      <div class="lab-grid">${num('Бонусы',S.bonus,'S.bonus')}${num('Депозит, ₽',S.wallet.money,'S.wallet.money')}${num('Кэшбэк, ₽',S.wallet.gift,'S.wallet.gift')}</div></div>
+
+    <div class="lab-b"><h2>4. Выгоды и подарки</h2>
+      <span class="lab-l">Предложение дня</span>
+      <div class="lab-wd">${[['shown','Показано'],['activated','Активировано'],['used','Использовано']].map(([k,n])=>`<button class="${S.offer&&S.offer.status===k?'on':''}" onclick="labOffer('${k}')">${n}</button>`).join('')}</div>
+      ${rng('Отметок 6-го у капучино',S.stamps[ID.cap]||0,0,5,'labStamp',' из 5')}
+      ${rng('День рождения через (дней)',bd.diff,-10,40,'labBd')}
+      ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
+      <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
+      <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
+      <span class="lab-l">Покупка на кассе (капучино на любую сумму)</span>
+      <div class="lab-buy"><input id="lab-sum" type="number" inputmode="numeric" value="150"><span>₽</span><label><input id="lab-bon" type="checkbox"> оплатить бонусами</label><button class="btn" onclick="labBuy()">Купить</button></div>
+      <p class="small muted" style="margin:0">Дважды «Купить» в один день — проверка «несколько чеков = один день». 149 ₽ — день не засчитается</p></div>
+
+    <div class="lab-row"><button class="btn ghost" onclick="openOnb()">Показать онбординг</button><button class="btn ghost" onclick="resetDemo()">Сбросить демо</button></div>
+  </section>`;
+}
+function labPlus(v){ labDo(()=>{ S.plus=v; S.plusSoon=false; }); }
+function labStamp(v){ labDo(()=>{ S.stamps[ID.cap]=v; }); }
+
 /* ===================== Рендер ===================== */
 function render(keep=true){
   const app=$('#app'), locked=document.documentElement.classList.contains('sheet-open'), y=locked?sheetY:scrollY;
@@ -2810,5 +3002,7 @@ function render(keep=true){
   if(tab==='menu') spy();
 }
 try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
+try{ const k=sessionStorage.getItem('labPreset'); if(k){ sessionStorage.removeItem('labPreset'); labApplyPreset(k); } }catch(e){}
 render(false);
+if(S.authed && !S.onb) setTimeout(openOnb,300);
 </script>
