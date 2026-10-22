@@ -789,7 +789,12 @@ img.ava{object-fit:cover}
 .dt .dv{font-family:var(--f-num);font-size:28px;line-height:1.1}
 .dt .ds{font-size:13px;color:var(--muted);line-height:1.3}
 .dt.wide{grid-column:1/-1}
-.dt.off{background:var(--blue);color:#f9f9f9;border-color:var(--blue)}.dt.off .label,.dt.off .ds{color:#f9f9f9;opacity:.85}
+/* Подписка в профиле (22.10): название жёлтое — «премиальное»; срок и цена — отдельной строкой другим цветом (это не выгода, а условие) */
+.dt .dv-gold{display:inline-flex;align-items:center;gap:8px;font-size:24px;color:#f2c230;text-shadow:0 0 14px rgba(242,194,48,.35)}.dt .dv-gold .star-y{width:22px;height:22px}
+.dt-when{margin-top:4px;padding:6px 10px;line-height:1.3;border-radius:10px;background:rgba(155,217,217,.16);color:#9bd9d9;font-size:13px;font-weight:600}
+.dt-when small{font-size:12px;font-weight:400;opacity:.9;padding-left:22px}
+.dt.on .dv-gold{color:#b08400;text-shadow:none}.dt.on .dt-when{color:var(--ink);background:var(--bg)}
+.dt.off{background:var(--prem);color:#f9f9f9;border-color:transparent}.dt.off .label,.dt.off .ds{color:#f9f9f9;opacity:.85}
 .dt.on{border:2px solid var(--blue)}
 .dt .pstat{font-size:13px;font-weight:700}.dt.on .pstat{color:#3fae79}
 .dt .pbtn{margin-top:6px;padding:8px 14px;border-radius:999px;background:#f9f9f9;color:var(--blue);font-weight:700;font-size:14px}.dt.on .pbtn{background:var(--blue);color:#f9f9f9}
@@ -2517,8 +2522,9 @@ function dashboard(){
     ${S.plus?'':`<div class="dash">
       <button class="dt wide ${S.plus?'on':'off'}"${F(13)} onclick="go('plus')">
         <span class="row between" style="width:100%"><span class="label">Подписка</span><span class="pstat">${S.plus?'● Активна':'○ Не подключена'}</span></span>
-        <span class="dv" style="font-size:22px">★ Кофейная+</span>
-        <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ${bd.set?`ДР −${bd.age}%`:'скидка в ДР = возраст'}. Действует до ${plusEndTxt()}.`:`Откроет цены недели, бонусы до 7% и скидку в день рождения = возраст. Бесплатно до ${FREE_UNTIL}, потом 99 ₽ в месяц.`}</span>
+        <span class="dv dv-gold">${STAR_Y}Кофейная+</span>
+        <span class="ds">${S.plus?`Цены недели, бонусы до 7%, ${bd.set?`ДР −${bd.age}%`:'скидка в ДР = возраст'}`:'Откроет цены недели, бонусы до 7% и скидку в день рождения = возраст'}</span>
+        <span class="dt-when">⏳ ${S.plus?`Действует до ${plusEndTxt()}`:`<b>Бесплатно до ${FREE_UNTIL}</b><br><small>потом 99 ₽ в месяц</small>`}</span>
         <span class="pbtn">${S.plus?'Управлять подпиской':'Подключить'}</span></button>
     </div>`}
     
