@@ -1444,7 +1444,7 @@ function makeOffer(){
     const full=byId(c).p+byId(p).p; o.comboPrice=Math.round(full*0.85/10)*10;
     o.title=`${byId(c).n} + ${byId(p).n.toLowerCase()}`; o.meta=`Вместе за ${rub(o.comboPrice)} вместо ${rub(full)}.`; }
   o.why = explore||!S.orders.length ? 'Пробуем новое: так приложение узнаёт, что вам нравится.' : `Вы часто берёте: ${CAT[o.cat]}. И чаще пользуетесь вариантом «${MECH[mech]}».`;
-  o.art = S.day % ARTS.length; o.bg = ARTS[o.art].bg; S.funnel.shown++;
+  o.art = S.day % ARTS.length; o.bg = ARTS[o.art].bg;   // «назначено» ≠ «показано»: показ считаем в home(), когда гость реально увидел карточку
   return o;
 }
 function makePrices(){
@@ -1555,9 +1555,9 @@ const ACH = [
 function checkAch(){ const got=[]; for(const a of ACH){ if(!S.ach[a.id] && a.test()){ S.ach[a.id]=true; got.push(a.t) } } return got; }
 
 /* ===================== Действия лояльности ===================== */
-function activate(){ if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано: сработает на кассе по QR и в заказе в приложении.'); } }
+function activate(){ if(!S.plus) return premGate('Предложение дня — только с ★ Кофейная+','Каждый день своя скидка только для тебя'); if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано: сработает на кассе по QR и в заказе в приложении.'); } }
 function offerToCart(){ activate(); const o=S.offer; if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render(); toast('Добавили в корзину. Скидка уже посчитана.'); }
-function openOffer(){ if(!S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
+function openOffer(){ if(S.plus && !S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
 function nextDay(){
   if(S.offer){ if(S.offer.status==='activated') learn(S.offer,'expired'); else if(S.offer.status==='shown') learn(S.offer, S.offer.opened?'ignored':'none'); }
   const w=weekOf(S.day); S.day++;
@@ -1763,6 +1763,8 @@ function openStory(i){ const s=STORIES[i]; sheet(`${s.img?`<img src="${s.img}" a
 
 function home(){
   const o=S.offer, wd=weekDays(weekOf(S.day)), visitedToday=S.visits.includes(S.day);
+  // показ засчитываем один раз и только если карточка видна (с подпиской она не под замком). Баг 22.10: без подписки было «Показано 2»
+  if(S.plus && o && !o.seen){ o.seen=true; S.funnel.shown++; save(); }
   const daysLeft=6-(S.day%7), bd=bdInfo();
   const status = {shown:'', activated:'<span class="ostat"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>Активировано</span>', used:'<span class="ostat used"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>Использовано сегодня</span>'}[o.status];
   const ready=SIXTH.filter(id=>S.stamps[id]>=5).length;
@@ -2534,10 +2536,10 @@ function dashboard(){
 function openHistory(){
   const f=S.funnel, mx=Math.max(1,f.shown);
   sheet(`<h2>История покупок</h2><p class="small muted">Только оплаченные покупки. Экономия — обычная цена минус то, что вы заплатили.</p>
-    <div class="hist">${S.orders.slice().reverse().map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
+    <div class="hist">${S.orders.length?'':'<p class="small muted" style="margin:0">Покупок пока нет — они появятся здесь после первой покупки на кассе или в приложении</p>'}${S.orders.slice().reverse().map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
       <span class="d">${fmt(o.day)} · ${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join('')}</div>
-    <div class="panel"><h3>Предложения дня</h3><div class="funnel">
-      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div></div>`);
+    <div class="panel"><h3>Предложения дня</h3>${f.shown?`<div class="funnel">
+      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div>`:`<p class="small muted" style="margin:0">${S.plus?'Пока не было — первое предложение ждёт на вкладке «Сегодня»':'Предложения дня приходят с ★ Кофейная+'}</p>`}</div>`);
 }
 
 /* Справочник «Как всё устроено» — пока схема, тексты допишем по указанию владельца */
@@ -2956,7 +2958,7 @@ function labApplyPreset(k){
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
     if(k==='new'){ Object.assign(S,{plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
-      weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:1,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
+      weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; SIXTH.forEach(id=>S.stamps[id]=0); S.offer=null; }
     if(k==='three'){ labLastWeek(3); S.visits=S.visits.filter(d=>weekOf(d)!==wk); if(S.day%7>0) S.visits.push(wk*7); S.ser.n=24; S.ser.best=30; }
     if(k==='g29'){ keep(); S.ser.n=29; S.ser.best=Math.max(29,S.ser.best); S.rw.miles={}; }
