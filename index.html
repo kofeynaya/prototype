@@ -335,6 +335,19 @@ html.onb-open{overflow:hidden}
 .ob-offer .ob-tag{font-size:12px;opacity:.75}.ob-offer b{font-size:26px;line-height:1.05}.ob-qr{align-self:flex-end;background:#fff;border-radius:12px;padding:6px;color:#212221}
 .ob-coin{display:flex;align-items:center;gap:14px;font-size:28px;font-weight:700}.ob-pay{padding:10px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
 .ob-got{display:inline-flex;align-items:center;gap:6px;color:#b08400}.ob-got .coin{width:26px;height:26px}.ob-arr{color:var(--muted)}
+.ob-why{font-size:13px;opacity:.7;margin-top:-4px}
+.ob-rhs{display:flex;flex-direction:column;gap:8px;width:100%;max-width:330px}
+.ob-cap{font-size:14px;color:var(--muted)}.ob-rhs .ob-cap:last-child{text-align:center;margin-top:6px}
+.ob-rh{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.ob-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1}
+.ob-days i{display:grid;place-items:center;aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-style:normal;font-size:14px}
+.ob-days i.v{border-color:#ff9100}
+.ob-eq{color:var(--muted);font-size:20px}.ob-rh b{font-size:24px;min-width:52px;text-align:right}
+.ob-rh.big{border:2px solid #2e9e5b;box-shadow:0 10px 24px -14px rgba(46,158,91,.8)}.ob-rh.big b{font-size:34px;color:#2e9e5b}
+.ob-tiers{display:flex;flex-direction:column;gap:8px;width:100%;max-width:330px}
+.ob-t{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px}
+.ob-t .ob-ti{font-size:26px}.ob-t .tx{flex:1;display:flex;flex-direction:column;gap:2px}.ob-t b{font-size:17px}.ob-t small{font-size:13px;opacity:.85;line-height:1.2}
+.ob-tf{font-weight:700;font-size:14px;white-space:nowrap}
 .ob-lad{width:310px}.ob-lad .ld-line{min-width:30px;height:3px}
 .star-y.ob-big{width:56px;height:56px}
 .ob-fire{display:flex;flex-direction:column;align-items:center}.ob-fl{font-size:64px;line-height:1}.ob-fire b{font-size:64px;line-height:1}.ob-fire small{color:var(--muted);font-size:15px}
@@ -2843,14 +2856,15 @@ function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,
 /* ===================== Онбординг (22.10, тексты согласованы с критиком) =====================
    4 экрана, одна мысль на экран; «Дальше» — крупная кнопка внизу, «Пропустить» — сверху. Показывается один раз после входа (S.onb) и из пульта */
 const ONB=[
-  {t:'Каждый день — своя скидка', s:'Покажи QR на кассе или закажи в приложении — скидка посчитается сама', prem:1,
-   art:()=>`<div class="ob-offer"><span class="ob-tag">Только для тебя · сегодня</span><b>Капучино −20%</b><span class="ob-qr">${IC.qr.replace('<svg','<svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="2"')}</span></div>`},
+  {t:'Персональная скидка — каждый день', s:'Приложение подбирает скидку под то, что ты любишь. Покажи QR на кассе или закажи в приложении — скидка посчитается сама', prem:1,
+   art:()=>`<div class="ob-offer"><span class="ob-tag">Подобрано для тебя · сегодня</span><b>Капучино −20%</b><small class="ob-why">Ты часто берёшь кофе</small><span class="ob-qr">${IC.qr.replace('<svg','<svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="2"')}</span></div>`},
+  // 22.10: вместо «100 ₽ → +3» (непонятно) — две недели рядом: больше 🔥 — больше %
   {t:'Ходишь чаще — получаешь больше', s:'3 дня на прошлой неделе = 3% бонусами с каждой покупки. 1 бонус = 1 ₽', prem:1,
-   art:()=>`<div class="ob-coin"><span class="ob-pay">100 ₽</span><span class="ob-arr">→</span><span class="ob-got">${COIN}+3</span></div>
-     <div class="ladder ob-lad"><span class="ld ok"><b>3</b><small>3%</small></span><i class="ld-line ok"></i><span class="ld ok"><b>4</b><small>4%</small></span><i class="ld-line"></i><span class="ld next"><b>5</b><small>🎁 сундук</small></span></div>`},
-  {t:'Считаем посещения подряд', s:'Приходи хотя бы 3 дня в неделю — счётчик не сгорит. Уезжаешь — заморозь ❄️', prem:1,
-   art:()=>`<div class="ob-fire"><span class="ob-fl">🔥</span><b class="money">12</b><small>посещений подряд</small></div>
-     <div class="ob-week">${['🔥','🔥','✕','❄️','🔥','',''].map((x,i)=>`<span class="${x==='✕'?'x':x?'v':''}"><i>${x}</i>${WD[i]}</span>`).join('')}</div>`},
+   art:()=>{ const wk=(n,pc,big)=>`<div class="ob-rh${big?' big':''}"><span class="ob-days">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<n?'v':''}">${i<n?'🔥':''}</i>`).join('')}</span><span class="ob-eq">=</span><b class="money">${pc}%</b></div>`;
+     return `<div class="ob-rhs"><span class="ob-cap">Был 2 дня на неделе</span>${wk(2,2)}<span class="ob-cap">Был 5 дней</span>${wk(5,5,1)}<span class="ob-cap">бонусами с каждой покупки на следующей неделе</span></div>`; }},
+  // 22.10: «в чём выгода?» — статусы и подарки, а не просто счётчик
+  {t:'Не прерывайся — получай больше', s:'Чем больше посещений подряд, тем выше статус и тем больше выгода. На 30, 50 и 100 посещений — подарок. Главное — хотя бы 3 дня в неделю', prem:1,
+   art:()=>`<div class="ob-tiers">${[['silver','🥈','Серебряный','бонусы с каждой покупки','старт'],['gold','🥇','Золотой','+1% к бонусам','🔥 30'],['plat','💎','Платиновый','+2% и напиток −50% каждую неделю','🔥 100']].map(([k,ic,n,v,f])=>`<div class="ob-t t-${k}"><span class="ob-ti">${ic}</span><span class="tx"><b>${n}</b><small>${v}</small></span><span class="ob-tf">${f}</span></div>`).join('')}</div>`},
   {t:`Всё это — бесплатно до ${FREE_UNTIL}`, s:'Потом 99 ₽ в месяц. Отменить можно в любой момент', last:1,
    art:()=>`<div class="ob-star">${STAR_Y.replace('star-y','star-y ob-big')}<b>Кофейная+</b></div>`},
 ];
