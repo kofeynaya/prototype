@@ -320,7 +320,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .bd-in{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;margin:8px 0}
 .nowrap{white-space:nowrap}
 @keyframes flashK{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f2c230}}.flash{animation:flashK 1.4s ease}
-.hl-today{background:linear-gradient(90deg,rgba(255,109,0,.85),rgba(255,79,154,.85),rgba(94,53,177,.85)) left 0 bottom .08em/100% .42em no-repeat;padding:0 .08em;border-radius:3px}
+.hl-today{position:relative;display:inline-block;color:#ff9100;isolation:isolate}   /* «сегодня» — аккуратное оранжевое свечение под словом (владелец 22.10: полоска — не то) */
+.hl-today::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-.15em;height:.75em;border-radius:50%;background:radial-gradient(closest-side,rgba(255,145,0,.75),rgba(255,145,0,0));filter:blur(5px);z-index:-1}
+:root:not([data-theme="dark"]) .hl-today{color:#e65c00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hl-today{color:#ff9100}}
 .lab-now{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line);font-size:13px}
 .lab-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .lab-b h2{font-size:20px}.lab-b p{margin:0}
@@ -1842,7 +1845,7 @@ function home(){
   ];
   return `<section class="screen">
     <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span></div>
-    <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение на&nbsp;<span class="hl-today">сегодня</span>. Завтра будет новое 😉</span></div>
+    <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение <span class="nowrap">на <span class="hl-today">сегодня</span></span>. Завтра будет новое 😉</span></div>
 
     ${PL_OPEN('Твоё предложение дня — с ★ Кофейная+','Каждый день своя скидка, подарок в день рождения и все выгоды приложения')}
     <article class="offer me" id="offer"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
