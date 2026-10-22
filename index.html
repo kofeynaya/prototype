@@ -2968,7 +2968,9 @@ function lab(){
   const num=(lbl,val,fn)=>`<label class="lab-n"><span>${lbl}</span><input type="number" inputmode="numeric" value="${Math.round(val)}" onchange="labDo(()=>{${fn}=Math.max(0,+this.value||0)})"></label>`;
   return `<section class="screen lab">${back()}
     <div class="stack" style="gap:4px"><span class="label">Только для теста</span><h1>⚙️ Пульт</h1><p class="small muted" style="margin:0">Собирай любую ситуацию и смотри, как выглядит приложение. Меняется сразу</p></div>
-    <div class="lab-now"><b>Сейчас</b><span>${labState()}</span><div class="row" style="gap:8px"><button class="btn ghost" onclick="labCopy()">Скопировать состояние</button><button class="btn ghost" onclick="labLoad()">Загрузить</button></div></div>
+    <div class="lab-now"><b>Что сейчас у гостя</b><span>${labState()}</span>
+      <p class="small muted" style="margin:0">Нашёл баг — нажми «Скопировать» и вставь в чат с Claude вместе со скриншотом: он откроет ровно эту ситуацию. «Загрузить» — открыть ситуацию, которую прислали тебе</p>
+      <div class="row" style="gap:8px"><button class="btn ghost" onclick="labCopy()">Скопировать</button><button class="btn ghost" onclick="labLoad()">Загрузить</button></div></div>
 
     <div class="lab-b"><h2>1. Готовые ситуации</h2><p class="small muted">Нажми — демо соберётся заново. Под названием — что проверить</p>
       <div class="lab-pre">${LAB_PRESETS.map(p=>`<button onclick="labPreset('${p.k}')"><b>${p.t}</b><small>${p.c}</small></button>`).join('')}</div></div>
