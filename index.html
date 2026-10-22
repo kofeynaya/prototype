@@ -1229,7 +1229,8 @@ const MODES = {delivery:'Доставка', pickup:'Самовывоз', table:'
    Без подписки максимум FREE_CAP%, с подпиской — PLUS_CAP%. День засчитывается от MIN_DAY ₽ покупок за день. */
 const FREE_CAP = 0, PLUS_CAP = 7, MIN_DAY = 150; // решение владельца 22.10: все выгоды — только с Премиум (★ Кофейная+)
 const BD_FREE = 0, BD_CAP = 1500;
-const REF_REWARD = 500, REF_DAYS = 3, REF_HOLD = 7;
+const REF_REWARD = 1000, REF_DAYS = 3, REF_HOLD = 7;
+const REF_T = REF_REWARD.toLocaleString('ru-RU');   // «1 000» — для текстов
 const TOPUPS = [{sum:3000,gift:150},{sum:5000,gift:400},{sum:10000,gift:1000}];
 // подарок за любую сумму: от 3 000 — 5%, от 5 000 — 8%, от 10 000 — 10%
 const giftPct = sum => sum>=10000?10:sum>=5000?8:sum>=3000?5:0;
@@ -1247,6 +1248,7 @@ const rubk = n => (+n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFr
    Работает на всём тексте приложения автоматически (наблюдатель за DOM). */
 const NB='\u00A0', TYPO_SHORT='(?:(?!(?:бы|ли|же)(?![А-ЯЁа-яё]))[А-ЯЁа-яё]{1,2}|без|для|при|про|над|под|изо|обо|что|как|или|это|ещё|еще|все|всё|так|уже|где|кто|чем|чтобы|если|когда|всего)';
 const TYPO_RX=[
+  [/([.!?…]) ([А-ЯЁA-Z][а-яёa-z]{0,8}) (?=\S)/g,'$1 $2'+NB],                // «…вкус. Каждый день» — «Каждый» уходит вниз вместе со следующим словом
   [/(\d)[ \u202F](?=\d{3}(?!\d))/g,'$1'+NB],                                  // 12 269 — разряды не разрываются
   [/(\d)[ \u202F](₽|%|руб\.?|бонус)/g,'$1'+NB+'$2'],                          // 320 ₽, 30 %, 64 бонуса
   [/([+−\-–]) (?=\d)/g,'$1'],
@@ -1578,7 +1580,7 @@ function nextDay(){
   const gone=S.rw.gifts.filter(g=>!g.used&&!g.gone&&g.until<S.day); gone.forEach(g=>g.gone=true);
   if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>GIFT_KIND[g.kind].t.toLowerCase()).join(', ')}.`;
   if(S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week<weekOf(S.day)-1) S.rw.chest.open='gone';
-  for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_REWARD} бонусов.`; } }
+  for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_T} бонусов.`; } }
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
 function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
@@ -1588,7 +1590,7 @@ function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
   f.days.push(S.day);
-  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}, затем начислим ${REF_REWARD} бонусов.`,4500); }
+  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}, затем начислим ${REF_T} бонусов.`,4500); }
   else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
   save(); render();
 }
@@ -1774,7 +1776,7 @@ function home(){
   const perks=[
     {power:true},
     {n:12, t:'День рождения', s:!bd.set?'Скидка = возраст<br>Укажи дату':bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
-    {n:15, t:`+${REF_REWARD} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
+    {n:15, t:`+${REF_T} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
   return `<section class="screen">
@@ -2392,7 +2394,7 @@ function progress(){
     ${giftsBlock()}
     ${pwLink()}
     <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
-    ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">🎁</span><span class="tx"><b>Пригласи друга — +${REF_REWARD} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
+    ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">🎁</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
     <div class="tstack">
       ${tcard('pr-ritm',1,'Твой ритм = твои бонусы',rhythm(),'tk-mint')}
       ${tcard('pr-six',2,'Каждый 6-й — на 30% дешевле',`<div class="panel"${F(11)}>${stampsBlock(false)}</div>`,'tk-grey')}
@@ -2419,7 +2421,7 @@ function powerAll(){
     {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ${FZ_MONTH} заморозки в месяц`, no:`Открывает все выгоды: бонусы до ${PLUS_CAP}%, цены недели, депозит. Бесплатно до ${FREE_UNTIL}`, btn:"go('plus')"},
     {ic:'🪙', t:'Платить бонусами', on:spent,                           yes:'Оплачиваешь бонусами часть чека',            no:`У тебя ${S.bonus} бонусов = ${S.bonus} ₽. Оплати ими до 30% чека`, btn:"go('menu')"},
     {ic:'🎂', t:'День рождения',    on:!!(S.birth&&S.birth.d),          yes:'Дата указана — скидка будет',               no:'Укажи дату — в день рождения скидка = возраст',  btn:"go('birthday')"},
-    {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_REWARD} ₽ тебе и другу`,                  btn:"go('invite')"},
+    {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_T} ₽ тебе и другу`,                  btn:"go('invite')"},
   ];
 }
 // Спидометр: полукруг, заполнен на pct% (неоновая дуга со свечением)
@@ -2571,7 +2573,7 @@ const RULES=[
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
   ['Каждый 6-й −30%','Капучино, Цезарь, круассан, маффин: пять отметок — шестой со скидкой.'],
   ['День рождения','Скидка в процентах, равная возрасту (с подпиской) — ±7 дней от даты.'],
-  ['Пригласи друга','По '+REF_REWARD+' ₽ бонусами вам и другу.'],
+  ['Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу.'],
   ['Депозит','Пополняете депозит — получаете кэшбэк: 5% от 3 000 ₽, 8% от 5 000 ₽, 10% от 10 000 ₽. Оплата с баланса на кассе.'],
   ['Подписка Кофейная+','Цены недели, бонусы до 7%, скидка в ДР. Бесплатно до '+FREE_UNTIL+', потом 99 ₽/мес.'],
   ['Как скидки сочетаются','На одну позицию — одна лучшая скидка. Поверх — бонусы и депозит.'],
@@ -2599,7 +2601,7 @@ function profile(){
       ${row('pin','Мои адреса',"openMode('delivery')")}
       ${row('user','Мои данные',"go('birthday')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
-      ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_REWARD} ₽</small>`,15)}
+      ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
@@ -2671,14 +2673,14 @@ function ownCalc(){ const v=Math.round(+document.getElementById('own').value||0)
 function invite(){
   const fr=S.ref.friends;
   return `<section class="screen">${back()}
-    <div class="stack"${F(15)}><span class="label">Пригласить друга</span><h1>+${REF_REWARD} ₽ вам и другу</h1>
-      <p class="muted small">Друг получает ${REF_REWARD} ₽ бонусами на первую покупку. Вы — ${REF_REWARD} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня и пройдёт проверка.</p></div>
+    <div class="stack"${F(15)}><span class="label">Пригласить друга</span><h1>+${REF_T} ₽ вам и другу</h1>
+      <p class="muted small">Друг получает ${REF_T} ₽ бонусами на первую покупку. Вы — ${REF_T} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня и пройдёт проверка.</p></div>
     <div class="stack" style="gap:6px"><span class="label">Ваша ссылка</span>
       <div class="copyrow"><code id="reflink">${refLink()}</code><button class="btn" style="padding:10px 14px" onclick="copyText(refLink())">Копировать</button></div></div>
     <div class="stack"><h3>Ваши друзья</h3>
       ${fr.map((f,i)=>{ if(f.blocked) return `<div class="friend"><div class="row between"><strong>${f.name}</strong><span class="chip" style="color:var(--warn)">отклонён</span></div><div class="fsteps">${'<span class="bad"></span>'.repeat(5)}</div><span class="small muted">${f.blocked}</span></div>`;
         const steps=[true, f.days.length>=1, f.days.length>=2, f.days.length>=3, f.paid];
-        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_REWARD} начислено</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
+        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} начислено</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
         return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div><div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
           <span class="small muted">Регистрация по СМС → покупка в 3 разных дня → 7 дней проверки → бонусы вам</span>
           ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">Демо: ${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
@@ -2702,16 +2704,16 @@ function birthday(){
 function plus(){
   // решение владельца 22.10: бесплатно — только заказ и QR; все выгоды — с Премиум
   // 22.10: у каждой строки — подпись простыми словами, в чём выгода; справа — только короткая цифра (без непонятных галочек)
-  const rows=[['☀️','Персональное предложение дня','Скидка, подобранная под твой вкус. Каждый день новая',''],
-    ['🏷️','Свои цены недели','Ниже обычной цена на то, что ты любишь — всю неделю',''],
-    ['🪙','Бонусы с покупки','Чем чаще ходишь, тем больше процент','до '+PLUS_CAP+'%'],
+  const rows=[['☀️','Персональное предложение дня','Скидка, подобранная под твой вкус|Каждый день новая',''],
+    ['🏷️','Свои цены недели','Цена ниже обычной на то, что ты любишь|Держится всю неделю',''],
+    ['🪙','Бонусы с покупки','Чем чаще ходишь|Тем больше процент','до '+PLUS_CAP+'%'],
     ['☕','Каждый 6-й','Капучино, круассан, маффин, Цезарь','−30%'],
-    ['🎂','День рождения','7 дней до и 7 дней после','= возраст'],
-    ['💰','Депозит с кэшбэком','Пополняешь — получаешь деньги сверху','до 10%'],
-    ['🔥','Посещения подряд','Ходишь без перерыва — растёт статус: +1%, +2% и напиток −50%',''],
-    ['🎁','Сундук с призом','За неделю, где 5 и больше посещений',''],
-    ['❄️','Заморозка','Пропустил день — посещения подряд не сгорят',FZ_MONTH+' дня в месяц'],
-    ['👫','Пригласи друга','Бонусы тебе и другу','+'+REF_REWARD]];
+    ['🎂','День рождения','Скидка = возраст|7 дней до и 7 дней после',''],
+    ['💰','Депозит с кэшбэком','Пополняешь депозит|Получаешь деньги сверху','до 10%'],
+    ['🔥','Посещения подряд','Ходишь без перерыва|Бонусы растут: +1%, потом +2%|И −50% на напиток каждую неделю',''],
+    ['🎁','Сундук с призом','Неделя, где 5 и больше посещений|Внутри случайный приз',''],
+    ['❄️','Заморозка','Пропустил день|Посещения подряд не сгорят',FZ_MONTH+' дня|в месяц'],
+    ['👫','Пригласи друга','Бонусы тебе и другу','+'+REF_T]];
   return `<section class="screen">${back()}
     <div class="bday plus-hero"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">${STAR_Y.replace('star-y','star-y hero')}Кофейная+</span>
       <span>${S.plus?`Подключена до ${plusEndTxt()}.`:`Бесплатно для всех до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`}</span></div>
@@ -2719,7 +2721,7 @@ function plus(){
     <div class="panel"><strong>Как получить скидки</strong>
       <div class="howto">${[['1','Нажми «Подключить»',`Бесплатно до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`],['2','Открываются все скидки ★','Предложение дня, цены недели, бонусы, скидка в день рождения'],['3','Покажи QR на кассе','Или закажи в приложении — скидка посчитается сама']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
     <div class="pk-box"><div class="pk-h">${STAR_Y}<b>Только с Кофейная+</b></div>
-      ${rows.map(([ic,t,d,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}<small>${d}</small></span>${v?`<span class="pk-v">${v}</span>`:''}</div>`).join('')}</div>
+      ${rows.map(([ic,t,d,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}<small>${d.split('|').join('<br>')}</small></span>${v?`<span class="pk-v">${v.split('|').join('<br>')}</span>`:''}</div>`).join('')}</div>
     <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b>${t.k==='m'?'<span class="tf-m">в месяц</span>':(()=>{ const pm=Math.round(t.p/(t.k==='h'?6:12)), off=Math.round((1-pm/TARIFFS[0].p)*100); return `<span class="tf-m good">${rub(pm)} в месяц</span><span class="tf-off">выгода ${off}%</span>`; })()}<span class="tf-l">❄️ Заморозка</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+${t.vac} дней ❄️<br>на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
     <div class="tf-note small muted"><p>Пропустил день — посещения подряд не сгорят</p><p>Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт</p><p>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p></div>
     <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
@@ -2794,7 +2796,7 @@ const LEGEND = [
  [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Сегодня», «Профиль → Мои данные»',"go('birthday')"],
  [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 7%, ДР = возраст. Бесплатно до '+FREE_UNTIL+'.','«Профиль» → Мои выгоды (статус), плитка на «Сегодня», значки ★',"go('profile')"],
  [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
- [15,'#f50057','Пригласи друга','По 500 ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Сегодня» (плитка), «Профиль»',"go('invite')"],
+ [15,'#f50057','Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Сегодня» (плитка), «Профиль»',"go('invite')"],
  [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Сегодня»',"go('home')"],
  [17,'#3d5afe','Меню как на сайте','Разделы с часами работы, фото, фильтр «Новое / Хит / Выбор шефа».','«Меню»',"go('menu')"],
  [18,'#64dd17','Карточка блюда','Размер, молоко, сиропы, посуда — как на сайте. Закрывается крестиком.','«Меню» → любое блюдо',"openProduct(ID.cap)"],
