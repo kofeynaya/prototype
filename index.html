@@ -290,8 +290,8 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .pk{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--line)}
 .pk:last-child{border-radius:0 0 18px 18px}
 .pk-ic{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:10px;background:var(--bg);font-size:18px}
-.pk-t{flex:1;font-size:15px;font-weight:600}
-.pk-v{font-size:14px;font-weight:700;color:#5e35b1;white-space:nowrap}
+.pk-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600}.pk-t small{font-size:12.5px;font-weight:400;color:var(--muted);line-height:1.25}
+.pk-v{font-size:14px;font-weight:700;color:#5e35b1;text-align:right;max-width:84px;line-height:1.2}
 .pk-ck{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--prem)}
 .pk-ck svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
@@ -2700,8 +2700,17 @@ function birthday(){
 }
 function plus(){
   // решение владельца 22.10: бесплатно — только заказ и QR; все выгоды — с Премиум
-  const rows=[['☀️','Предложение дня','каждый день своё'],['🏷️','Цены недели','только для тебя'],['🪙','Бонусы с покупки','до '+PLUS_CAP+'%'],['☕','Каждый 6-й','−30%'],['🎂','День рождения','скидка = возраст'],['💰','Депозит с кэшбэком','до 10%'],['🔥','Счётчик, статусы, сундук',''],['❄️','Пропуск без потерь',FZ_MONTH+' дня в месяц'],['🎁','Пригласи друга','+'+REF_REWARD+' бонусов']];
-  const CHK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+  // 22.10: у каждой строки — подпись простыми словами, в чём выгода; справа — только короткая цифра (без непонятных галочек)
+  const rows=[['☀️','Персональное предложение дня','Скидка, подобранная под твой вкус. Каждый день новая',''],
+    ['🏷️','Свои цены недели','Ниже обычной цена на то, что ты любишь — всю неделю',''],
+    ['🪙','Бонусы с покупки','Чем чаще ходишь, тем больше процент','до '+PLUS_CAP+'%'],
+    ['☕','Каждый 6-й','Капучино, круассан, маффин, Цезарь','−30%'],
+    ['🎂','День рождения','7 дней до и 7 дней после','= возраст'],
+    ['💰','Депозит с кэшбэком','Пополняешь — получаешь деньги сверху','до 10%'],
+    ['🔥','Посещения подряд','Ходишь без перерыва — растёт статус: +1%, +2% и напиток −50%',''],
+    ['🎁','Сундук с призом','За неделю, где 5 и больше посещений',''],
+    ['❄️','Заморозка','Пропустил день — посещения подряд не сгорят',FZ_MONTH+' дня в месяц'],
+    ['👫','Пригласи друга','Бонусы тебе и другу','+'+REF_REWARD]];
   return `<section class="screen">${back()}
     <div class="bday plus-hero"${F(13)}>${blob('rgba(249,249,249,.12)',0)}<span class="label" style="color:#f9f9f9;opacity:.8">Подписка</span><span class="big">${STAR_Y.replace('star-y','star-y hero')}Кофейная+</span>
       <span>${S.plus?`Подключена до ${plusEndTxt()}.`:`Бесплатно для всех до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`}</span></div>
@@ -2709,7 +2718,7 @@ function plus(){
     <div class="panel"><strong>Как получить скидки</strong>
       <div class="howto">${[['1','Нажми «Подключить»',`Бесплатно до ${FREE_UNTIL}<br><span class="nowrap">Потом 99 ₽ в месяц</span>`],['2','Открываются все скидки ★','Предложение дня, цены недели, бонусы, скидка в день рождения'],['3','Покажи QR на кассе','Или закажи в приложении — скидка посчитается сама']].map(([n,t,d])=>`<div class="hw"><span class="tile">${n}</span><span><b>${t}</b><br><span class="small muted">${d}</span></span></div>`).join('')}</div></div>
     <div class="pk-box"><div class="pk-h">${STAR_Y}<b>Только с Кофейная+</b></div>
-      ${rows.map(([ic,t,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}</span>${v?`<span class="pk-v">${v}</span>`:`<span class="pk-ck">${CHK}</span>`}</div>`).join('')}</div>
+      ${rows.map(([ic,t,d,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}<small>${d}</small></span>${v?`<span class="pk-v">${v}</span>`:''}</div>`).join('')}</div>
     <div class="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b><span class="tf-m">${t.k==='m'?'в месяц':`${rub(Math.round(t.p/(t.k==='h'?6:12)))} в месяц`}</span><span class="tf-l">❄️ Заморозка</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+${t.vac} дней ❄️<br>на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
     <p class="small muted" style="margin:-6px 0 0;text-align:center">Пропустил день — посещения подряд не сгорят. Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт.<br>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p>
     <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
