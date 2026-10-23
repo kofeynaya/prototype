@@ -1209,7 +1209,7 @@ img.ava{object-fit:cover}
 .sheet.sr-sheet{min-height:86%}
 .srch-bar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 16px;border-radius:999px;background:var(--surface);border:1.5px solid var(--line);color:var(--muted);font-size:16px;text-align:left}
 .srch-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.pv-br{display:none}@media (max-width:360px){.pv-br{display:inline}.pv-sp{display:none}}
+@media (max-width:360px){.privi .plus-on{font-size:10px;padding:5px 8px 5px 6px;gap:4px}.privi .plus-on svg{width:14px;height:14px}}@media (max-width:340px){.privi .plus-on{font-size:9px;padding:4px 6px 4px 5px}}   /* плашка всегда в две строки (владелец 23.10: три — перебор) */
 .srch-bar svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;flex:none}
 .app.glass .srch-bar{background:var(--glass-bg);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%)}
 .search svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
@@ -2003,7 +2003,7 @@ function menu(){
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
     <button class="srch-bar" onclick="openSearch()">${IC.search}<span>Найти блюдо, скидку или ответ</span></button>
     <div class="panel privi"${F(8)}>
-      <div class="privi-head"><div class="stack" style="gap:2px"><span class="privi-name">${S.name},</span><h3>это твои персональные цены этой недели</h3></div>${PLUS_ON.replace('Привилегия подписчиков Премиум','<span>Привилегия<br>подписчиков<span class="pv-sp"> </span><br class="pv-br">Премиум</span>')}</div>
+      <div class="privi-head"><div class="stack" style="gap:2px"><span class="privi-name">${S.name},</span><h3>это твои персональные цены этой недели</h3></div>${PLUS_ON.replace('Привилегия подписчиков Премиум','<span>Привилегия<br>подписчиков Премиум</span>')}</div>
       ${S.plus ? `<div class="hscroll">${S.prices.map(p=>{const m=byId(p.item);return `<div class="rec" onclick="openProduct('${m.id}')">${photo(m)}<span class="nm">${m.n}</span>${pillHtml(m)}</div>`}).join('')}</div>` : locked(S.prices.slice(0,2).map(priceRow).join(''),'Сниженные цены — только для вас',`Ниже обычной цены на ${S.prices.length} ${plural(S.prices.length,'ваше любимое блюдо','ваших любимых блюда','ваших любимых блюд')}. Доступно только с подпиской&nbsp;★&nbsp;Кофейная+`)}
     </div>
     ${pwLink()}
