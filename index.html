@@ -321,7 +321,8 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .nowrap{white-space:nowrap}
 @keyframes flashK{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f2c230}}.flash{animation:flashK 1.4s ease}
 .hl-today{position:relative;display:inline-block;color:#ff9100;isolation:isolate}   /* «сегодня» — оранжевое слово + контрастное фиолетовое свечение под ним (владелец 22.10: полоска — не то, оранжевое на оранжевом — перебор) */
-.hl-today::before{content:"";position:absolute;left:-8%;right:-8%;bottom:-.2em;height:.85em;border-radius:50%;background:radial-gradient(closest-side,rgba(142,92,255,1),rgba(94,53,177,0));filter:blur(5px);z-index:-1}
+.hl-today::before{content:"";position:absolute;left:-14%;right:-14%;top:-.15em;bottom:-.2em;border-radius:50%;background:radial-gradient(closest-side,rgba(142,92,255,.95),rgba(142,92,255,.55) 55%,rgba(94,53,177,0));filter:blur(6px);z-index:-1}
+.h-tom{display:block;text-align:right}   /* «Завтра будет новое» — своей строкой, по правому краю (владелец 23.10) */
 :root:not([data-theme="dark"]) .hl-today{color:#e65c00}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hl-today{color:#ff9100}}
 .plus-go{align-self:flex-start;margin-top:10px;padding:10px 18px;border-radius:999px;background:#f9f9f9;color:#2b2b93;font-weight:700;font-size:15px}
@@ -1198,7 +1199,7 @@ img.ava{object-fit:cover}
 .ostat.used{background:#212221;box-shadow:none}.ostat.used svg{background:#f9f9f9;stroke:#212221}
 .hello{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px}
 .hello .hname{font-family:var(--f-num);font-size:40px;line-height:1;color:var(--ink)}
-.hello .hsub{font-size:19px;line-height:1.25;font-weight:600;max-width:330px}
+.hello .hsub{font-size:19px;line-height:1.25;font-weight:600;align-self:stretch}.hello .h-main{display:block;max-width:330px}
 .privi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .privi-name{font-family:'Dela Gothic One',sans-serif;font-size:30px;line-height:1.05;color:#f9f9f9}
 .privi .plus-on{flex:none;max-width:118px;white-space:normal;font-size:11px;line-height:1.2;text-align:left}
@@ -1932,7 +1933,7 @@ function home(){
   ];
   return `<section class="screen">
     <div class="topbar"><span class="logo" style="width:130px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span><button class="softbtn" onclick="openSearch()" aria-label="Поиск">${IC.search}</button></div>
-    <div class="hello"><span class="hname">${S.name},</span><span class="hsub">это твоё персональное предложение <span class="nowrap">на <span class="hl-today">сегодня</span></span>. Завтра будет новое 😉</span></div>
+    <div class="hello"><span class="hname">${S.name},</span><span class="hsub"><span class="h-main">это твоё персональное предложение <span class="nowrap">на <span class="hl-today">сегодня</span></span></span><span class="h-tom">Завтра будет новое 😉</span></span></div>
 
     ${PL_OPEN('Твоё предложение дня — с ★ Кофейная+','Каждый день своя скидка, подарок в день рождения и все выгоды приложения')}
     <article class="offer me" id="offer"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
