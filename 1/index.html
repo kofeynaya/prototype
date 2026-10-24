@@ -1288,6 +1288,12 @@ img.ava{object-fit:cover}
 .bon-big{display:flex;align-items:center;gap:12px;font-size:20px}.bon-big .coin{width:44px;height:44px}.bon-big b{font-size:34px;font-family:var(--f-num)}
 .lb-gift{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none;background:rgba(214,38,79,.1)}
 span.lb-gift{background:none}
+/* 24.10: подарок в рейтинге — не голая иконка, а кнопка со словом; посещения — под именем */
+.lb-who{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.lb-who .st{font-size:13px;font-weight:600;color:var(--muted)}
+.lb-who .nm{white-space:normal;overflow:visible;line-height:1.15}
+.lb-give{flex:none;display:inline-flex;align-items:center;gap:4px;padding:8px 12px;border-radius:999px;background:#ecccce;color:#212221;font-weight:700;font-size:14px;white-space:nowrap;box-shadow:0 2px 8px rgba(214,38,79,.25)}
+.lb-give:active{transform:scale(.96)}
 .lbr .st::before{display:none}
 .lbr{cursor:pointer}
 
@@ -2893,12 +2899,12 @@ function cropDraw(){ const c=CROP, k=c.base*c.z, w=c.im.width*k, h=c.im.height*k
 function cropSave(){ const c=CROP, k=c.base*c.z, n=256, cv=document.createElement('canvas'); cv.width=cv.height=n;
   cv.getContext('2d').drawImage(c.im,-c.x/k,-c.y/k,c.S/k,c.S/k,0,0,n,n); S.photo=cv.toDataURL('image/jpeg',.85); save(); closeSheet(); render();
   toast('Фото сохранено. Его видят гости в «У кого больше посещений».'); }
-function lbRow(g,i){ return `<div class="lbr ${g.me?'me':''}" role="button" tabindex="0" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s}</span>${g.me?'<span class="lb-gift" aria-hidden="true"></span>':`<button class="lb-gift" aria-label="Подарить ${g.n}" onclick="event.stopPropagation();giftGuestOpen('${g.id}')">🎁</button>`}</div>`; }
+function lbRow(g,i){ return `<div class="lbr ${g.me?'me':''}" role="button" tabindex="0" onclick="${g.me?`toast('Это ты! Не дай счётчику сгореть 🔥')`:`openGuest('${g.id}')`}"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="lb-who"><span class="nm">${g.n}${g.me?' · ты':''}</span><span class="st">🔥 ${g.s} подряд</span></span>${g.me?'':`<button class="lb-give" onclick="event.stopPropagation();giftGuestOpen('${g.id}')">🎁 Подарить</button>`}</div>`; }
 function giftGuestOpen(id){ if(!S.plus) return openGift(); const g=GUESTS.find(x=>x.id===id); openGift({to:{key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}}); }
 // 24.10: рейтинг переехал из «Турбо» в профиль — строка «🏆 Твой рейтинг», полный список в окне
 function lbLead(){ const all=lbAll(), r=all.findIndex(g=>g.me), above=r>0?all[r-1]:null, gap=above?above.s-S.ser.n+1:0;
   return r<0?`Ты скрыт из рейтинга`:r===0?`<b>Ты на 1-м месте! 👑</b> Не сбавляй`:`До <b>${r}-го места</b> — ${gap} ${plural(gap,'посещение','посещения','посещений')} подряд<br>Впереди — ${above.n}, 🔥 ${above.s}`; }
-function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Нажми на гостя — можно написать ему<br>🎁 — подарить бонусы или блюдо</p>
+function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Нажми на гостя — можно написать ему<br>«Подарить» — отправить бонусы или блюдо</p>
     <p class="lb-lead">${lbLead()}</p>
     <div class="lb">${lbAll().map(lbRow).join('')}</div>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
