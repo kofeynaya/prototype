@@ -1028,6 +1028,7 @@ img.ava{object-fit:cover}
 .tk>.rhythm,.tk>.panel{background:transparent;border:0;padding:0;box-shadow:none}
 .tk .rhythm{padding-bottom:10px}
 .tk-mint{--tkbg:#a7d2b9;--ink:#172f28;--muted:#3f5d50;--line:rgba(23,47,40,.12);--surface:rgba(255,255,255,.35);color:var(--ink)}
+.rh-left{margin:-4px 0 0;font-size:14px;color:var(--muted)}.rh-left b{color:var(--ink)}   /* вместо загадочного «осталось 1 день» (владелец 24.10) */
 .tk-mint .rh-prize{background:rgba(255,255,255,.4)}
 .tk-mint .rh-prize .pv{color:#8a6400}
 .tk-pink{--tkbg:#ecccce;--ink:#382d2b;--muted:#6e5552;--line:rgba(56,45,43,.16);--surface:rgba(255,255,255,.45);color:var(--ink)}   /* «Каждый 6-й» — нежно-розовая (фирменный #ecccce): серая на тестах выглядела неактивной (владелец 24.10) */
@@ -2380,7 +2381,8 @@ function rhythm(){
     <div class="rh-row">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     ${!S.plus?`<p class="rh-foot" style="text-align:right">★ — с подпиской Кофейная+</p>`:''}
     <div class="rh-mood ${mood}">${moodFace(mood)}<p class="rh-msg">${msg}</p></div>
-    <div class="rh-stat"><span>Сейчас <b>${now}%</b></span><span class="ar">→</span><span>с понедельника <b>${next}%</b></span><span class="lf">${left?`осталось ${left} ${D(left)}`:'последний день недели'}</span></div>
+    <div class="rh-stat"><span>Сейчас <b>${now}%</b></span><span class="ar">→</span><span>с понедельника <b>${next}%</b></span></div>
+    ${next<cap?`<p class="rh-left">${!left?`Неделя заканчивается<br>С понедельника будет <b>${next}%</b>`:left===1?`Приди ${today?'в воскресенье':'сегодня'}<br>и с понедельника будет <b>${pc(cur+1)}%</b>`:`До воскресенья можно прийти ещё ${timesTxt(left)}<br>и с понедельника будет до <b>${pc(cur+left)}%</b>`}</p>`:''}
     <p class="rh-foot">День засчитывается, если покупок за день на ${MIN_DAY} ₽ и больше. Два чека в один день — это один день.</p>
   </div>`;
 }
