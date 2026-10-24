@@ -1416,6 +1416,13 @@ span.lb-gift{background:none}
 .app.glass .tabs.t3 button[aria-current="page"]{background:none!important;box-shadow:none!important;color:var(--tab-on);font-weight:700}
 .app.glass .tabs.t3 button[aria-current="page"] svg{stroke:var(--tab-on)}
 .tabs.t3 .turbotab:not([aria-current="page"]) .ring{filter:saturate(.75) brightness(.92)}
+
+/* Эксперимент 24.10: карточка уровня стыкуется с «01 Твой ритм» тем же фигурным выступом; блок «Акции» и «Пригласи друга» убраны (друг — в сторис) */
+.tk-stc{padding:0;background:none}
+.tk-stc .stc{position:relative;z-index:2}
+.tk-stc .tk-bulge{z-index:3}
+.t-silver-tail{--tkbg:#c6cbd1}.t-gold-tail{--tkbg:#e3bc76}.t-plat-tail{--tkbg:#36384a}   /* цвет низа карточки уровня по центру */
+.tk-stc+.tk{margin-top:8px}
 </style>
 
 <div class="app" id="app"></div>
@@ -2174,10 +2181,9 @@ const INV_POP=()=>`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=
 // Всё, что было во вкладке «Турбо», — продолжением того же экрана
 function turboBody(){ return `
     ${PL_OPEN('Турбо — только с ★ Кофейная+','Счётчик посещений, уровень, бонусы за ритм, каждый 6-й до −50%, сундук и подарки')}
-    ${serHead()}
-    <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
-    ${S.day>=(S.invNext||0)?INV_POP():''}
+    ${serHead(true)}
     <div class="tstack">
+      ${(()=>{ const st=serState(), k=tierOf(S.ser.n).k; return `<div class="tk tk-stc t-${k}-tail">${TK_BULGE}${statusCard(st)}</div>`; })()}
       ${tcard('pr-ritm',1,'Твой ритм = твои бонусы',rhythm(),'tk-mint')}
       ${tcard('pr-six',2,'Каждый 6-й — дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
@@ -2570,14 +2576,14 @@ const TIERS=[{k:'silver',n:'Серебряный',to:'Серебряного',fr
 const tierOf=n=>TIERS.filter(t=>n>=t.from).pop();
 const TIER_TXT={silver:'Бонусы за ритм', gold:'+1% к бонусам', plat:'+2% к бонусам и напиток −50% каждую неделю'};
 // Шапка «Турбо» (как панель в Дуолинго): лучший · посещения подряд · место — закреплена при прокрутке
-function serHead(){
+function serHead(noCard){   // noCard — в эксперименте /1/ карточка уровня стоит первой в стопке и стыкуется с «Твоим ритмом»
   const st=serState(), rank=lbRank();
   return `<div class="ser-pin dash-pin ser ${st.k}">
       <button class="dp-side" onclick="toast('${S.ser.best?`Твой рекорд — ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Он не сгорает. Побьёшь?`:'Рекорда пока нет. Приходи — и он начнёт расти'}')"><b>👑 ${S.ser.best}</b><small>мой рекорд<br>подряд</small></button>
       <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><span class="ser-num"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><b class="money">${S.ser.n}</b></span><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></button>
       <button class="dp-side" onclick="openLb()"><b>🏆 ${rank}</b><small>место<br>среди гостей</small></button>
     </div>
-    ${statusCard(st)}`;
+    ${noCard?'':statusCard(st)}`;
 }
 // Карточка статуса — цвет по статусу; внизу — эта неделя и что сделать, чтобы счётчик не сгорел
 function statusCard(st){
