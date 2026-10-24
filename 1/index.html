@@ -1446,6 +1446,31 @@ span.lb-gift{background:none}
 .rh-tip{display:flex;gap:10px;align-items:flex-start;margin:0!important;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.55);color:var(--ink)!important;font-size:14px}
 .rh-tip .rt-ic{font-size:20px;line-height:1}
 .rh-bul{margin:0;padding-left:18px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+
+/* «Твой ритм» компактно (эксперимент 24.10) */
+.rh2{gap:12px}
+.rh3{display:flex;align-items:stretch;gap:4px}
+.rh3>i{align-self:center;font-style:normal;font-weight:700;opacity:.6}
+.r3{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:8px 8px 7px;border-radius:14px;background:rgba(255,255,255,.4);text-align:center;align-items:center}
+.r3 span{font-size:11px;line-height:1.15;color:var(--muted)}
+.r3 b{font-family:var(--f-num);font-weight:400;font-size:24px;line-height:1.1}
+.r3 small{font-size:11px;color:var(--muted)}
+.r3.now{background:linear-gradient(135deg,#ff6d00,#d6264f 55%,#8e24aa);color:#fff}.r3.now span,.r3.now small{color:rgba(255,255,255,.85)}
+.r3.nxt{background:transparent;border:2px dashed rgba(23,47,40,.45)}
+.rh-row2{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.rc2{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.rc2 b{width:100%;height:30px;border-radius:9px;background:rgba(23,47,40,.12);display:grid;place-items:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden}
+.rc2.nx b{font-size:9.5px;color:#d6264f;border:2px solid #d6264f;background:rgba(255,255,255,.5)}
+@media (prefers-reduced-motion:no-preference){.rc2.nx b{animation:rcPulse 1.4s ease-in-out infinite}}
+@keyframes rcPulse{50%{transform:scale(1.08)}}
+.rc2.f b{background:rgba(255,255,255,.75)}
+.rc2 em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}.rc2.f em{color:var(--ink)}.rc2.lock b{opacity:.5}
+.rh-hint{display:flex;gap:10px;align-items:center;margin:0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.55);font-size:14px;line-height:1.3}
+.rh-hint .fc{font-size:24px}
+.rh-cond{margin:0;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.rh-q{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font-size:12px;font-weight:700;color:inherit;display:grid;place-items:center}
+
+@media (max-width:360px){.rh3>i{font-size:12px;margin:0 -1px}.r3 span{font-size:9.5px;letter-spacing:-.1px}.r3{padding:7px 3px}.r3 b{font-size:21px}.rc2.nx .nx-l{display:none}.rc2.nx b{font-size:16px}}
 </style>
 
 <div class="app" id="app"></div>
@@ -2515,35 +2540,33 @@ const moodFace=k=>`<svg class="mface" viewBox="0 0 40 40" role="img" aria-label=
 // заливка дней: одна тёплая гамма, с каждым днём ярче и горячее
 const RH_HEAT=['#fde3cf','#fcc9a2','#fbac74','#f98d4b','#f56a32','#ea4a3c','#d6264f'];
 function rhythm(){
+  /* Эксперимент 24.10 (с критиком): карточка вдвое ниже без потери правил — «тройная система» прошлая неделя → сейчас → с понедельника,
+     ряд 1%…7% (каждый визит закрашивает ячейку, третья ячейка растёт вместе с рядом), одна строка-подсказка со смайликом, условия — мелко и по «?» */
   const cur=weekDays(weekOf(S.day)), last=lastWeekDays(), cap=rateCap(), now=rate(), dow=S.day%7, today=S.visits.includes(S.day);
-  const left=7-dow-(today?1:0), D=n=>plural(n,'день','дня','дней'), keep=Math.min(last,7), next=Math.min(cur,cap), pc=n=>Math.min(n,cap);
-  const need=Math.max(0,keep-cur);
-  // настроение: грустим, только когда прошлую неделю уже точно не догнать
-  let mood, msg;
-  if(cur>keep){ mood='joy'; msg=`<b>Лучше, чем на прошлой неделе!</b> ${next<cap?`Каждый новый день — ещё +1%.`:`Это максимум — ${cap}%.`}`; }
-  else if(cur===keep){ mood='happy'; msg=cur?`<b>Уже как на прошлой неделе!</b> ${cur<cap?`Ещё день — и будет ${pc(cur+1)}%.`:`Это максимум — ${cap}%.`}`:`<b>Новая неделя!</b> Приходи сегодня — и с понедельника будет 1%.`; }
-  else if(need>left){ mood='sad'; msg=`<b>Эх…</b> На прошлой неделе ты был ${keep} ${D(keep)}, на этой неделе уже не догнать. Но каждый день ещё добавляет +1%.`; }
-  else if(need===left||need>=left-1&&dow>=3){ mood='worry'; msg=`<b>Поднажми!</b> Ещё ${need} ${D(need)} с покупкой до воскресенья — и сохранишь ${pc(keep)}%.`; }
-  else { mood='calm'; msg=cur?`Ещё <b>${need} ${D(need)}</b> — и будет как на прошлой неделе: ${pc(keep)}%.`:`<b>Новая неделя!</b> Набери ${keep} ${D(keep)} с покупкой — и сохранишь ${pc(keep)}%.`; }
-  const pos=Math.max(1,cur);
-  const cell=n=>{ const f=n<=cur, star=n>cap, h=RH_HEAT[n-1];
-    return `<span class="rc ${f?'f':''} ${star&&!f?'lock':''}">${n===pos?`<i class="rider">${moodFace(mood)}</i>`:''}<b style="${f?`background:${h};color:${n>=4?'#fff':'#212221'}`:''}">${n}</b><em>${star?'★':''}${n}%</em></span>`; };
-  return `<div class="rhythm"${F(5)}>
-    <div class="rh-now">
-      <div class="rh-f"><span class="rh-k">На прошлой неделе</span><span class="rh-v"><b class="money">${last}</b> ${D(last)}</span></div>
-      <span class="rh-eq">=</span>
-      <div class="rh-f pct"><span class="rh-k">Бонусы сейчас</span><span class="rh-v"><b class="money">${now}%</b></span><span class="rh-k">с каждой покупки</span></div>
+  const left=7-dow-(today?1:0), D=n=>plural(n,'день','дня','дней'), next=Math.min(cur,cap);
+  let face, l1, l2='';
+  if(next>=cap){ face='🎉'; l1=cur>=7?`Все 7 дней — максимум ${cap}%`:`Это максимум — ${cap}%`; l2='Держи так же'; }
+  else if(!cur&&!now){ face='😊'; l1='Новая неделя!'; }
+  else if(next>now){ face='😊'; l1=`Уже ${next}% — больше, чем сейчас`; }
+  else if(next===now){ face='🙂'; l1=`Уже ${next}%, как сейчас`; }
+  else { face='😟'; l1=`Пока ${next}% вместо ${now}%`; }
+  if(next<cap) l2 = left ? `Приходи ${today?'завтра':'сегодня'} — будет ${next+1}%` : 'Неделя заканчивается';
+  const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
+    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
+  return `<div class="rhythm rh2"${F(5)}>
+    <div class="rh3">
+      <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
+      <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
+      <div class="r3 nxt"><span>С понедельника</span><b class="money">${next}%</b><small>${next<cap?'растёт':'максимум'}</small></div>
     </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
-    <p class="rh-lead">Сколько дней наберёшь на этой неделе — столько % будет со следующего понедельника.</p>
-    <div class="rh-row">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
-    ${!S.plus?`<p class="rh-foot" style="text-align:right">★ — с подпиской Кофейная+</p>`:''}
-    <div class="rh-mood ${mood}">${moodFace(mood)}<p class="rh-msg">${msg}</p></div>
-    <div class="rh-tab"><div><span>Сейчас</span><b class="money">${now}%</b></div><span class="ar">→</span><div class="nx"><span>С понедельника</span><b class="money">${next}%</b></div></div>
-    ${next<cap?`<p class="rh-left rh-tip"><span class="rt-ic">💡</span><span>${!left?`Неделя заканчивается<br>С понедельника будет <b>${next}%</b>`:left===1?`Приди ${today?'в воскресенье':'сегодня'}<br>и с понедельника будет <b>${pc(cur+1)}%</b>`:`До воскресенья можно прийти ещё ${timesTxt(left)}<br>и с понедельника будет до <b>${pc(cur+left)}%</b>`}</span></p>`:''}
-    <ul class="rh-bul"><li>День засчитывается от ${MIN_DAY} ₽ покупок</li><li>Два чека в один день — один день</li></ul>
+    <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
+    <p class="rh-hint"><span class="fc">${face}</span><span><b>${l1}</b>${l2?`<br>${l2}`:''}</span></p>
+    <p class="rh-cond">День засчитывается от ${MIN_DAY} ₽ покупок <button class="rh-q" onclick="openRhRules()" aria-label="Подробнее">?</button></p>
   </div>`;
 }
+function openRhRules(){ sheet(`<h2>📈 Твой ритм</h2><p>Сколько разных дней ты заходил на прошлой неделе — столько процентов бонусов получаешь с каждой покупки на этой</p>
+  <ul class="rl-list"><li>День засчитывается от ${MIN_DAY} ₽ покупок</li><li>Два чека в один день — один день</li><li>Считаем дни с понедельника по воскресенье</li><li>Больше ${PLUS_CAP}% не бывает</li></ul><button class="btn block" onclick="closeSheet()">Понятно</button>`); }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
 /* ---------- Серия 🔥: шапка «Турбо» (как верхняя панель Дуолинго) ---------- */
 const FLAME_P='M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2-6-1-12 2-17z';
