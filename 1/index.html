@@ -1423,6 +1423,11 @@ span.lb-gift{background:none}
 .tk-stc .tk-bulge{z-index:3}
 .t-silver-tail{--tkbg:#c6cbd1}.t-gold-tail{--tkbg:#e3bc76}.t-plat-tail{--tkbg:#36384a}   /* цвет низа карточки уровня по центру */
 .tk-stc+.tk{margin-top:8px}
+
+/* без подсветки-прямоугольника при нажатии на разделы таб-бара (владелец 24.10) */
+.tabs.t3 button{-webkit-tap-highlight-color:transparent;outline:none}
+.app.glass .tabs.t3 button:active,.app.glass .tabs.t3 button:focus,.app.glass .tabs.t3 button:focus-visible{background:none!important;background-image:none!important;box-shadow:none!important;transform:none}
+.tabs.t3 .turbotab:active .ring{transform:scale(.94)}
 </style>
 
 <div class="app" id="app"></div>
