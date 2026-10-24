@@ -1341,6 +1341,14 @@ span.lb-gift{background:none}
 .six-how .sx-note{margin:-4px 0 0;font-size:12.5px;color:var(--muted)}
 .sx-off.new{background:#2e9e5b;color:#fff}
 .sx-off.old{background:#00657f;color:#fff}
+
+/* Смахнуть блюдо влево — «Убрать» (владелец 24.10) */
+.sw-wrap{position:relative;border-radius:16px;overflow:hidden}
+.sw-del{position:absolute;right:0;top:0;bottom:0;width:120px;padding-left:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#e53935;color:#fff;font-weight:700;font-size:14px;border-radius:16px}
+.sw-del svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sw-wrap>.stamp{position:relative;z-index:1;touch-action:pan-y;transition:transform .25s ease;background:linear-gradient(var(--tint),var(--tint)),var(--bg);user-select:none;-webkit-user-select:none}
+.tk-pink .sw-wrap{box-shadow:0 6px 18px rgba(56,45,43,.14)}.tk-pink .sw-wrap>.stamp{background:#fff;box-shadow:none}
+.sw-tip{margin:2px 0 0;font-size:12.5px;color:var(--muted);text-align:center}
 </style>
 
 <div class="app" id="app"></div>
@@ -2006,6 +2014,29 @@ function setSix(i,id){ const cur=S.six.slots[i];
   if(cur&&cur.n>0){ if(S.six.swap[i]!=null&&S.day-S.six.swap[i]<7) return toast('Менять блюдо с отметками можно раз в неделю'); S.six.swap[i]=S.day; }
   const nw=!boughtWithin(id,SIX_NEW_WINDOW); S.six.slots[i]={id,n:0,isNew:nw,last:S.day}; closeSheet(); save(); render();
   toast(`${byId(id).n}: копишь на −${nw?50:20}%. Купи 5 раз — шестое дешевле`); }
+/* Убрать блюдо из «Каждого 6-го» (владелец 24.10): смахнуть плашку влево → красная «Убрать» → ячейка снова пустая.
+   Отметки при этом сгорают; если отметки были — действует то же правило, что и при замене: раз в неделю (иначе «убрал-поставил» обходит лимит) */
+function removeSix(i){ const sl=S.six.slots[i]; if(!sl) return; const m=byId(sl.id), n=Math.min(5,sl.n);
+  if(n>0 && S.six.swap[i]!=null && S.day-S.six.swap[i]<7){ swClose(); return toast('Убирать или менять блюдо с отметками можно раз в неделю'); }
+  if(!n) return doRemoveSix(i);
+  sheet(`<h2>Убрать ${m.n}?</h2><p>${n>=5?`Шестое со скидкой уже ждёт тебя — <b>скидка пропадёт</b>`:`<b>${n} ${plural(n,'отметка сгорит','отметки сгорят','отметок сгорят')}</b> — копить придётся заново`}</p>
+    <button class="btn block" style="background:#e53935;border-color:#e53935;color:#fff" onclick="doRemoveSix(${i})">Убрать</button><button class="btn ghost block" onclick="closeSheet();swClose()">Оставить</button>`); }
+function doRemoveSix(i){ const sl=S.six.slots[i]; if(!sl) return; const nm=byId(sl.id).n; if(sl.n>0) S.six.swap[i]=S.day;
+  S.six.slots[i]=null; closeSheet(); save(); render(); toast(`<b>${nm} убран</b><br>Ячейка свободна — выбери другое блюдо`); }
+// Смахивание: тянем плашку пальцем, отпустили дальше середины — открыта кнопка «Убрать». Вертикальная прокрутка не мешает
+const SW_W=96; let swS=null;
+function swClose(w){ (w?[w]:document.querySelectorAll('.sw-wrap.open')).forEach(x=>{ x.classList.remove('open'); const st=x.querySelector('.stamp'); if(st){ st.style.transition=''; st.style.transform=''; } }); }
+document.addEventListener('pointerdown',e=>{ document.querySelectorAll('.sw-wrap.open').forEach(w=>{ if(!w.contains(e.target)) swClose(w); });
+  const st=e.target.closest('.sw-wrap>.stamp'); if(!st) return; swS={st,x:e.clientX,y:e.clientY,dx:0,base:st.parentNode.classList.contains('open')?-SW_W:0,drag:false,id:e.pointerId}; });
+document.addEventListener('pointermove',e=>{ if(!swS||e.pointerId!==swS.id) return; const dx=e.clientX-swS.x, dy=e.clientY-swS.y;
+  if(!swS.drag){ if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ swS.drag=true; try{ swS.st.setPointerCapture(e.pointerId); }catch(_){} swS.st.style.transition='none'; } else if(Math.abs(dy)>8){ swS=null; return; } else return; }
+  swS.dx=dx; const v=Math.max(-SW_W*1.25,Math.min(0,swS.base+dx)); swS.st.style.transform=`translateX(${v}px)`; });
+document.addEventListener('pointerup',e=>{ if(!swS) return; const s0=swS; swS=null;
+  if(!s0.drag){ if(s0.base){ swClose(s0.st.parentNode); s0.st.dataset.noclick=1; setTimeout(()=>delete s0.st.dataset.noclick,50); } return; }
+  const open=s0.base+s0.dx < -SW_W/2, w=s0.st.parentNode; s0.st.style.transition=''; s0.st.style.transform=open?`translateX(${-SW_W}px)`:''; w.classList.toggle('open',open);
+  s0.st.dataset.noclick=1; setTimeout(()=>delete s0.st.dataset.noclick,50); });
+document.addEventListener('pointercancel',()=>{ if(swS){ swS.st.style.transition=''; swS.st.style.transform=swS.base?`translateX(${-SW_W}px)`:''; swS=null; } });
+document.addEventListener('click',e=>{ const st=e.target.closest('.sw-wrap>.stamp'); if(st&&st.dataset.noclick){ e.preventDefault(); e.stopPropagation(); } },true);
 // Блок «Каждый 6-й»: 3 ячейки, у новичка — пустые («Выбрать блюдо»), чужих блюд нет
 function stampsBlock(){
   const ai=sixAI();
@@ -2019,12 +2050,13 @@ function stampsBlock(){
     ${[0,1,2].map(i=>{ const sl=S.six.slots[i];
       if(!sl) return `<button class="stamp empty" onclick="openSixPick(${i})"><span class="six-plus">+</span><span class="tx"><b>Выбрать блюдо</b><small>Новое −50%, привычное −20%</small></span></button>`;
       const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+GIFT_DAYS-S.day:0;
-      return `<div class="stamp k-${k}${ready?' ready':''}">
+      return `<div class="sw-wrap" data-i="${i}"><button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button><div class="stamp k-${k}${ready?' ready':''}">
         <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
         <span class="six-badge ${sl.isNew?'nw':''}">${sl.isNew?'Новое':'Привычное'} −${pct}%</span>
         <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button></div>
         <span class="hint">${ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
-        ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки обнулятся':''}</button>`}</div>`; }).join('')}</div>`;
+        ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки обнулятся':''}</button>`}</div></div>`; }).join('')}
+    ${S.six.slots.some(Boolean)?'<p class="sw-tip">← Смахни блюдо влево, чтобы убрать его</p>':''}</div>`;
 }
 // Баннеры-истории — с сайта kofeynaya.ru (картинки), плюс две свои — про лояльность
 const STORIES = [
