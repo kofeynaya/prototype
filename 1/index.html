@@ -282,6 +282,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .bday .big{font-family:var(--f-num);font-size:44px;line-height:1}
 .bday .blob{width:160px;height:160px;right:-40px;top:-50px}
 .bday > *:not(.blob){position:relative}
+.bd-lockline{font-weight:700;color:#5e35b1}
+.bday .bd-with{font-weight:700;font-size:15px;color:#ffd54f}
+.bday .bd-age{font-size:20px;font-weight:700}
+.bday .bd-go{align-self:flex-start;margin-top:4px;padding:10px 20px;border-radius:999px;background:#ffd54f;color:#212221;font-weight:700;font-size:16px}
 .blob{position:absolute;pointer-events:none}
 .topups{display:flex;flex-direction:column;gap:10px}
 .ownsum{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:var(--r);border:1.5px dashed var(--line);background:var(--surface)}
@@ -2108,13 +2112,20 @@ function demoBar(){
     <button class="lab-btn" onclick="go('lab')" aria-label="Пульт для теста">⚙️ Пульт</button></div>`;
 }
 function bdBanner(){
+  // 24.10, с критиком: без подписки скидки нет — не пишем «−0%», а честно: «С Кофейная+ −33% / Сейчас скидки нет» + Подключить
   const bd=bdInfo(); if(!bd.active) return '';
-  const when = bd.diff>0 ? `через ${bd.diff} ${plural(bd.diff,'день','дня','дней')}` : bd.diff<0 ? `был ${-bd.diff} ${plural(-bd.diff,'день','дня','дней')} назад` : 'сегодня!';
-  return `<button class="bday"${F(12)} style="text-align:left;width:100%" onclick="go('birthday')">${blob('rgba(249,249,249,.12)',1)}
-    <span class="label" style="color:#f9f9f9;opacity:.8">День рождения ${when}</span>
-    <span class="big">−${bd.pct}%</span>
-    <span>На всё до ${fmtDate(bd.to)} — на кассе и в заказе<br>${S.plus?`Скидка = ваш возраст: ${bd.age}`:`С Кофейная+ было бы −${bd.age}%`}</span>
-    ${S.birth.verified?'':'<span class="small" style="opacity:.85">Перед первой покупкой бариста проверит документ.</span>'}</button>`;
+  const when = bd.diff>0 ? `День рождения через ${bd.diff} ${plural(bd.diff,'день','дня','дней')}` : bd.diff<0 ? `День рождения был ${-bd.diff} ${plural(-bd.diff,'день','дня','дней')} назад` : 'С днём рождения! 🎉';
+  const age = bd.diff>0 ? `Скоро ${bd.age} — скидка ${bd.age}%` : `Тебе ${bd.age} — скидка ${bd.age}%`;
+  return `<button class="bday"${F(12)} style="text-align:left;width:100%" onclick="go('${S.plus?'birthday':'plus'}')">${blob('rgba(249,249,249,.12)',1)}
+    <span class="label" style="color:#f9f9f9;opacity:.85">${when}</span>
+    ${S.plus?'':`<span class="bd-with">★ С Кофейная+</span>`}
+    <span class="big">−${bd.age}%</span>
+    ${S.plus?`<span class="bd-age">${age}</span>
+    <span>На всё меню до ${fmtDate(bd.to)}<br>До ${rub(BD_CAP)} скидки в день</span>
+    ${S.birth.verified?'':'<span class="small" style="opacity:.85">Перед первой покупкой бариста проверит документ</span>'}`
+    :`<span class="bd-age">Сейчас скидки нет</span>
+    <span class="bd-go">★ Подключить</span>
+    <span class="small" style="opacity:.85">Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц</span>`}</button>`;
 }
 /* «Каждый 6-й»: отметки в виде самих блюд — стаканчик, тарелка, круассан, кусочек торта */
 const K='stroke="#212221" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"';
@@ -2204,7 +2215,7 @@ function home(){
   // ряд «самое выгодное» — все механики лояльности одним взглядом
   const perks=[
     {power:true},
-    {n:12, t:'День рождения', st:bd.active?`ДР −${bd.pct}%`:'День рождения', s:!bd.set?'Скидка = возраст<br>Укажи дату':bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
+    {n:12, t:'День рождения', st:bd.active&&S.plus?`ДР −${bd.pct}%`:'День рождения', s:!bd.set?'Скидка = возраст<br>Укажи дату':bd.active?(S.plus?`Сейчас −${bd.pct}%`:'★ С Кофейная+'):`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
     {n:15, t:`+${REF_T} ₽ за друга`, st:`+${REF_T} ₽<br>за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.friends},
     {n:13, t:'Кофейная+', st:S.plus?'Кофейная+<br>подключена':'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
@@ -3326,7 +3337,7 @@ function profile(){
   return `<section class="screen">
     <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:56px;overflow:hidden"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
       <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}${S.orders.length?'<span class="n">3</span>':''}</button></div></div>
-    ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок. Ваша скидка −${bd.pct}% уже работает.</span></div>`:''}
+    ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
     <div class="stack"${F(7)}><h2>Достижения</h2>
       <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
@@ -3425,11 +3436,9 @@ function invite(){
 function birthday(){
   const bd=bdInfo(), b=S.birth;
   return `<section class="screen">${back()}
-    <div class="stack"${F(12)}><div class="row between"><span class="label">День рождения</span>${PLUS}</div><h1>Скидка = ваш возраст</h1>
-      <p class="muted small">7 дней до и 7 дней после — на всё меню, на кассе и в заказах, до ${rub(BD_CAP)} скидки в день.</p></div>
+    <div class="stack"${F(12)}><div class="row between"><span class="label">День рождения</span>${PLUS}</div><h1>Скидка в день рождения</h1></div>
     ${!bd.set?`<div class="panel"><strong>Когда у тебя день рождения?</strong><input id="bd-in" type="date" class="bd-in" max="${isoOf(S.day)}"><button class="btn block" onclick="setBirth()">Сохранить</button><span class="small muted">Указать можно один раз. Скидка начнёт работать, если до дня рождения больше 30 дней</span></div>`
-      :bd.active?bdBanner():`<div class="panel"><div class="row between"><span>Ближайший день рождения</span><strong>${fmtDate(bd.date)}</strong></div><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}.`}</span></div>`}
-    <div class="panel"><div class="cmp"><span class="h"></span><span class="h y">Бесплатно</span><span class="h y">★ Кофейная+</span><span>Скидка</span><span class="y">${BD_FREE}%</span><span class="y">${bd.set?bd.age+'% (возраст)':'= возраст'}</span></div></div>
+      :bd.active?bdBanner():`<div class="panel"><strong>Твой день рождения — ${fmtDate(bd.date)}</strong><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка ${bd.age}% с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}<br>До ${rub(BD_CAP)} скидки в день`}</span>${S.plus?'':`<span class="bd-lockline">★ Только с Кофейная+</span><button class="btn" style="align-self:flex-start" onclick="go('plus')">Подключить</button><span class="small muted">Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц</span>`}</div>`}
     ${bd.set?`<div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
       <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
       <ul class="rules"><li>Дату можно указать один раз. Изменить — через поддержку.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>`:''}
