@@ -667,6 +667,8 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .sup-in{position:sticky;bottom:0;display:flex;gap:8px;padding:8px 0 4px;background:var(--bg)}
 .sup-in input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
 .sup-go{width:46px;height:46px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:22px;font-weight:700;flex:none}.sup-go:disabled{background:var(--line);color:var(--muted)}
+.toast.sup-toast{background:linear-gradient(120deg,#ad1457,#ff4f9a);border-color:rgba(255,255,255,.35);box-shadow:inset 5px 0 0 #ecccce,0 10px 28px rgba(214,38,79,.45);display:flex;align-items:center;justify-content:space-between;gap:10px}   /* ответ поддержки — розовый, не сливается с обычными (владелец 24.10) */
+.toast.sup-toast .toast-btn{color:#ad1457;margin-left:0;flex:none}
 .toast-btn{margin-left:10px;padding:5px 12px;border-radius:999px;background:#f9f9f9;color:#0d553f;font-weight:700;font-size:14px}
 .note{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);text-align:left;width:100%}.note .ni{font-size:22px}.note .tx{flex:1;display:flex;flex-direction:column}.note small{color:var(--muted)}
 .note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
@@ -2997,7 +2999,7 @@ function supReply(){ if(S.sup.pend) return; if(supNight()){ S.sup.pend={k:S.sup.
 function supAnswer(k){ S.sup.msgs.push({me:false,t:SUP_ANS[k],tm:supTime()},{k:'rate'}); S.sup.state='answered'; S.sup.pend=null;
   const open=!!document.getElementById('suplist');
   if(!open){ S.sup.unread++; S.notes.unshift({k:'sup',t:'💬 Поддержка ответила',s:SUP_ANS[k].split('|')[0],day:S.day,tm:supTime(),read:0}); }
-  save(); if(open) drawSup(); else { render(); toast(`<span>💬 Поддержка ответила</span><button class="toast-btn" onclick="openSupport()">Открыть</button>`,6000); } }
+  save(); if(open) drawSup(); else { render(); toast(`<span>💬 Поддержка ответила</span><button class="toast-btn" onclick="openSupport()">Открыть</button>`,6000,'sup-toast'); } }
 function supMorning(){ if(S.sup.pend){ const k=S.sup.pend.k; S.sup.pend=null; S.sup.nightDemo=false; setTimeout(()=>supAnswer(k),900); } }
 function supRate(i){ const st=S.sup.state;
   if(st==='resolved') return `<div class="sup-note">Спасибо! Рады помочь 😊</div>`;
