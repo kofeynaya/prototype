@@ -324,6 +324,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .demo .lab-btn{margin-left:auto}
 .learn-empty{display:flex;gap:12px;align-items:center}.learn-empty span{font-size:28px}.learn-empty p{margin:0}
 .bd-in{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;margin:8px 0}
+/* iOS Safari рисует поле даты своей шириной и вылезает за панель — сбрасываем системный вид */
+.bd-in,.ben-dates input{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;box-sizing:border-box;min-height:46px;font-family:inherit;text-align:center}
+.bd-in::-webkit-date-and-time-value,.ben-dates input::-webkit-date-and-time-value{text-align:center;margin:0}
+.ben-dates input{min-height:36px}
 .nowrap{white-space:nowrap}
 @keyframes flashK{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px #f2c230}}.flash{animation:flashK 1.4s ease}
 .hl-today{position:relative;display:inline-block;color:#ff9100;isolation:isolate}   /* «сегодня» — оранжевое слово + контрастное фиолетовое свечение под ним (владелец 22.10: полоска — не то, оранжевое на оранжевом — перебор) */
