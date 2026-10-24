@@ -2909,7 +2909,7 @@ function giftGuestOpen(id){ if(!S.plus) return openGift(); const g=GUESTS.find(x
 // 24.10: рейтинг переехал из «Турбо» в профиль — строка «🏆 Твой рейтинг», полный список в окне
 function lbLead(){ const all=lbAll(), r=all.findIndex(g=>g.me), above=r>0?all[r-1]:null, gap=above?above.s-S.ser.n+1:0;
   return r<0?`Ты скрыт из рейтинга`:r===0?`<b>Ты на 1-м месте! 👑</b> Не сбавляй`:`До <b>${r}-го места</b> — ${gap} ${plural(gap,'посещение','посещения','посещений')} подряд<br>Впереди — ${above.n}, 🔥 ${above.s}`; }
-function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Нажми на гостя — познакомься и напиши ему 👋</p>
+function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Чтобы познакомиться и написать — нажми на гостя 👋</p>
     <div class="lb">${lbAll().map(lbRow).join('')}</div>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
     <p class="rh-foot">В прототипе гости вымышленные. В приложении — только те, кто сам согласился показывать себя</p>`); }
