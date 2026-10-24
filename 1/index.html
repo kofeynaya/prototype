@@ -2043,7 +2043,7 @@ function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=tp.card==='saved'?S.ca
   save(); render();
   sheet(`<div class="tp tp-res"><div class="tp-ic ok">✓</div><h2>Готово! 🎉</h2>
     <div class="tp-big money">+${rub(sum)}</div><span class="muted">на депозите</span>
-    ${g?`<div class="tp-cb"><b class="money">+${rub(g)} кэшбэк</b><span>${cbEq(g).replace(/^= /,'Это ')}</span></div>`:''}
+    ${g?`<div class="tp-cb"><b class="money">+${rub(g)} кэшбэк</b><span>${cbEq(g).replace(/^≈\s/,'Это примерно ')}</span></div>`:''}
     <div class="panel tp-sum"><div class="row between"><span>Теперь на балансе</span><b class="money">${rub(walletTotal())}</b></div>
       <div class="row between small muted"><span>Карта</span><span>${card}</span></div>
       <div class="row between small muted"><span>Когда</span><span>${fmtDate(dateOf(S.day))}, ${now.toTimeString().slice(0,5)}</span></div>
@@ -3479,9 +3479,9 @@ function wallet(){
     ${bankCard(true)}
     <div class="stack"><h3>Пополнить и получить кэшбэк</h3>
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span>
-        <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
+        <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
       <button class="btn ghost block" onclick="openTopup();setTimeout(()=>document.getElementById('own')?.focus(),50)">Своя сумма</button>
-      <p class="hint">Демо: нажатие на сумму имитирует оплату картой.</p></div>
+      <p class="hint">Демо: деньги с карты не списываются.</p></div>
     ${PL_CLOSE()}
     <button class="btn ghost" style="width:100%" onclick="openStatement()">Выписка по операциям</button>
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Деньги лежат на балансе, как на счёте в банке. Видно до копейки.</li><li>Платите с баланса на кассе по QR и в заказах в приложении.</li><li>Сначала списываются деньги, потом кэшбэк.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li></ul></div>
@@ -3503,10 +3503,10 @@ function bankCard(big){
     </div>
   </div>`;
 }
-// Кэшбэк в понятных вещах (владелец 24.10): «+150 ₽ = эспрессо бесплатно ☕» — по настоящим ценам меню (обычная цена, без персональных скидок)
+// Кэшбэк в понятных вещах (владелец 24.10): знак ≈ «примерно», не «=» — «+150 ₽ ≈ эспрессо бесплатно ☕» — по настоящим ценам меню (обычная цена, без персональных скидок)
 function cbEq(g){ const cap=byId('i023'), esp=byId('i019'); if(!cap||!esp) return '';
   const n=Math.floor(g/cap.p);
-  return n>=1?`= ${n} капучино бесплатно ☕`:g>=esp.p?'= эспрессо бесплатно ☕':''; }
+  return n>=1?`≈\u00a0${n} капучино бесплатно ☕`:g>=esp.p?'≈\u00a0эспрессо бесплатно ☕':''; }
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше кэшбэк.</p>
   <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
   <div class="ownsum"><label for="own">Своя сумма</label><div class="ownrow"><input id="own" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 20 000" oninput="ownCalc()"><span>₽</span></div><span class="ownhint" id="ownhint">Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%</span><button class="btn block" id="ownbtn" disabled onclick="topUpSum(document.getElementById('own').value)">Пополнить</button></div>
