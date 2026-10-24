@@ -636,6 +636,40 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+/* Поддержка */
+.inl-link{display:inline;padding:0;font:inherit;color:#7cc9a2;text-decoration:underline;text-underline-offset:3px}
+.badge-n,.tab-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e53935;color:#fff;font-size:12px;font-weight:700;font-style:normal}
+.tabs button{position:relative}.tab-dot{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;font-size:11px}
+.sup{display:flex;flex-direction:column;gap:12px;min-height:100%}
+.sup-h{display:flex;align-items:center;gap:12px;padding-right:48px}.sup-h span{display:flex;flex-direction:column}.sup-h b{font-size:20px}.sup-h small{color:var(--muted);font-size:13px;line-height:1.3}
+.sup-ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0d553f,#00657f);display:grid;place-items:center;font-size:20px;flex:none}
+.smsg .sup-ava{width:30px;height:30px;font-size:15px}
+.sup-list{flex:1;display:flex;flex-direction:column;gap:10px}
+.smsg{display:flex;gap:8px;align-items:flex-end;max-width:88%}.smsg.me{align-self:flex-end}
+.smsg .sb{padding:10px 13px;border-radius:16px 16px 16px 4px;background:var(--surface);border:1px solid var(--line);font-size:15px;line-height:1.35;display:flex;flex-direction:column;gap:3px}
+.smsg.me .sb{border-radius:16px 16px 4px 16px;background:#0d553f;border-color:#0d553f;color:#f9f9f9}
+.smsg .sb small{font-size:11px;opacity:.65;align-self:flex-end}
+.smsg.fail .sb{background:transparent;border:1px dashed #e53935;color:var(--ink)}
+.sup-retry{margin-top:4px;color:#e53935;font-size:13px;font-weight:600;text-align:left}
+.typing{flex-direction:row!important;align-items:center;gap:4px!important;color:var(--muted)}
+.typing i{width:5px;height:5px;border-radius:50%;background:currentColor;animation:tpDot 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tpDot{0%,100%{opacity:.25}50%{opacity:1}}
+.sup-q{margin:6px 0 0}
+.sup-topics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sup-topics button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);font-weight:700;font-size:15px;text-align:left}
+.sup-topics button span{font-size:24px;line-height:1}
+.sup-orders{display:flex;flex-wrap:wrap;gap:8px;padding-left:38px}
+.sup-orders button{display:flex;flex-direction:column;padding:9px 12px;border-radius:12px;border:1.5px solid #2e9e5b;text-align:left}.sup-orders small{color:var(--muted);font-size:12px}
+.sup-note{align-self:center;text-align:center;font-size:14px;color:var(--muted);padding:6px 12px}
+.sup-rate{display:flex;align-items:center;gap:8px;padding-left:38px}.sup-rate span{font-weight:700;margin-right:4px}
+.sup-rate button{padding:8px 18px;border-radius:999px;border:1.5px solid var(--line);font-weight:700}.sup-rate button:first-of-type{background:#a7d2b9;border-color:#a7d2b9;color:#212221}
+.sup-night{padding:10px 14px;border-radius:14px;background:rgba(43,43,147,.25);border:1px solid rgba(94,53,177,.5);font-size:14px;text-align:center;line-height:1.35}
+.sup-in{position:sticky;bottom:0;display:flex;gap:8px;padding:8px 0 4px;background:var(--bg)}
+.sup-in input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.sup-go{width:46px;height:46px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:22px;font-weight:700;flex:none}.sup-go:disabled{background:var(--line);color:var(--muted)}
+.toast-btn{margin-left:10px;padding:5px 12px;border-radius:999px;background:#f9f9f9;color:#0d553f;font-weight:700;font-size:14px}
+.note{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);text-align:left;width:100%}.note .ni{font-size:22px}.note .tx{flex:1;display:flex;flex-direction:column}.note small{color:var(--muted)}
+.note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
 /* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
 .sheet-bg.full{background:var(--bg)}
 .sheet.full{max-height:100%;height:100%;border-radius:0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
@@ -1714,6 +1748,8 @@ if(!S.past2){ S.past=[3,4,2,5,3,4,3]; S.past2=1; } // демо: дни с пок
 if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // демо: серия уже идёт 87 дней, лучшая — 112
 if(!S.chats) S.chats={};
+if(!S.sup) S.sup={msgs:[],unread:0,state:'idle',topic:null,nightDemo:false,pend:null};   // поддержка (24.10)
+if(!S.notes) S.notes=[];   // уведомления — только настоящие события
 if(!S.six) S.six={slots:[{id:ID.cap,n:4,isNew:false,last:S.day-1},{id:ID.croissant,n:2,isNew:true,last:S.day-2},{id:ID.muffin,n:5,isNew:false,last:S.day-1,ready:S.day}],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; // демо
 if(!S.benDemo){ S.benDemo=1; let sd=11; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647, ids=[ID.cap,ID.croissant,ID.muffin,ID.caesar,ID.cookie].filter(Boolean), K=['offer','pp','six','offer','bd'];
   const old=[]; for(let i=0;i<24;i++){ const day=-(i*3+2), its=[ids[i%ids.length],ids[(i*3+1)%ids.length]], reg=its.reduce((a,id)=>a+byId(id).p,0);
@@ -1963,6 +1999,7 @@ function activate(){ if(!S.plus) return premGate('Предложение дня 
 function offerToCart(){ activate(); const o=S.offer; if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render(); toast('Добавили в корзину. Скидка уже посчитана.'); }
 function openOffer(){ if(S.plus && !S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
 function nextDay(){
+  supMorning();
   if(S.offer){ if(S.offer.status==='activated') learn(S.offer,'expired'); else if(S.offer.status==='shown') learn(S.offer, S.offer.opened?'ignored':'none'); }
   const w=weekOf(S.day); S.day++;
   let msg='Новый день: '+fmt(S.day)+'.';
@@ -2139,6 +2176,7 @@ const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="tru
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
 const locked = (inner, what, sub) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">${sub||'Доступно только с подпиской&nbsp;★&nbsp;Кофейная+'}</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подключить Кофейная+</button></div></div>`;
 const IC = {
+  chat:'<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
   filter:'<svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
   info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
@@ -2921,6 +2959,54 @@ function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small m
     <div class="lb">${lbAll().map(lbRow).join('')}</div>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
     <p class="rh-foot">В прототипе гости вымышленные. В приложении — только те, кто сам согласился показывать себя</p>`); }
+/* ===================== Поддержка (владелец 24.10, экраны — с критиком) =====================
+   Входы: «через поддержку» на экране ДР, строка «Поддержка» в профиле, поиск, уведомление. Чат на весь экран.
+   Пусто → «С чем помочь?» и 6 тем; ответ «Анны» имитируется; закрыл до ответа — всплывашка + кружки на «Профиле» и строке.
+   Ночью (23:00–8:00) — «Сейчас мы спим 🌙», ответ утром (в демо — после «Завтра →»). Нет сети — «Не отправилось» */
+const SUP_T=[['order','🧾','Заказ'],['pay','💳','Оплата и депозит'],['bonus','🪙','Бонусы и скидки'],['plus','★','Кофейная+'],['bd','🎂','День рождения'],['other','💬','Другое']];
+const SUP_ASK={order:'Какой заказ? Выбери ниже или напиши, что случилось',pay:'Что случилось с оплатой?|Напиши — разберусь',bonus:'Каких бонусов или скидки не хватает?|Напиши дату покупки',plus:'Что хочешь узнать про подписку?',bd:'Напиши новую дату рождения|Бариста проверит документ на кассе',other:'Напиши, что случилось — помогу'};
+const SUP_ANS={order:'Спасибо! Уже разбираюсь с заказом|Если была ошибка — вернём деньги на карту или депозит',pay:'Проверила — деньги на месте|Если списалось дважды, второе списание вернётся на карту за 3 дня',bonus:'Бонусы начисляются сразу после покупки|Каких не хватает — начислю вручную сегодня',plus:'Подписка бесплатна до '+FREE_UNTIL+'|Отменить можно в Профиле → Кофейная+',bd:'Приняла новую дату|При следующей покупке покажи бариста паспорт или права — и дата обновится',other:'Спасибо за сообщение!|Передала вопрос — ответим здесь же'};
+const supNight=()=>{ if(S.sup.nightDemo) return true; const h=new Date().getHours(); return h>=23||h<8; };
+const supTime=()=>new Date().toTimeString().slice(0,5);
+let supTyping=false, supOpenNow=false;
+function supAva(){ return `<span class="sup-ava">🎧</span>`; }
+function openSupport(topic){ supOpenNow=true; if(S.sup.unread){ S.sup.unread=0; S.notes.forEach(n=>{ if(n.k==='sup') n.read=1; }); save(); render(); }
+  if(topic && !(S.sup.state==='wait')) supPick(topic,true); else drawSup(); }
+function drawSup(){ const m=S.sup.msgs, showTopics=!m.length||S.sup.state==='resolved'&&S.sup.newQ;
+  const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(i):`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb">${x.t.split('|').join('<br>')}<small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
+  sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:00 до 23:00</small></span></div>
+    <div class="sup-list" id="suplist">${msgs}${supTyping?`<div class="smsg">${supAva()}<div class="sb typing">Анна печатает<i></i><i></i><i></i></div></div>`:''}
+    ${showTopics?`<h3 class="sup-q">С чем помочь?</h3><div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${ic}</span>${t}</button>`).join('')}</div>`:''}
+    ${S.sup.state==='resolved'&&!S.sup.newQ?`<button class="btn ghost block" onclick="S.sup.newQ=1;drawSup()">Новый вопрос</button>`:''}</div>
+    ${supNight()?`<div class="sup-night">Сейчас мы спим 🌙<br>Напиши — ответим утром, с 8:00</div>`:''}
+    ${showTopics&&!m.length?'':`<div class="sup-in"><input id="supin" placeholder="Напиши, что случилось" autocomplete="off" oninput="document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter')supSend()"><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div>`}</div>`,1);
+  const l=document.getElementById('suplist'); if(l) l.scrollTop=l.scrollHeight; }
+function supPick(k,fromLink){ const t=SUP_T.find(x=>x[0]===k); S.sup.topic=k; S.sup.state='open'; S.sup.newQ=0;
+  S.sup.msgs.push({me:true,t:t[1]+' '+t[2],tm:supTime()},{me:false,t:SUP_ASK[k],tm:supTime()});
+  if(k==='order') S.sup.msgs.push({k:'orders'});
+  save(); drawSup(); setTimeout(()=>document.getElementById('supin')?.focus(),60); }
+function supOrders(){ const os=(S.myOrders||[]).slice(0,3);
+  if(!os.length) return `<div class="sup-note">Заказов пока нет<br>Напиши, что случилось</div>`;
+  return `<div class="sup-orders">${os.map(o=>`<button onclick="supSendText('Заказ № ${o.no||o.id||''} от ${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}')"><b>№ ${o.no||o.id||''}</b><small>${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}</small></button>`).join('')}</div>`; }
+function supSend(){ const el=document.getElementById('supin'), t=(el&&el.value||'').trim(); if(!t) return; supSendText(t); }
+function supSendText(t){ const ok=navigator.onLine!==false; S.sup.msgs.push({me:true,t,tm:supTime(),st:ok?'sent':'fail'}); if(S.sup.state!=='wait'&&ok) S.sup.state='wait'; save(); drawSup(); if(ok) supReply(); }
+function supRetry(i){ const x=S.sup.msgs[i]; if(navigator.onLine===false) return toast('Нет интернета<br>Проверь связь и попробуй ещё раз'); x.st='sent'; S.sup.state='wait'; save(); drawSup(); supReply(); }
+function supReply(){ if(S.sup.pend) return; if(supNight()){ S.sup.pend={k:S.sup.topic||'other'}; save(); return; }
+  setTimeout(()=>{ supTyping=true; if(supOpenNow&&document.getElementById('suplist')) drawSup(); },1800);
+  setTimeout(()=>{ supTyping=false; supAnswer(S.sup.topic||'other'); },5200); }
+function supAnswer(k){ S.sup.msgs.push({me:false,t:SUP_ANS[k],tm:supTime()},{k:'rate'}); S.sup.state='answered'; S.sup.pend=null;
+  const open=!!document.getElementById('suplist');
+  if(!open){ S.sup.unread++; S.notes.unshift({k:'sup',t:'💬 Поддержка ответила',s:SUP_ANS[k].split('|')[0],day:S.day,tm:supTime(),read:0}); }
+  save(); if(open) drawSup(); else { render(); toast(`<span>💬 Поддержка ответила</span><button class="toast-btn" onclick="openSupport()">Открыть</button>`,6000); } }
+function supMorning(){ if(S.sup.pend){ const k=S.sup.pend.k; S.sup.pend=null; S.sup.nightDemo=false; setTimeout(()=>supAnswer(k),900); } }
+function supRate(i){ const st=S.sup.state;
+  if(st==='resolved') return `<div class="sup-note">Спасибо! Рады помочь 😊</div>`;
+  if(S.sup.msgs.length-1!==i) return '';
+  return `<div class="sup-rate"><span>Помогли?</span><button onclick="S.sup.state='resolved';save();drawSup()">Да</button><button onclick="S.sup.msgs.push({me:false,t:'Напиши, что не так — Анна ответит',tm:supTime()});S.sup.state='open';save();drawSup();setTimeout(()=>document.getElementById('supin')?.focus(),60)">Нет</button></div>`; }
+// Уведомления (колокольчик) — только настоящие события
+const notesNew=()=>S.notes.filter(n=>!n.read).length;
+function openNotes(){ const ns=S.notes;
+  sheet(`<h2>Уведомления</h2>${ns.length?`<div class="list">${ns.map((n,i)=>`<button class="note${n.read?'':' new'}" onclick="${n.k==='sup'?'openSupport()':''}"><span class="ni">💬</span><span class="tx"><b>${n.t}</b><small>${n.s}<br>${fmtShort(n.day)}, ${n.tm}</small></span>${n.read?'':'<i class="dot"></i>'}</button>`).join('')}</div>`:`<div class="learn-empty"><span>🔔</span><p class="small">Пока ничего нового</p></div>`}`); }
 function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x=>x.id===id)+1;
   sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'посещение','посещения','посещений')} подряд</span></div>
     <p class="gp-bio">«${g.bio}»</p>
@@ -3173,6 +3259,7 @@ function srchTrl(s){ let o='', i=0; while(i<s.length){ const t=TRL.find(([a])=>s
 const SRCH_EN={cappuccino:'капучино',capuccino:'капучино',cappucino:'капучино',latte:'латте',late:'латте',espresso:'эспрессо',expresso:'эспрессо',americano:'американо',flat:'флет',white:'уайт',raf:'раф',matcha:'матча',macha:'матча',tea:'чай',coffee:'кофе',cocoa:'какао',cacao:'какао',cheesecake:'чизкейк',croissant:'круассан',muffin:'маффин',cookie:'печенье',caesar:'цезарь',cesar:'цезарь',soup:'суп',salad:'салат',pasta:'паста',burger:'бургер',breakfast:'завтрак',qr:'qr',bonus:'бонусы',premium:'кофейная+',plus:'кофейная+',cold:'колд',brew:'брю',tonic:'тоник',bumble:'бамбл',pourover:'пуровер',fresh:'фреш'};
 // разговорное и синонимы → слова, которые есть в названиях (или ключах разделов)
 const SRCH_SYN={
+  'помощь':['поддержка'],'помогите':['поддержка'],'жалоба':['поддержка'],'оператор':['поддержка'],'связаться':['поддержка'],'проблема':['поддержка'],
   'капуч':['капучино'],'капуча':['капучино'],'капучо':['капучино'],'капуччино':['капучино'],'каппучино':['капучино'],'капчик':['капучино'],
   'лате':['латте'],'латэ':['латте'],'латтэ':['латте'],'флэт':['флет'],'флат':['флет'],'американа':['американо'],'амер':['американо'],'экспрессо':['эспрессо'],'эспресо':['эспрессо'],
   'кофеек':['кофе'],'кофейку':['кофе'],'кофэ':['кофе'],'капучинка':['капучино'],
@@ -3199,6 +3286,7 @@ const SRCH_PHRASE={'без молока':['американо','эспрессо
 const SRCH_STOP=new Set(['и','в','во','на','с','со','к','у','о','а','по','для','что','как','мне','хочу','где','есть','то','бы','ли','же','можно','нужно','купить','заказать','найти','мой','моя','мои']);
 // разделы и ответы — каждый ведёт на свой экран
 const SRCH_PAGES=[
+  {ic:'💬',t:'Поддержка',s:'Напиши нам — отвечаем за 5 минут|Каждый день с 8:00 до 23:00',k:'поддержка помощь помоги вопрос проблема жалоба оператор чат написать связаться',go:"openSupport()"},
   {ic:'🏷️',t:'Как получить скидку',s:'Подключи Кофейная+|Скидка посчитается сама на кассе и в заказе',k:'скидка скидки акции выгода дешевле экономия',go:"go('plus')"},
   {ic:'★',t:'Кофейная+',s:'Подписка, которая открывает все выгоды|Бесплатно до '+FREE_UNTIL,k:'кофейная+ подписка премиум тариф подключить отменить',go:"go('plus')"},
   {ic:'☀️',t:'Предложение дня',s:'Персональная скидка на сегодня',k:'предложение дня скидка сегодня персональное',go:"goTo('home','#offer')"},
@@ -3449,7 +3537,7 @@ function profile(){
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:56px;overflow:hidden"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
-      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}${S.orders.length?'<span class="n">3</span>':''}</button></div></div>
+      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
     <!-- 24.10: блок «Достижения» убран по просьбе владельца (лишний); значки считаются дальше, в интерфейсе не показываем -->
@@ -3461,6 +3549,7 @@ function profile(){
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
+      ${row('chat','Поддержка',"openSupport()",S.sup.unread?`<span class="badge-n">${S.sup.unread}</span>`:'')}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
     <div class="panel"${F(9)}><h3>Что приложение о тебе узнало</h3>
@@ -3557,7 +3646,7 @@ function birthday(){
       :bd.active?bdBanner():`<div class="panel"><strong>Твой день рождения — ${fmtDate(bd.date)}</strong><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка ${bd.age}% с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}<br>До ${rub(BD_CAP)} скидки в день`}</span>${S.plus?'':`<span class="bd-lockline">★ Только с Кофейная+</span><button class="btn" style="align-self:flex-start" onclick="go('plus')">Подключить</button><span class="small muted">Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц</span>`}</div>`}
     ${bd.set?`<div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
       <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
-      <ul class="rules"><li>Дату можно указать один раз. Изменить — через поддержку.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>`:''}
+      <ul class="rules"><li>Дату можно указать один раз. Изменить — через <button class="inl-link" onclick="openSupport('bd')">поддержку</button>.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>`:''}
     ${bd.set?`<button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>`:''}
   </section>`;
 }
@@ -3697,7 +3786,7 @@ let sheetY=0;
 function lockScroll(){ const h=document.documentElement; if(h.classList.contains('sheet-open')) return; sheetY=scrollY; h.classList.add('sheet-open'); document.body.style.top=-sheetY+'px'; }
 function unlockScroll(){ const h=document.documentElement; if(!h.classList.contains('sheet-open')) return; h.classList.remove('sheet-open'); document.body.style.top=''; scrollTo(0,sheetY); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
-function closeSheet(){ document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); unlockScroll(); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
+function closeSheet(){ supOpenNow=false; document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); unlockScroll(); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
   const o=S.offer, bd=bdInfo();
   sheet(`<h2>Покажите кассиру</h2>
@@ -3904,6 +3993,7 @@ function lab(){
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
       <span class="lab-l">Подарки другим и поиск</span>
+      <div class="lab-row"><button class="btn ghost" onclick="openSupport()">💬 Поддержка</button><button class="btn ghost" onclick="S.sup.nightDemo=!S.sup.nightDemo;save();render();toast(S.sup.nightDemo?'Поддержка как ночью: ответ придёт после «Завтра →»':'Поддержка — дневной режим')">${S.sup.nightDemo?'🌙 Ночь: вкл':'🌙 Поддержка ночью'}</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="openGift()">🎁 Подарить</button><button class="btn ghost" onclick="openSearch()">🔍 Поиск</button><button class="btn ghost" onclick="labDo(()=>{S.gft={sent:[],recent:[]};S.srch=[]},'Подарки другим и история поиска очищены')">Сбросить подарки</button></div>
       <span class="lab-l">Покупка на кассе (капучино на любую сумму)</span>
       <div class="lab-buy"><input id="lab-sum" type="number" inputmode="numeric" value="150"><span>₽</span><label><input id="lab-bon" type="checkbox"> оплатить бонусами</label><button class="btn" onclick="labBuy()">Купить</button></div>
@@ -3926,7 +4016,7 @@ function render(keep=true){
   app.innerHTML = gbar() + `<main>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
       ? `<button class="turbotab" onclick="go('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
-      : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
+      : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
   if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
   if(tab==='plus') plusFloatWatch();
