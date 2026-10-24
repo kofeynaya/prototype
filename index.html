@@ -1266,6 +1266,23 @@ img.ava{object-fit:cover}
 span.lb-gift{background:none}
 .lbr .st::before{display:none}
 .lbr{cursor:pointer}
+
+/* Подключение подписки: яркая кнопка и окно с картой */
+.plus-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 18px;border:0;border-radius:999px;color:#212221;font-weight:800;font-size:18px;line-height:1.1;background:linear-gradient(100deg,#f2c230,#ffb300 45%,#ff8a65);background-size:200% 100%;box-shadow:0 8px 24px rgba(242,178,48,.45),inset 0 1px 0 rgba(255,255,255,.6);animation:ctaShine 4s ease-in-out infinite}
+.plus-cta>span{display:flex;flex-direction:column;align-items:flex-start;text-align:left}.plus-cta small{font-size:13px;font-weight:600;opacity:.8}
+.plus-cta .star-y{width:24px;height:24px;flex:none;fill:#2b2b93}.plus-cta .star-y path{fill:#2b2b93}
+.plus-cta:active{transform:scale(.98)}.plus-cta.wait{opacity:.85}
+@keyframes ctaShine{0%,100%{background-position:0 0}50%{background-position:100% 0}}
+@media (prefers-reduced-motion: reduce){.plus-cta{animation:none}}
+.cp{display:flex;flex-direction:column;gap:12px}.cp h2{display:flex;align-items:center;gap:8px}.cp h2 .star-y{width:24px;height:24px}
+.cp-sum{gap:8px}
+.cp-card{display:flex;flex-direction:column;justify-content:space-between;gap:16px;aspect-ratio:1.6;max-height:190px;padding:18px 20px;border-radius:18px;color:#f9f9f9;background:linear-gradient(135deg,#2b2b93,#5e35b1 55%,#00657f);box-shadow:0 10px 28px rgba(43,43,147,.4)}
+.cp-chip{width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f2c230,#c9971c)}
+.cp-num{font-size:21px;letter-spacing:1px}.cp-row{display:flex;justify-content:space-between;font-size:13px;opacity:.85;letter-spacing:.5px}
+.cp-in{font:inherit;font-size:19px;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.cp-in:focus{outline:none;border-color:#5e35b1}
+.cp-spin{width:20px;height:20px;border-radius:50%;border:3px solid rgba(33,34,33,.25);border-top-color:#212221;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 
 <div class="app" id="app"></div>
@@ -1710,6 +1727,26 @@ function nextDay(){
   msg+=giftDay();
   S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
 }
+/* Подключение подписки (владелец 24.10): «Подключить» → окно с картой → «Подписаться» → конфетти и сразу «Сегодня».
+   В прототипе карта не проверяется: любые цифры (и даже пустые поля) проходят — это симуляция */
+function openCardPay(){ const t=TARIFFS.find(x=>x.k===S.tariff)||TARIFFS[0];
+  sheet(`<div class="cp"><h2>${STAR_Y}Кофейная+</h2>
+    <div class="panel cp-sum"><div class="row between"><span>Сегодня</span><b class="money">0 ₽</b></div>
+      <div class="row between"><span class="muted">С ${FREE_UNTIL}</span><b class="money">${rub(t.p)} ${t.k==='m'?'в месяц':t.k==='h'?'за 6 месяцев':'за год'}</b></div></div>
+    <div class="cp-card"><span class="cp-chip"></span><span class="cp-num money" id="cpv">•••• •••• •••• ••••</span><span class="cp-row"><span id="cpn">ИМЯ НА КАРТЕ</span><span id="cpe" class="money">ММ/ГГ</span></span></div>
+    <label class="label" for="cpnum">Номер карты</label><input id="cpnum" class="cp-in money" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="cpFmt(this)">
+    <div class="row" style="gap:10px"><div class="stack" style="gap:6px;flex:1"><label class="label" for="cpexp">Срок</label><input id="cpexp" class="cp-in money" inputmode="numeric" autocomplete="cc-exp" placeholder="ММ/ГГ" maxlength="5" oninput="cpExp(this)"></div>
+      <div class="stack" style="gap:6px;flex:1"><label class="label" for="cpcvc">CVC</label><input id="cpcvc" class="cp-in money" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="3" type="password"></div></div>
+    <button class="plus-cta" id="cpgo" onclick="cpPay()">${STAR_Y}<span>Подписаться<small>сегодня 0 ₽</small></span></button>
+    <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент<br>Демо: подойдут любые цифры</p></div>`);
+  setTimeout(()=>document.getElementById('cpnum')?.focus(),80); }
+function cpFmt(el){ const d=el.value.replace(/\D/g,'').slice(0,16); el.value=d.replace(/(.{4})/g,'$1 ').trim();
+  const v=document.getElementById('cpv'); if(v) v.textContent=(d+'•'.repeat(16-d.length)).replace(/(.{4})/g,'$1 ').trim(); }
+function cpExp(el){ let d=el.value.replace(/\D/g,'').slice(0,4); if(d.length>2) d=d.slice(0,2)+'/'+d.slice(2); el.value=d; const e=document.getElementById('cpe'); if(e) e.textContent=d||'ММ/ГГ'; }
+function cpPay(){ const b=document.getElementById('cpgo'); if(!b||b.disabled) return; b.disabled=true; b.classList.add('wait'); b.innerHTML='<span class="cp-spin"></span><span>Подключаем…</span>';
+  const d=(document.getElementById('cpnum')?.value||'').replace(/\D/g,'');
+  setTimeout(()=>{ if(d.length>=4) S.card='•• '+d.slice(-4); S.plus=true; S.plusSoon=false; save(); closeSheet(); go('home'); confetti();
+    toast(`<b>★ Кофейная+ подключена!</b><br>Все скидки открыты — бесплатно до ${FREE_UNTIL}`,4200); },1100); }
 function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
 function topUp(i){ topUpSum(TOPUPS[i].sum); }
 function topUpSum(sum){ if(!S.plus) return premGate('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000'); sum=Math.round(+sum||0); if(sum<100) return; const t={sum,gift:giftFor(sum)}; S.wallet.money+=t.sum; S.wallet.gift+=t.gift; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:'Пополнение с карты '+S.card,sum:t.sum},...(t.gift?[{day:S.day,k:'gift',t:`Кэшбэк за пополнение ${giftPct(sum)}%`,sum:t.gift}]:[])); closeSheet(); save(); render(); toast(t.gift?`Баланс пополнен на ${rub(t.sum)} и кэшбэк ${rub(t.gift)} (имитация оплаты).`:`Баланс пополнен на ${rub(t.sum)} (имитация оплаты).`); }
@@ -1776,7 +1813,7 @@ const PL_OPEN=(t,sub)=>S.plus?'':`<div class="plock"><div class="pl-card">${STAR
 const PL_CLOSE=()=>S.plus?'':'</div></div>';
 function premGate(t,sub){ sheet(`<div class="pl-card" style="position:static;transform:none;width:auto">${STAR_Y.replace('star-y','star-y big')}<b>${t}</b><span>${sub}</span><button class="btn" onclick="closeSheet();go('plus')">Подключить ★ Кофейная+</button><small>Бесплатно до ${FREE_UNTIL}</small></div>`); }
 // Бесплатный период подписки — до конкретной даты (запуск + 6 месяцев), а не «первые 6 месяцев»: так понятно, с какого дня платно
-const FREE_UNTIL='21 апреля 2027';
+const FREE_UNTIL='1 марта 2027'; // владелец 24.10: «1 марта» понятнее, чем «21 апреля»
 const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Привилегия подписчиков Премиум</span>`;
 
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
@@ -3167,7 +3204,7 @@ function plus(){
       ${rows.map(([ic,t,d,v])=>`<div class="pk"><span class="pk-ic">${ic}</span><span class="pk-t">${t}<small>${d.split('|').join('<br>')}</small></span>${v?`<span class="pk-v">${v.split('|').join('<br>')}</span>`:''}</div>`).join('')}</div>
     <div class="tariffs" id="tariffs">${TARIFFS.map(t=>`<button class="tf ${S.tariff===t.k?'on':''}" onclick="setTariff('${t.k}')"><span class="tf-n">${t.n}</span><b class="money">${rub(t.p)}</b>${t.k==='m'?'<span class="tf-m">в месяц</span>':(()=>{ const pm=Math.round(t.p/(t.k==='h'?6:12)), off=Math.round((1-pm/TARIFFS[0].p)*100); return `<span class="tf-m good">${rub(pm)} в месяц</span><span class="tf-off">выгода ${off}%</span>`; })()}<span class="tf-l">❄️ Заморозка</span><span class="tf-f"><b>${FZ_MONTH} дня</b> в месяц</span>${t.vac?`<span class="tf-v">+${t.vac} дней ❄️<br>на отпуск 🏖️</span>`:''}</button>`).join('')}</div>
     <div class="tf-note small muted"><p>Пропустил день — посещения подряд не сгорят</p><p>Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт</p><p>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p></div>
-    <button class="btn block" onclick="togglePlus()">${S.plus?'Отключить подписку (демо)':`Подключить — бесплатно до ${FREE_UNTIL}`}</button>
+    ${S.plus?`<button class="btn block" onclick="togglePlus()">Отключить подписку (демо)</button>`:`<button class="plus-cta" onclick="openCardPay()">${STAR_Y}<span>Подключить<small>бесплатно до ${FREE_UNTIL}</small></span></button>`}
     ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
     <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
     ${S.plus?'':`<button class="plus-float" id="plusFloat" onclick="toTariffs()"><span class="star-y-w">${STAR_Y}</span>Тарифы и подключение <span aria-hidden="true">↓</span></button>`}
