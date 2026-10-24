@@ -1028,10 +1028,8 @@ img.ava{object-fit:cover}
 .tk-mint{--tkbg:#a7d2b9;--ink:#172f28;--muted:#3f5d50;--line:rgba(23,47,40,.12);--surface:rgba(255,255,255,.35);color:var(--ink)}
 .tk-mint .rh-prize{background:rgba(255,255,255,.4)}
 .tk-mint .rh-prize .pv{color:#8a6400}
-.tk-grey{--tkbg:#e3e5e1}
-:root[data-theme="dark"] .tk-grey{--tkbg:#2b2d2b}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tk-grey{--tkbg:#2b2d2b}}
-.tk-grey .panel{padding-top:6px}
+.tk-pink{--tkbg:#ecccce;--ink:#382d2b;--muted:#6e5552;--line:rgba(56,45,43,.16);--surface:rgba(255,255,255,.45);color:var(--ink)}   /* «Каждый 6-й» — нежно-розовая (фирменный #ecccce): серая на тестах выглядела неактивной (владелец 24.10) */
+.tk-pink .panel{padding-top:6px;background:transparent;border:0;box-shadow:none}
 .inv-pop{position:relative;display:flex;align-items:center;gap:10px;padding:12px 40px 12px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 .inv-pop .pi{font-size:30px;flex:none}
 .inv-pop .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -2651,7 +2649,7 @@ function progress(){
     ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
     <div class="tstack">
       ${tcard('pr-ritm',1,'Твой ритм = твои бонусы',rhythm(),'tk-mint')}
-      ${tcard('pr-six',2,'Каждый 6-й — дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-grey')}
+      ${tcard('pr-six',2,'Каждый 6-й — дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
     <div class="tsec"><div class="tsec-h"><h2>У кого больше посещений</h2></div>${leaderboard()}</div>
     ${PL_CLOSE()}
