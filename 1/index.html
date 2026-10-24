@@ -667,7 +667,7 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 img.ava{object-fit:cover}
 .ben{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 /* 24.10: депозит и бонусы — одна тема (деньги), «Выгода от приложения» — другая: перед ней больше воздуха */
-.dash-st .bon-row + .ben,.dash-st .bon-row + * .ben{margin-top:18px}
+.dash-st .ben-title{margin-top:18px;margin-bottom:-4px}
 .ben-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ben-per{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px}
 .ben-per::-webkit-scrollbar{display:none}
@@ -3051,7 +3051,7 @@ function benefit(){
   const picker=benPer==='custom'?`<div class="ben-dates"><label>с<input type="date" value="${isoOf(Math.min(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('from',this.value)"></label><label>по<input type="date" value="${isoOf(Math.max(benFrom,benTo))}" min="${minD}" max="${maxD}" onchange="setBenDate('to',this.value)"></label></div>`:'';
   const pct=powerPct(), lv=LV(pct), tip=powerItems().find(x=>!x.on);
   const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего <span class="pcg-${lv.k}">${pct}%</span></b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
-  const head=`<div class="ben-h"><b>Выгода от приложения</b></div><div class="ben-per">${chips}</div>${picker}`;
+  const head=`<div class="ben-per">${chips}</div>${picker}`;   // 24.10: заголовок вынесен над карточкой — крупный, как «Мои выгоды»
   if(!os.length) return `<div class="ben" id="ben">${head}<p class="small muted" style="margin:0">${lbl[0].toUpperCase()+lbl.slice(1)} покупок не было — выбери другой период.</p></div>`;
   const by={}; let without=0, paid=0;
   for(const o of os){ const sv=o.saved||0, bs=o.bonusSpend||0, gs=o.giftSpend||0; without+=o.sum+sv+bs; paid+=o.sum-gs;
@@ -3089,6 +3089,7 @@ function dashboard(){
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на депозит с кэшбэком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
     <button class="bon-row" onclick="openBonus()">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
+    <h2 class="ben-title">Выгода от приложения</h2>
     ${benefit()}
     ${PL_CLOSE()}
     ${S.plus?'':`<div class="dash">
