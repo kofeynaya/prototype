@@ -1409,9 +1409,12 @@ span.lb-gift{background:none}
 .tabs.t3 .turbotab .ring{width:54px;height:54px;margin-top:-28px}
 .tabs.t3 .turbotab .ring svg{width:27px!important;height:27px!important}
 
-/* активный раздел — не подложкой, а цветом иконки и подписи (владелец 24.10) */
-.app.glass .tabs.t3 button[aria-current="page"]{background:none!important;box-shadow:none!important;color:#ff7a45;font-weight:700}
-.app.glass .tabs.t3 button[aria-current="page"] svg{stroke:#ff7a45}
+/* активный раздел — не подложкой, а цветом иконки и подписи: зелёный, как светлый угол карты депозита (владелец 24.10) */
+:root{--tab-on:#1f7a55}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tab-on:#7cc9a2}}
+:root[data-theme="dark"]{--tab-on:#7cc9a2}
+.app.glass .tabs.t3 button[aria-current="page"]{background:none!important;box-shadow:none!important;color:var(--tab-on);font-weight:700}
+.app.glass .tabs.t3 button[aria-current="page"] svg{stroke:var(--tab-on)}
 .tabs.t3 .turbotab:not([aria-current="page"]) .ring{filter:saturate(.75) brightness(.92)}
 </style>
 
