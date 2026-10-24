@@ -1305,6 +1305,14 @@ span.lb-gift{background:none}
 /* Сообщение «Кофейная+ подключена» — тем же жёлтым, что и кнопка подписки (владелец 24.10) */
 .toast.gold{display:flex;align-items:center;gap:12px;color:#212221;background:linear-gradient(100deg,#f2c230,#ffb300 45%,#ff8a65);border:0;box-shadow:0 10px 28px rgba(242,178,48,.5)}
 .toast.gold .star-y{width:28px;height:28px;flex:none}.toast.gold .star-y,.toast.gold .star-y path{fill:#2b2b93}
+
+.pw-list{padding-top:14px}
+.pw-h{display:flex;align-items:center;gap:8px;font-size:18px;margin:6px 0 2px}.pw-h:not(:first-child){margin-top:18px}
+.pw-on.off{align-items:flex-start}.pw-on.off .pi{margin-top:2px}
+.pw-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px}.pw-foot .pw-act{margin-top:0}
+.pw-ok.no{color:#ff9100}.pw-ok.no::before{background:#ff9100;box-shadow:0 0 0 3px rgba(255,145,0,.2)}
+.pw-on .pw-act{padding:8px 13px;font-size:13.5px;margin-top:8px}
+.pw-on.off+.pw-h,.pw-on:has(+.pw-h){border-bottom:0}
 </style>
 
 <div class="app" id="app"></div>
@@ -2673,11 +2681,13 @@ function power(){
     ${(()=>{ /* 24.10: на тестах люди принимали зелёную галочку слева за чекбокс. Теперь две отдельные группы без кружков:
         «Ещё не пользуешься» — карточки целиком нажимаются, справа кнопка-действие; «Уже работает на тебя» — спокойные строки с надписью «работает», без кнопок */
       const off=it.filter(x=>!x.on), onL=it.filter(x=>x.on);
-      return `${off.length?`<div class="pw-g"><h2>Ещё не пользуешься <span class="pw-n">${off.length}</span></h2><p class="small muted" style="margin:0">Нажми — и выгода начнёт работать</p>
-        ${off.map((x,i)=>i===0?`<button class="pw-tip" onclick="${x.btn}"><span class="pi">${x.ic}</span><span class="tx"><small>Проще всего начать с этого</small><b>${x.t}</b><span>${x.no.split('|').join('<br>')}</span><span class="pw-act">${x.act||'Открыть'} ›</span></span></button>`
-          :`<button class="pw-off" onclick="${x.btn}"><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${x.no.split('|').join('<br>')}</small><span class="pw-act">${x.act||'Открыть'} ›</span></span></button>`).join('')}</div>`:''}
-        ${onL.length?`<div class="pw-g"><h2>Уже работает на тебя <span class="pw-n ok">${onL.length}</span></h2>
-        <div class="panel pw-list">${onL.map(x=>`<div class="pw-on"><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${x.yes.split('|').join('<br>')}</small></span><span class="pw-ok">работает</span></div>`).join('')}</div></div>`:''}`; })()}
+      // 24.10 (2): владелец — отдельные плашки тяжело читать; снова одна панель со всеми выгодами, у каждой справа понятная надпись
+      // «● работает» (зелёная) или «● не работает» (оранжевая), у неработающих — кнопка-действие под текстом
+      const row=x=>`<div class="pw-on${x.on?'':' off'}"><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${(x.on?x.yes:x.no).split('|').join('<br>')}</small>${x.on?'':`<span class="pw-foot"><button class="pw-act" onclick="${x.btn}">${x.act||'Открыть'} ›</button><span class="pw-ok no">не работает</span></span>`}</span>${x.on?'<span class="pw-ok">работает</span>':''}</div>`;
+      return `<div class="panel pw-list">
+        ${off.length?`<h2 class="pw-h">Ещё не пользуешься <span class="pw-n">${off.length}</span></h2>${off.map(row).join('')}`:''}
+        ${onL.length?`<h2 class="pw-h">Уже работает на тебя <span class="pw-n ok">${onL.length}</span></h2>${onL.map(row).join('')}`:''}
+      </div>`; })()}
   </section>`;
 }
 /* «Выгода от приложения»: сколько заплатил бы без приложения и сколько заплатил с ним — и откуда разница. Бонусы на счёте — отдельной строкой (это не деньги) */
