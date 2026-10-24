@@ -629,6 +629,9 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+/* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
+.sheet-bg.full{background:var(--bg)}
+.sheet.full{max-height:100%;height:100%;border-radius:0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
 .offer.me{min-height:250px}
 .offer.me .title,.offer.me .meta,.offer.me .why{max-width:57%;position:relative}
 .offer.me .kicker{position:relative}
@@ -2912,12 +2915,12 @@ function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x
   sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'посещение','посещения','посещений')} подряд</span></div>
     <p class="gp-bio">«${g.bio}»</p>
     <div class="panel"><div class="row between"><span class="muted">Любимый напиток</span><b>${g.fav}</b></div><div class="row between"><span class="muted">Чаще всего</span><b>${SHOPS[g.shop%SHOPS.length].n}</b></div></div>
-    <div class="row" style="gap:8px"><button class="btn block" style="flex:1" onclick="giftGuestOpen('${id}')">🎁 Отправить подарок</button><button class="btn ghost block" style="flex:1" onclick="openChat('${id}')">Написать</button></div>`); }
+    <div class="row" style="gap:8px"><button class="btn block" style="flex:1" onclick="giftGuestOpen('${id}')">🎁 Отправить подарок</button><button class="btn ghost block" style="flex:1" onclick="openChat('${id}')">Написать</button></div>`,1); }
 const AUTO_REPLY=['Привет! 😊','О, привет! Ты тоже в Кофейной часто?','Давай как-нибудь пересечёмся на кофе ☕','Ха, спасибо! А у тебя сколько посещений?','Я обычно бываю утром, часов в 9','Супер, буду рада познакомиться!'];
 function openChat(id){ const g=GUESTS.find(x=>x.id===id), ms=S.chats[id]||[];
   sheet(`<div class="chat-h">${ava(GUESTS.indexOf(g),40)}<b>${g.n}</b></div>
     <div class="chat" id="chat">${ms.length?ms.map(m=>`<div class="msg ${m.me?'me':''}">${m.t.replace(/</g,'&lt;')}</div>`).join(''):`<p class="small muted" style="text-align:center">Напиши первым — например, позови на кофе ☕</p>`}</div>
-    <div class="chat-in"><input id="msgin" placeholder="Сообщение" autocomplete="off" onkeydown="if(event.key==='Enter')sendMsg('${id}')"><button class="btn" onclick="sendMsg('${id}')">→</button></div>`);
+    <div class="chat-in"><input id="msgin" placeholder="Сообщение" autocomplete="off" onkeydown="if(event.key==='Enter')sendMsg('${id}')"><button class="btn" onclick="sendMsg('${id}')">→</button></div>`,1);
   const c=document.getElementById('chat'); if(c) c.scrollTop=c.scrollHeight; }
 function sendMsg(id){ const el=document.getElementById('msgin'), t=(el&&el.value||'').trim(); if(!t) return;
   (S.chats[id]=S.chats[id]||[]).push({me:true,t}); save(); openChat(id);
@@ -3393,7 +3396,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
       <div class="gf-card"><span class="gf-bow">🎁</span><b>${S.name} дарит тебе ${m?m.n:`${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`}</b><span class="gf-note" id="gnote"${gf.msg?'':' hidden'}>«${esc(gf.msg)}»</span><span>${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Уже на твоём счёте<br>Ими можно оплатить до 30% чека'}</span></div>
       ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
       <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=${m?3:2};drawGift()">← Назад</button>`; }
-  sheet(`<div class="gift">${s<5?head:''}${body}</div>`);
+  sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
   if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
 function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
   if(p.bonus>giftBonLeft(t)) return toast('Столько бонусов сейчас подарить нельзя');
@@ -3676,8 +3679,8 @@ function openLegend(){
 
 /* ===================== Шторки: QR и касса ===================== */
 const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
-function sheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); lockScroll(); document.addEventListener('keydown',escClose); }
+function sheet(html,full){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'+(full?' full':''); bg.onclick=e=>{ if(e.target===bg) closeSheet() };
+  bg.innerHTML=`<div class="sheet${full?' full':''}" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); lockScroll(); document.addEventListener('keydown',escClose); }
 /* Пока открыта шторка — страница под ней замирает на месте, а после закрытия остаётся там же, где была */
 let sheetY=0;
 function lockScroll(){ const h=document.documentElement; if(h.classList.contains('sheet-open')) return; sheetY=scrollY; h.classList.add('sheet-open'); document.body.style.top=-sheetY+'px'; }
