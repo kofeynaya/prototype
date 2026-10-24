@@ -298,6 +298,9 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .topup .s{font-family:var(--f-num);font-size:22px}
 .topup .g{color:var(--ok);font-weight:600}
 .topup .n{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.topup .g{text-align:right}
+.topup .eq{grid-column:1/-1;justify-self:end;margin-top:-2px;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
+.topup .eq:empty{display:none}
 .friend{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
 .fsteps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .fsteps span{height:6px;border-radius:3px;background:var(--line)}
@@ -3392,7 +3395,7 @@ function wallet(){
     ${PL_OPEN('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000')}
     ${bankCard(true)}
     <div class="stack"><h3>Пополнить и получить кэшбэк</h3>
-      <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span>
+      <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span>
         <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(t.sum+t.gift)}</span></button>`).join('')}</div>
       <button class="btn ghost block" onclick="openTopup();setTimeout(()=>document.getElementById('own')?.focus(),50)">Своя сумма</button>
       <p class="hint">Демо: нажатие на сумму имитирует оплату картой.</p></div>
@@ -3417,13 +3420,17 @@ function bankCard(big){
     </div>
   </div>`;
 }
+// Кэшбэк в понятных вещах (владелец 24.10): «+150 ₽ = эспрессо бесплатно ☕» — по настоящим ценам меню (обычная цена, без персональных скидок)
+function cbEq(g){ const cap=byId('i023'), esp=byId('i019'); if(!cap||!esp) return '';
+  const n=Math.floor(g/cap.p);
+  return n>=1?`= ${n} капучино бесплатно ☕`:g>=esp.p?'= эспрессо бесплатно ☕':''; }
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше кэшбэк.</p>
-  <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
+  <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
   <div class="ownsum"><label for="own">Своя сумма</label><div class="ownrow"><input id="own" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 20 000" oninput="ownCalc()"><span>₽</span></div><span class="ownhint" id="ownhint">От 3 000 ₽ — кэшбэк 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%</span><button class="btn block" id="ownbtn" disabled onclick="topUpSum(document.getElementById('own').value)">Пополнить</button></div>
   <p class="hint">Демо: оплата картой не списывается.</p>`); }
 function ownCalc(){ const v=Math.round(+document.getElementById('own').value||0), g=giftFor(v), h=document.getElementById('ownhint'), b=document.getElementById('ownbtn');
   if(v<100){ h.textContent='От 3 000 ₽ — кэшбэк 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%'; b.disabled=true; b.textContent='Пополнить'; return; }
-  h.innerHTML=g?`Кэшбэк <b>${giftPct(v)}% · +${rub(g)}</b> · на балансе станет ${rub(walletTotal()+v+g)}`:`Без кэшбэка — он начинается от 3 000 ₽. Станет ${rub(walletTotal()+v)}`;
+  h.innerHTML=g?`Кэшбэк <b>${giftPct(v)}% · +${rub(g)}</b> ${cbEq(g)}<br>На балансе станет ${rub(walletTotal()+v+g)}`:`Без кэшбэка — он начинается от 3 000 ₽. Станет ${rub(walletTotal()+v)}`;
   b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; }
 function invite(){
   const fr=S.ref.friends;
