@@ -1390,6 +1390,12 @@ span.lb-gift{background:none}
 .turbotab .ring svg{width:32px!important;height:32px!important;stroke:#fff!important}
 .turbotab[aria-current="page"]{color:var(--ink);font-weight:700}
 .app.glass .tabs .turbotab,.app.glass .tabs .turbotab[aria-current="page"]{background:none;box-shadow:none}
+
+:root{--demo-h:0px}
+.demo-foot{margin:20px 0 0}
+.demo-foot .demo{position:static;height:auto;border-radius:16px;flex-wrap:wrap;padding:10px 14px}
+.stories{margin-bottom:14px}
+.sty{width:64px}.sty-ring{width:58px;height:58px}.sty-in svg{width:32px;height:32px}.sty-t{font-size:11.5px}
 </style>
 
 <div class="app" id="app"></div>
@@ -2143,7 +2149,7 @@ function home(){
   </section>`;
 }
 // Сторис-кружочки вверху (как в Инстаграме): день рождения, +1 000 за друга, Кофейная+ — вместо больших плиток
-function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}</div>`; }
+function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}</div>`; }
 const INV_POP=()=>`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`;
 // Всё, что было во вкладке «Турбо», — продолжением того же экрана
 function turboBody(){ return `
@@ -3705,7 +3711,8 @@ function render(keep=true){
   ensureDaily();
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
   app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+' glass'; // «жидкое стекло» (iOS 26) — на всех вкладках
-  app.innerHTML = demoBar() + gbar() + `<main>${body}</main>` + cartbarHtml() +
+  // демо-полоса (Касса · Завтра · Пульт) — не сверху, а внизу экранов «Турбо» и «Профиль» (владелец 24.10: сверху слишком много закреплено)
+  app.innerHTML = gbar() + `<main>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
       ? `<button class="turbotab" onclick="go('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
       : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}</button>`).join('')}</div></nav>`;
