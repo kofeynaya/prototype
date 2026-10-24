@@ -1526,8 +1526,10 @@ const serDays = w => weekDays(w) + fzDaysIn(w).length;
    а красный ✕ (и заморозка) — только у дней начиная с дня старта счётчика и не раньше регистрации.
    Одно правило закрывает регистрацию в середине недели, подписку в середине недели и перезапуск после сгорания.
    Повторная подписка при счётчике > 0 защиты не даёт (старт остаётся прежним) — иначе отписка/подписка = бесплатные заморозки */
-const serWin = () => Math.max(S.regDay??-1e9, S.ser.n>0 ? (S.ser.start??-1e9) : 1e9);
-const isStartWeek = (w=weekOf(S.day)) => S.ser.n>0 && S.ser.start!=null && weekOf(S.ser.start)===w;
+function serStart(){ if(S.ser.start!=null) return S.ser.start; if(S.regDay==null) return -1e9;
+  const v=S.visits.filter(d=>d>=S.regDay).sort((a,b)=>a-b); return v.length && S.ser.n<=v.length ? v[v.length-S.ser.n] : -1e9; }
+const serWin = () => Math.max(S.regDay??-1e9, S.ser.n>0 ? serStart() : 1e9);
+const isStartWeek = (w=weekOf(S.day)) => S.ser.n>0 && serStart()>-1e8 && weekOf(serStart())===w;
 // дни недели w, которые можно заморозить: прошедшие, без покупки, не раньше окна, ещё не замороженные
 const serMiss = w => { const win=serWin(), fz=fzDaysIn(w); return [0,1,2,3,4,5,6].map(i=>w*7+i).filter(d=>d>=win && d<S.day && !S.visits.includes(d) && !fz.includes(d)); };                       // дни для счётчика: посещения + замороженные дни
 /* Заморозки — ТОЛЬКО вручную, сами ничего не включаются. 1 заморозка = 1 пропущенный день. Только с Кофейная+.
@@ -2355,7 +2357,7 @@ function rhythm(){
   let mood, msg;
   if(cur>keep){ mood='joy'; msg=`<b>Лучше, чем на прошлой неделе!</b> ${next<cap?`Каждый новый день — ещё +1%.`:`Это максимум — ${cap}%.`}`; }
   else if(cur===keep){ mood='happy'; msg=cur?`<b>Уже как на прошлой неделе!</b> ${cur<cap?`Ещё день — и будет ${pc(cur+1)}%.`:`Это максимум — ${cap}%.`}`:`<b>Новая неделя!</b> Приходи сегодня — и с понедельника будет 1%.`; }
-  else if(need>left){ mood='sad'; msg=`<b>Эх…</b> На прошлой неделе ты был ${keep} ${D(keep)}, в этот раз уже не догнать. Но каждый день ещё добавляет +1%.`; }
+  else if(need>left){ mood='sad'; msg=`<b>Эх…</b> На прошлой неделе ты был ${keep} ${D(keep)}, на этой неделе уже не догнать. Но каждый день ещё добавляет +1%.`; }
   else if(need===left||need>=left-1&&dow>=3){ mood='worry'; msg=`<b>Поднажми!</b> Ещё ${need} ${D(need)} с покупкой до воскресенья — и сохранишь ${pc(keep)}%.`; }
   else { mood='calm'; msg=cur?`Ещё <b>${need} ${D(need)}</b> — и будет как на прошлой неделе: ${pc(keep)}%.`:`<b>Новая неделя!</b> Набери ${keep} ${D(keep)} с покупкой — и сохранишь ${pc(keep)}%.`; }
   const pos=Math.max(1,cur);
@@ -2411,7 +2413,7 @@ function serState(){
     else { k='danger'; msg=dow===6||left===1?`<b>Сегодня последний день</b> — приходи, или ${P(N)} сгорят`:`<b>Успеешь, только если приходить каждый день до ${sun}</b> — или ${P(N)} сгорят`; } }
   else if(X>=M && fz>=M){ k='freeze'; msg=`<b>Уже не успеть.</b> Нажми на красный ✕ и заморозь ${PR(M)} ❄️${left?` и приходи ещё ${timesTxt(left)}`:''} — спасёшь ${P(N)}`; }
   else if(X>=M){ k='doomed'; msg=`<b>Уже не успеть:</b> не хватает ${P(M)}, а ${fz?`заморозок ${fz}`:'заморозок нет'}<br>${P(N)} сгорят, лучший результат 👑 останется`; }
-  else { k='doomed'; msg=`<b>${SER_MIN} посещения в этот раз не набрать</b><br>Лучший результат 👑 ${S.ser.best} останется`; }
+  else { k='doomed'; msg=`<b>На этой неделе ${SER_MIN} посещения уже не набрать</b><br>Счётчик сгорит, но лучший результат 👑 ${S.ser.best} останется`; }
   return {k,msg,cur,left,X,M,need};
 }
 // Дни этой недели у счётчика посещений: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
