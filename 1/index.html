@@ -666,6 +666,8 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .crop-prev .cp img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0}
 img.ava{object-fit:cover}
 .ben{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+/* 24.10: депозит и бонусы — одна тема (деньги), «Выгода от приложения» — другая: перед ней больше воздуха */
+.dash-st .bon-row + .ben,.dash-st .bon-row + * .ben{margin-top:18px}
 .ben-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ben-per{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px}
 .ben-per::-webkit-scrollbar{display:none}
@@ -3083,7 +3085,7 @@ function soonPlus(){ S.plusSoon=true; save(); render(); }
 function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
   // 21.10: плитки «Сэкономлено» и «За пополнения» убраны — дублировали карту депозита и «Выгоду от приложения» и расходились с ней (3 379 vs 3 499 ₽)
-  return `<div class="stack" style="gap:10px"><h2>Мои выгоды</h2>
+  return `<div class="stack dash-st" style="gap:14px"><h2>Мои выгоды</h2>
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на депозит с кэшбэком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
     <button class="bon-row" onclick="openBonus()">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
