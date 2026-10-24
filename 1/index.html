@@ -1300,6 +1300,34 @@ span.lb-gift{background:none}
 @media (prefers-reduced-motion: reduce){.plus-cta{animation:none}}
 .cp{display:flex;flex-direction:column;gap:12px}.cp h2{display:flex;align-items:center;gap:8px}.cp h2 .star-y{width:24px;height:24px}
 .cp-sum{gap:8px}
+/* Пополнение: проверка → банк (код из СМС) → чек */
+.tp{display:flex;flex-direction:column;gap:12px}
+.tp-sum{gap:8px}.tp-g{color:var(--ok)}.tp-tot{border-top:1px solid var(--line);padding-top:8px}
+.tp-eq{align-self:flex-end;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
+.tp-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);text-align:left;width:100%}
+.tp-opt svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;flex:none}
+.tp-opt span{display:flex;flex-direction:column}.tp-opt small{color:var(--muted);font-size:13px}
+.tp-opt.on{border-color:#2e9e5b;box-shadow:0 0 0 2px rgba(46,158,91,.35) inset}
+.tp-go{width:100%;justify-content:center;display:flex;align-items:center;gap:10px}.tp-go:disabled{opacity:.5}
+.bank{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:18px;background:#fff;color:#1b1b1f;text-align:center}
+.bank-h{display:flex;align-items:center;gap:10px;text-align:left;font-weight:700;padding-bottom:12px;border-bottom:1px solid #e6e6ea}
+.bank-h small{font-weight:400;color:#6b6b75}
+.bank-logo{width:36px;height:36px;border-radius:10px;background:#1e5eff;display:grid;place-items:center}
+.bank-logo svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.8}
+.bank-sum{display:flex;flex-direction:column;gap:2px}.bank-sum b{font-size:28px}.bank-sum small,.bank-sum span{color:#6b6b75;font-size:14px}
+.bank p{margin:0;color:#3a3a42;font-size:15px}
+.bank-in{font:inherit;font-size:28px;letter-spacing:12px;text-align:center;padding:12px;border-radius:12px;border:1.5px solid #d0d0d8;background:#f5f5f7;color:#1b1b1f;width:100%}
+.bank-in:focus{outline:none;border-color:#1e5eff}
+.bank-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;background:#1e5eff;color:#fff;font-weight:700;font-size:16px;width:100%}
+.bank-btn:disabled{opacity:.45}.bank-btn .cp-spin{border-color:rgba(255,255,255,.35);border-top-color:#fff}
+.bank-re{font-size:13px;color:#6b6b75}.bank-re .link{color:#1e5eff}
+.tp-res{align-items:center;text-align:center}
+.tp-ic{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:38px;font-weight:700;color:#fff;animation:tpPop .45s cubic-bezier(.2,1.4,.4,1)}
+.tp-ic.ok{background:#2e9e5b;box-shadow:0 0 30px rgba(46,158,91,.55)}.tp-ic.bad{background:#e53935;box-shadow:0 0 30px rgba(229,57,53,.5)}
+@keyframes tpPop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.tp-big{font-family:var(--f-num);font-size:40px;line-height:1}
+.tp-cb{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:14px;background:rgba(46,158,91,.14);color:var(--ok)}
+.tp-res .tp-sum{width:100%;text-align:left}
 .cp-card{display:flex;flex-direction:column;justify-content:space-between;gap:16px;aspect-ratio:1.6;max-height:190px;padding:18px 20px;border-radius:18px;color:#f9f9f9;background:linear-gradient(135deg,#2b2b93,#5e35b1 55%,#00657f);box-shadow:0 10px 28px rgba(43,43,147,.4)}
 .cp-chip{width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f2c230,#c9971c)}
 .cp-num{font-size:21px;letter-spacing:1px}.cp-row{display:flex;justify-content:space-between;font-size:13px;opacity:.85;letter-spacing:.5px}
@@ -1967,7 +1995,62 @@ function cpPay(){ const b=document.getElementById('cpgo'); if(!b||b.disabled) re
     toast(`${STAR_Y}<span><b>Кофейная+ подключена!</b><br>Все скидки открыты<br><span class="nowrap">Бесплатно до ${FREE_UNTIL}</span></span>`,4200,'gold'); },1100); }
 function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
 function topUp(i){ topUpSum(TOPUPS[i].sum); }
-function topUpSum(sum){ if(!S.plus) return premGate('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000'); sum=Math.round(+sum||0); if(sum<100) return; const t={sum,gift:giftFor(sum)}; S.wallet.money+=t.sum; S.wallet.gift+=t.gift; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:'Пополнение с карты '+S.card,sum:t.sum},...(t.gift?[{day:S.day,k:'gift',t:`Кэшбэк за пополнение ${giftPct(sum)}%`,sum:t.gift}]:[])); closeSheet(); save(); render(); toast(t.gift?`Баланс пополнен на ${rub(t.sum)} и кэшбэк ${rub(t.gift)} (имитация оплаты).`:`Баланс пополнен на ${rub(t.sum)} (имитация оплаты).`); }
+/* Пополнение как настоящая оплата картой (владелец 24.10): проверь → карта → код из СМС (банк) → списание → чек.
+   Демо: подходит любой код; 0000 — банк откажет (чтобы проверить ошибку). Кэшбэк — за каждое пополнение отдельно */
+let tp={sum:0,card:'saved',num:''};
+function topUpSum(sum){ if(!S.plus) return premGate('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000');
+  sum=Math.round(+sum||0); if(sum<100) return; tp={sum,card:'saved',num:''}; tpCheck(); }
+const tpCardName=()=>tp.card==='saved'?'карты '+S.card:'карты •• '+tp.num.slice(-4);
+function tpCheck(){ const g=giftFor(tp.sum);
+  sheet(`<div class="tp"><h2>Проверь пополнение</h2>
+    <div class="panel tp-sum"><div class="row between"><span>Пополнение</span><b class="money">${rub(tp.sum)}</b></div>
+      <div class="row between"><span>Кэшбэк ${g?giftPct(tp.sum)+'%':''}</span><b class="money tp-g">${g?'+'+rub(g):'нет'}</b></div>
+      ${g?`<span class="tp-eq">${cbEq(g)}</span>`:`<span class="small muted">Кэшбэк начинается от 3 000 ₽</span>`}
+      <div class="row between tp-tot"><span>На балансе станет</span><b class="money">${rub(walletTotal()+tp.sum+g)}</b></div></div>
+    <span class="label">С какой карты</span>
+    <button class="tp-opt${tp.card==='saved'?' on':''}" onclick="tp.card='saved';tpCheck()">${IC.card}<span><b>Карта ${S.card}</b><small>Сохранена в приложении</small></span></button>
+    <button class="tp-opt${tp.card==='new'?' on':''}" onclick="tp.card='new';tpCheck();setTimeout(()=>document.getElementById('tpnum')?.focus(),50)">${IC.card}<span><b>Другая карта</b><small>Введи номер</small></span></button>
+    ${tp.card==='new'?`<input id="tpnum" class="cp-in money" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" value="${tp.num}" oninput="cpFmt(this);tp.num=this.value.replace(/\\D/g,'');tpOk()">`:''}
+    <button class="plus-cta tp-go" id="tpgo" onclick="tpPay()">Оплатить ${rub(tp.sum)}</button>
+    <span class="small muted" style="text-align:center">Деньги спишутся с карты сразу</span>
+    <button class="link" style="align-self:center" onclick="openTopup()">Изменить сумму</button></div>`); tpOk(); }
+function tpOk(){ const b=document.getElementById('tpgo'); if(b) b.disabled=tp.card==='new'&&tp.num.length<16; }
+function tpPay(){ const b=document.getElementById('tpgo'); if(!b||b.disabled) return; b.disabled=true; b.innerHTML='<span class="cp-spin"></span><span>Связываемся с банком…</span>';
+  setTimeout(tpCode,1100); }
+let tpTimer=null;
+function tpCode(){
+  sheet(`<div class="tp"><div class="bank"><div class="bank-h"><span class="bank-logo">${IC.card}</span><span>Твой банк<br><small>Подтверждение покупки</small></span></div>
+    <div class="bank-sum"><span>Кофейная · пополнение</span><b class="money">${rub(tp.sum)}</b><small>С ${tpCardName()}</small></div>
+    <p>Мы отправили код в СМС<br>на номер ${S.phone?S.phone.replace(/\d(?=\d{2})/g,'•'):'+7 ••• •••-••-••'}</p>
+    <input id="tpc" class="bank-in money" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="one-time-code" oninput="this.value=this.value.replace(/\\D/g,'');document.getElementById('tpcb').disabled=this.value.length<4">
+    <button class="bank-btn" id="tpcb" disabled onclick="tpCharge()">Подтвердить</button>
+    <span class="bank-re" id="tpre">Отправить код ещё раз через 0:59</span></div>
+    <span class="small muted" style="text-align:center">Демо: подойдёт любой код из 4 цифр<br>0000 — банк откажет</span></div>`);
+  setTimeout(()=>document.getElementById('tpc')?.focus(),80);
+  let left=59; clearInterval(tpTimer); tpTimer=setInterval(()=>{ const e=document.getElementById('tpre'); if(!e) return clearInterval(tpTimer); left--;
+    if(left<=0){ clearInterval(tpTimer); e.innerHTML='<button class="link" onclick="toast(\'Новый код отправлен (демо)\');tpCode()">Отправить код ещё раз</button>'; } else e.textContent='Отправить код ещё раз через 0:'+String(left).padStart(2,'0'); },1000); }
+function tpCharge(){ const c=document.getElementById('tpc')?.value||'', b=document.getElementById('tpcb'); clearInterval(tpTimer);
+  b.disabled=true; b.innerHTML=`<span class="cp-spin"></span><span>Списываем ${rub(tp.sum)}…</span>`;
+  setTimeout(()=>c==='0000'?tpFail():tpDone(),1300); }
+function tpFail(){
+  sheet(`<div class="tp tp-res"><div class="tp-ic bad">✕</div><h2>Банк отклонил оплату 😟</h2>
+    <p class="muted">Деньги не списались<br>Проверь баланс карты или выбери другую</p>
+    <button class="plus-cta tp-go" onclick="tpCheck()">Попробовать ещё раз</button>
+    <button class="btn ghost block" onclick="closeSheet()">Закрыть</button></div>`); }
+function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=tp.card==='saved'?S.card:'•• '+tp.num.slice(-4), now=new Date(), no=String(Math.floor(100000+Math.random()*900000));
+  S.wallet.money+=sum; S.wallet.gift+=g;
+  (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:'Пополнение с карты '+card,sum},...(g?[{day:S.day,k:'gift',t:`Кэшбэк за пополнение ${giftPct(sum)}%`,sum:g}]:[]));
+  save(); render();
+  sheet(`<div class="tp tp-res"><div class="tp-ic ok">✓</div><h2>Готово! 🎉</h2>
+    <div class="tp-big money">+${rub(sum)}</div><span class="muted">на депозите</span>
+    ${g?`<div class="tp-cb"><b class="money">+${rub(g)} кэшбэк</b><span>${cbEq(g).replace(/^= /,'Это ')}</span></div>`:''}
+    <div class="panel tp-sum"><div class="row between"><span>Теперь на балансе</span><b class="money">${rub(walletTotal())}</b></div>
+      <div class="row between small muted"><span>Карта</span><span>${card}</span></div>
+      <div class="row between small muted"><span>Когда</span><span>${fmtDate(dateOf(S.day))}, ${now.toTimeString().slice(0,5)}</span></div>
+      <div class="row between small muted"><span>Операция</span><span>№ ${no}</span></div></div>
+    <span class="small muted" style="text-align:center">Чек придёт в СМС</span>
+    <button class="plus-cta tp-go" onclick="closeSheet()">Готово</button></div>`); confetti(); }
+
 function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
