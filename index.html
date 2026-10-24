@@ -1326,6 +1326,21 @@ span.lb-gift{background:none}
 .rate-row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:18px;text-align:left;color:#212221;background:linear-gradient(110deg,#f2c230,#ffd95e 55%,#ffb300);box-shadow:0 8px 22px rgba(242,178,48,.35)}
 .rate-row .rr-ic{font-size:30px;flex:none}.rate-row .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.rate-row b{font-size:18px}.rate-row small{font-size:13.5px;opacity:.8}
 .rate-row .chev{font-size:26px;font-weight:700}
+
+/* «Каждый 6-й»: правило картинкой (владелец 24.10) */
+.six-how{display:flex;flex-direction:column;gap:10px}
+.six-how .six-rule{font-size:16px;font-weight:600}
+.sx-path{display:flex;align-items:center;gap:5px}
+.sx-path i{width:24px;height:24px;flex:none;border-radius:50%;background:#382d2b;color:#fff;font-style:normal;font-size:12px;font-weight:700;display:grid;place-items:center}
+.sx-ar{font-size:20px;font-weight:700;margin:0 2px}
+.sx-6{padding:5px 11px;border-radius:999px;background:#c2185b;color:#fff;font-size:14.5px;white-space:nowrap}
+.sx-offs{display:flex;flex-wrap:wrap;gap:6px}
+.sx-off{display:inline-flex;align-items:baseline;gap:5px;padding:7px 10px;border-radius:14px;font-size:14px;font-weight:600;white-space:nowrap}
+.sx-off b{font-family:var(--f-num);font-weight:400;font-size:16px;line-height:1}
+@media (max-width:360px){.sx-path i{width:20px;height:20px;font-size:11px}.sx-path{gap:4px}.sx-off{font-size:13px;padding:6px 8px}.sx-off b{font-size:14px}}
+.six-how .sx-note{margin:-4px 0 0;font-size:12.5px;color:var(--muted)}
+.sx-off.new{background:#2e9e5b;color:#fff}
+.sx-off.old{background:rgba(255,255,255,.75);color:#382d2b}
 </style>
 
 <div class="app" id="app"></div>
@@ -1994,7 +2009,12 @@ function setSix(i,id){ const cur=S.six.slots[i];
 // Блок «Каждый 6-й»: 3 ячейки, у новичка — пустые («Выбрать блюдо»), чужих блюд нет
 function stampsBlock(){
   const ai=sixAI();
-  return `<div class="stamps"><p class="six-rule">Выбери 3 блюда и купи каждое 5 раз<br>Шестое — дешевле: <b>новое для тебя −50%</b>, привычное −20%</p>
+  return `<div class="stamps"><div class="six-how">   <!-- 24.10 (владелец): правило картинкой — 5 покупок → 6-е дешевле, две скидки отдельными плашками, не рвутся -->
+      <p class="six-rule">Выбери 3 блюда и купи каждое 5 раз</p>
+      <div class="sx-path" aria-hidden="true">${[1,2,3,4,5].map(n=>`<i>${n}</i>`).join('')}<span class="sx-ar">→</span><b class="sx-6">6-е дешевле</b></div>
+      <div class="sx-offs"><span class="sx-off new"><b>−50%</b>на новое</span><span class="sx-off old"><b>−20%</b>на привычное</span></div>
+      <p class="sx-note">Новое — то, что ты не брал 2 месяца</p>
+    </div>
     ${ai?`<div class="six-ai"><span class="pi">💡</span><span class="tx"><b>Попробуй: ${byId(ai).n}</b><small>Для тебя это новое — копи на −50%</small></span><span class="bt"><button class="btn" onclick="sixYes('${ai}')">Хочу</button><button class="btn ghost" onclick="sixNo('${ai}')">Не надо</button></span></div>`:''}
     ${[0,1,2].map(i=>{ const sl=S.six.slots[i];
       if(!sl) return `<button class="stamp empty" onclick="openSixPick(${i})"><span class="six-plus">+</span><span class="tx"><b>Выбрать блюдо</b><small>Новое −50%, привычное −20%</small></span></button>`;
