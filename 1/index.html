@@ -174,7 +174,7 @@ p{margin:0}
 .sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(10,12,11,.5);display:flex;align-items:flex-end;justify-content:center;overscroll-behavior:contain;touch-action:none}
 /* пока открыто окно, страница под ним не прокручивается */
 html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none}
-html.sheet-open body{position:fixed;left:0;right:0;width:100%}
+html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto — отступы body остаются с обеих сторон, страница под окном не уезжает вправо (владелец 24.10) */
 /* низ шторки (кол-во и цена) прилипает к самому краю экрана — без щели, сквозь которую видно содержимое */
 .sheet-foot{position:sticky;z-index:4;--pb:calc(20px + env(safe-area-inset-bottom,0px));bottom:calc(-1 * var(--pb));margin:0 -16px calc(-1 * var(--pb));padding:10px 16px var(--pb);background:var(--bg);border-top:1px solid var(--line)}
 .sheet{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
