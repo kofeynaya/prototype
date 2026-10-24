@@ -156,6 +156,13 @@ p{margin:0}
 .learn .l{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;font-size:14px}
 .learn .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
 .learn .bar i{display:block;height:100%;background:var(--green)}
+.learn .l{grid-template-columns:1fr 32% 38px}.learn .l b{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.learn .l.top{font-weight:700}.learn .l.top b{color:var(--ink)}.learn .bar{height:10px;border-radius:5px}.learn .bar i{border-radius:5px}
+.lr-hero{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(120deg,rgba(167,210,185,.18),rgba(236,204,206,.14));font-size:15px;line-height:1.3}
+.lr-hero .lr-ic{font-size:30px;line-height:1;flex:none}
+.lr-chips{display:flex;flex-wrap:wrap;gap:6px}
+.lr-chips span{padding:5px 11px;border-radius:999px;font-size:13px;border:1px solid var(--line);color:var(--muted)}
+.lr-chips span.on{background:#a7d2b9;border-color:#a7d2b9;color:#212221;font-weight:700}
 :root[data-theme="dark"] .learn .bar i{background:var(--sage)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .learn .bar i{background:var(--sage)}}
 
@@ -3455,7 +3462,7 @@ function profile(){
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('city','Тамбов',"toast('Сейчас работаем в Тамбове.')")}
     </div>
-    <div class="panel"${F(9)}><h3>Что приложение о вас узнало</h3>
+    <div class="panel"${F(9)}><h3>Что приложение о тебе узнало</h3>
       ${learnBlock()}</div>
     <div class="panel"><h3>Уведомления</h3>
       ${[['offer','Новое предложение дня'],['streak','Напоминание: не дай посещениям сгореть 🔥'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
@@ -3647,7 +3654,7 @@ const LEGEND = [
  [6,'#1de9b6','Моя выгода','Сколько сэкономили по оплаченным покупкам. Бонусы и баланс — отдельно.','«Профиль» → Мои выгоды, «История покупок» по кнопке',"go('profile')"],
  [7,'#c6ff00','Достижения','Значки за визиты, недели в цель, экономию.','«Профиль»',"go('profile')"],
  [8,'#2979ff','Цены недели ★','Персональные цены на любимые блюда на всю неделю (по подписке).','«Сегодня», «Меню»',"go('home')"],
- [9,'#a1887f','Что приложение о вас узнало','Честно показываем, что вы любите — по этому подбираем предложения.','«Профиль»',"go('profile')"],
+ [9,'#a1887f','Что приложение о тебе узнало','Честно показываем, что вы любите — по этому подбираем предложения.','«Профиль»',"go('profile')"],
  [10,'#18ffff','QR на кассе','Покажите кассиру — скидки и бонусы применятся сами. Код меняется каждую минуту.','Кнопка QR внизу по центру',"openQR()"],
  [11,'#ff6d00','Каждый 6-й','Гость выбирает до 3 блюд: новое −50%, привычное −20%.','«Турбо»',"go('progress')"],
  [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Сегодня», «Профиль → Мои данные»',"go('birthday')"],
@@ -3743,10 +3750,14 @@ function learnBlock(){
   const cnt={}; S.orders.forEach(o=>(o.items||[]).forEach(id=>{ const m=byId(id); if(m){ const c=LCAT(m); cnt[c]=(cnt[c]||0)+1; } }));
   const cats=Object.entries(cnt).sort((a,b)=>b[1]-a[1]), tried=Object.keys(S.mechTried||{}).filter(k=>MECH[k]);
   if(!cats.length) return `<div class="learn-empty"><span>🌱</span><p class="small">Пока ничего — ты у нас недавно. После первой покупки приложение начнёт подбирать скидки под твой вкус</p></div>`;
-  const mx=cats[0][1], mechs=tried.map(k=>[k,S.w.mech[k]||1]).sort((a,b)=>b[1]-a[1]), mm=Math.max(1,...mechs.map(m=>m[1]));
-  return `<p class="small muted">По этим данным подбираются предложения дня, рекомендации и цены недели</p>
-    <span class="label">Что вы любите</span><div class="learn">${cats.map(([k,v])=>`<div class="l"><span>${CAT[k]}</span><span class="bar"><i style="width:${v/mx*100}%"></i></span></div>`).join('')}</div>
-    <span class="label">Какие акции вам ближе</span>${mechs.length?`<div class="learn">${mechs.map(([k,v])=>`<div class="l"><span>${MECH[k]}</span><span class="bar"><i style="width:${v/mm*100}%"></i></span></div>`).join('')}</div>`:'<p class="small muted" style="margin:0">Пока не знаем — воспользуйся предложением дня</p>'}`;
+  // 24.10: живее, но не больше — одна фраза-вывод, строки с эмодзи, цветной полоской и долей, акции — таблетками
+  const tot=cats.reduce((a,c)=>a+c[1],0), mechs=tried.map(k=>[k,S.w.mech[k]||1]).sort((a,b)=>b[1]-a[1]), top=cats[0][0];
+  const CE={coffee:'☕',tea:'🍵',pastry:'🥐',food:'🥗'}, ME={pct:'🏷️',price:'💰',gift:'🎀',combo:'🍽️'};
+  const CV={coffee:'кофе',tea:'чай и матчу',pastry:'выпечку и десерты',food:'еду'}, MV={pct:'скидки в процентах',price:'специальные цены',gift:'подарки',combo:'комбо'};   // винительный падеж для фразы
+  return `<div class="lr-hero"><span class="lr-ic">${CE[top]}</span><span>Ты любишь <b>${CV[top]}</b>${mechs.length?`<br>и <b>${MV[mechs[0][0]]}</b> ${ME[mechs[0][0]]}`:''}</span></div>
+    <div class="learn">${cats.map(([k,v],i)=>`<div class="l${i?'':' top'}"><span>${CE[k]} ${CAT[k]}</span><span class="bar"><i style="width:${Math.max(4,Math.round(v/tot*100))}%;background:${SWATCH[k]}"></i></span><b>${Math.round(v/tot*100)}%</b></div>`).join('')}</div>
+    ${mechs.length?`<div class="lr-chips">${mechs.map(([k],i)=>`<span class="${i?'':'on'}">${ME[k]} ${MECH[k]}</span>`).join('')}</div>`:''}
+    <p class="small muted" style="margin:0">По этому подбираем предложение дня и цены недели</p>`;
 }
 /* ===================== Онбординг (22.10, тексты согласованы с критиком) =====================
    4 экрана, одна мысль на экран; «Дальше» — крупная кнопка внизу, «Пропустить» — сверху. Показывается один раз после входа (S.onb) и из пульта */
