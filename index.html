@@ -2002,7 +2002,7 @@ function home(){
   const perks=[
     {power:true},
     {n:12, t:'День рождения', s:!bd.set?'Скидка = возраст<br>Укажи дату':bd.active?`Сейчас −${bd.pct}%`:`Скидка = возраст<br>${fmtDate(bd.date)}`, bg:'var(--pink)', go:"go('birthday')", big:PI.cake},
-    {n:15, t:`+${REF_T} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.gift},
+    {n:15, t:`+${REF_T} ₽ за друга`, s:'И другу столько же', bg:'var(--aqua)', go:"go('invite')", big:PI.friends},
     {n:13, t:'Кофейная+', s:S.plus?'Подключена':'Цены недели, бонусы до 7%', bg:'var(--blue)', fg:'#f9f9f9', go:"go('plus')", big:PI.crown},
   ];
   return `<section class="screen">
@@ -2039,6 +2039,8 @@ const PI = {
   flame:`<svg viewBox="0 0 48 48"><path d="M24 3c3 9 15 14 15 27a15 15 0 0 1-30 0c0-7 4-11 6-15 1 5 4 8 7 8-3-8-1-15 2-20z" fill="#ff6d00"/><path d="M24 22c2 5 8 8 8 14a8 8 0 0 1-16 0c0-4 2-6 4-8 0 3 2 4 4 4-1-4-1-7 0-10z" fill="#f2c230"/><circle cx="20" cy="36" r="2" fill="#212221"/><circle cx="28" cy="36" r="2" fill="#212221"/><path d="M21 40q3 2.5 6 0" stroke="#212221" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
   cake:`<svg viewBox="0 0 48 48"><rect x="7" y="24" width="34" height="18" rx="4" fill="#e85d75"/><path d="M7 30q4 4 8.5 0t8.5 0t8.5 0t8.5 0V26a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2z" fill="#fef2e9"/><rect x="4" y="41" width="40" height="4" rx="2" fill="#212221" opacity=".15"/><rect x="14" y="12" width="4" height="12" rx="1.5" fill="#2b5bd1"/><rect x="22" y="10" width="4" height="14" rx="1.5" fill="#3fae79"/><rect x="30" y="12" width="4" height="12" rx="1.5" fill="#f2c230"/><path d="M16 5q3 4 0 6q-3-2 0-6zM24 3q3 4 0 6q-3-2 0-6zM32 5q3 4 0 6q-3-2 0-6z" fill="#ff6d00"/><circle cx="14" cy="35" r="2" fill="#fff"/><circle cx="24" cy="36" r="2" fill="#fff"/><circle cx="34" cy="35" r="2" fill="#fff"/></svg>`,
   gift:`<svg viewBox="0 0 48 48"><rect x="6" y="20" width="36" height="24" rx="3" fill="#2b5bd1"/><rect x="4" y="14" width="40" height="9" rx="3" fill="#5e85e8"/><rect x="21" y="14" width="6" height="30" fill="#f2c230"/><path d="M24 14c-4-9-14-8-12-2 1 3 8 3 12 2zM24 14c4-9 14-8 12-2-1 3-8 3-12 2z" fill="#f2c230" stroke="#c99a12" stroke-width="1.5"/><circle cx="12" cy="32" r="2" fill="#9bd9d9"/><circle cx="36" cy="36" r="2" fill="#9bd9d9"/></svg>`,
+  // двое друзей (владелец 24.10: у «Пригласи друга» не коробка-подарок — она уже у сундука)
+  friends:`<svg viewBox="0 0 48 48"><path d="M3 45q1-13 12-13t12 13z" fill="#2b5bd1"/><circle cx="15" cy="21" r="8" fill="#f5d0b5"/><path d="M7 19q1-9 8-9t8 9q-3-4-8-4t-8 4z" fill="#382d2b"/><circle cx="12.5" cy="21.5" r="1.3" fill="#212221"/><circle cx="17.5" cy="21.5" r="1.3" fill="#212221"/><path d="M12.5 25q2.5 2 5 0" stroke="#212221" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M21 45q1-13 12-13t12 13z" fill="#3fae79"/><circle cx="33" cy="21" r="8" fill="#e8b898"/><path d="M25 22q-1-12 8-12t8 12l-1 6q-1-9-7-10-6 1-7 10z" fill="#d9a441"/><circle cx="30.5" cy="21.5" r="1.3" fill="#212221"/><circle cx="35.5" cy="21.5" r="1.3" fill="#212221"/><path d="M30.5 25q2.5 2 5 0" stroke="#212221" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M24 6l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.4-2.5 1.4.6-2.8-2.1-1.9 2.8-.3z" fill="#f2c230"/></svg>`,
   crown:`<svg viewBox="0 0 48 48"><path d="M6 36L4 14l11 9 9-15 9 15 11-9-2 22z" fill="#f2c230" stroke="#c99a12" stroke-width="1.5" stroke-linejoin="round"/><rect x="6" y="36" width="36" height="7" rx="2" fill="#e0b13a"/><circle cx="4" cy="13" r="3" fill="#ff4081"/><circle cx="24" cy="7" r="3" fill="#00e5ff"/><circle cx="44" cy="13" r="3" fill="#ff4081"/><circle cx="16" cy="30" r="2.5" fill="#d500f9"/><circle cx="24" cy="29" r="3" fill="#00e676"/><circle cx="32" cy="30" r="2.5" fill="#d500f9"/></svg>`,
 };
 // Персонаж у «Самое выгодное»: обомлевшая чашка показывает вниз
@@ -2623,7 +2625,7 @@ function progress(){
     ${giftsBlock()}
     ${pwLink()}
     <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
-    ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">🎁</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
+    ${S.day>=(S.invNext||0)?`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`:''}
     <div class="tstack">
       ${tcard('pr-ritm',1,'Твой ритм = твои бонусы',rhythm(),'tk-mint')}
       ${tcard('pr-six',2,'Каждый 6-й — дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-grey')}
@@ -2650,7 +2652,7 @@ function powerAll(){
     {ic:'⭐', t:'Кофейная+',        on:S.plus,                          yes:`Бонусы до ${PLUS_CAP}%, цены недели, ❄️ ${FZ_MONTH} заморозки в месяц`, no:`Открывает все выгоды: бонусы до ${PLUS_CAP}%, цены недели, депозит. Бесплатно до ${FREE_UNTIL}`, btn:"go('plus')", act:'Подключить'},
     {ic:'🪙', t:'Платить бонусами', on:spent,                           yes:'Оплачиваешь бонусами часть чека',            no:S.bonus?`У тебя ${S.bonus} бонусов = ${S.bonus} ₽. При оплате заказа включи «Оплатить бонусами»`:'Бонусы приходят с покупок|Ими можно оплатить до 30% чека', act:S.bonus?'Заказать':'В меню', btn:"go('menu')"},
     {ic:'🎂', t:'День рождения',    on:!!(S.birth&&S.birth.d),          yes:'Дата указана — скидка будет',               no:'Укажи дату — в день рождения скидка = возраст', act:'Указать дату', btn:"go('birthday')"},
-    {ic:'🎁', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_T} бонусов тебе и другу`, act:'Пригласить', btn:"go('invite')"},
+    {ic:'👫', t:'Пригласи друга',   on:fr>0,                            yes:`Приглашено: ${fr}`,                          no:`+${REF_T} бонусов тебе и другу`, act:'Пригласить', btn:"go('invite')"},
   ];
 }
 // Спидометр: полукруг, заполнен на pct% (неоновая дуга со свечением)
@@ -2872,7 +2874,7 @@ const SRCH_PAGES=[
   {ic:'6',t:'Каждый 6-й дешевле',s:'Выбери до 3 блюд|Шестое — до −50%',k:'6-й шестой каждый отметки штампы',go:"goTo('progress','#pr-six')"},
   {ic:'💳',t:'Депозит',s:'Положи деньги — вернём кэшбэк|До +1 000 ₽',k:'депозит баланс пополнить кэшбэк деньги счет',go:"go('wallet')"},
   {ic:'🎂',t:'День рождения',s:'Скидка в процентах = твой возраст',k:'день рождения др скидка возраст',go:"go('birthday')"},
-  {ic:'👋',t:'Пригласи друга',s:'+'+REF_T+' бонусов тебе и другу',k:'друг пригласить приглашение реферал',go:"go('invite')"},
+  {ic:'👫',t:'Пригласи друга',s:'+'+REF_T+' бонусов тебе и другу',k:'друг пригласить приглашение реферал',go:"go('invite')"},
   {ic:'🔋',t:'Заряд выгоды',s:'Сколько выгод ты уже включил',k:'заряд выгоды батарейка',go:"go('power')"},
   {ic:'▦',t:'QR на кассе',s:'Покажи код бариста|Скидки и бонусы посчитаются сами',k:'qr код касса показать бариста',go:"openQR()"},
   {ic:'🏆',t:'У кого больше посещений',s:'Гости кофейной|Можно написать и подарить',k:'рейтинг гости место посещения',go:"go('progress');setTimeout(openLb,80)"},
