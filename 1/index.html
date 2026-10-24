@@ -1580,8 +1580,8 @@ const BD_FREE = 0, BD_CAP = 1500;
 const REF_REWARD = 1000, REF_DAYS = 3, REF_HOLD = 7;
 const REF_T = REF_REWARD.toLocaleString('ru-RU');   // «1 000» — для текстов
 const TOPUPS = [{sum:3000,gift:150},{sum:5000,gift:400},{sum:10000,gift:1000}];
-// подарок за любую сумму: от 3 000 — 5%, от 5 000 — 8%, от 10 000 — 10%
-const giftPct = sum => sum>=10000?10:sum>=5000?8:sum>=3000?5:0;
+// кэшбэк за любую сумму (владелец 24.10): до 3 000 — 3%, от 3 000 — 5%, от 5 000 — 8%, от 10 000 — 10%
+const giftPct = sum => sum>=10000?10:sum>=5000?8:sum>=3000?5:sum>0?3:0;
 const giftFor = sum => Math.round(sum*giftPct(sum)/100);
 const BONUS_MAX_SHARE = 0.3;
 const _NOW = new Date(), _DOW = (_NOW.getDay()+6)%7; // пн=0
@@ -3130,7 +3130,7 @@ const RULES=[
   ['Каждый 6-й','Выбери до 3 блюд и купи каждое 5 раз — шестое дешевле: новое для тебя −50%, привычное −20%. Одна отметка на блюдо в день. Шестое со скидкой живёт 3 дня, отметки сгорают, если 30 дней не покупать это блюдо. Поменять блюдо можно, но отметки обнулятся. После 8 дней с покупками приложение раз в неделю подсказывает новое — ставить его или нет, решаешь ты.'],
   ['День рождения','Скидка в процентах, равная возрасту (с подпиской) — ±7 дней от даты.'],
   ['Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу.'],
-  ['Депозит','Пополняете депозит — получаете кэшбэк: 5% от 3 000 ₽, 8% от 5 000 ₽, 10% от 10 000 ₽. Оплата с баланса на кассе.'],
+  ['Депозит','Пополняете депозит — получаете кэшбэк: 3% с любой суммы, 5% от 3 000 ₽, 8% от 5 000 ₽, 10% от 10 000 ₽. Оплата с баланса на кассе.'],
   ['Подписка Кофейная+','Цены недели, бонусы до 7%, скидка в ДР. Бесплатно до '+FREE_UNTIL+', потом 99 ₽/мес.'],
   ['Как скидки сочетаются','На одну позицию — одна лучшая скидка. Поверх — бонусы и депозит.'],
   ['Заряд выгоды 🔋','Батарейка показывает, сколько выгод приложения ты уже включил: предложение дня, ритм, каждый 6-й, депозит, подписку, оплату бонусами, день рождения, друга. Чем больше включено — тем больше экономишь. Подсказка сверху говорит, что включить проще всего.'],
@@ -3509,10 +3509,10 @@ function cbEq(g){ const cap=byId('i023'), esp=byId('i019'); if(!cap||!esp) retur
   return n>=1?`= ${n} капучино бесплатно ☕`:g>=esp.p?'= эспрессо бесплатно ☕':''; }
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше кэшбэк.</p>
   <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
-  <div class="ownsum"><label for="own">Своя сумма</label><div class="ownrow"><input id="own" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 20 000" oninput="ownCalc()"><span>₽</span></div><span class="ownhint" id="ownhint">От 3 000 ₽ — кэшбэк 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%</span><button class="btn block" id="ownbtn" disabled onclick="topUpSum(document.getElementById('own').value)">Пополнить</button></div>
+  <div class="ownsum"><label for="own">Своя сумма</label><div class="ownrow"><input id="own" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 20 000" oninput="ownCalc()"><span>₽</span></div><span class="ownhint" id="ownhint">Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%</span><button class="btn block" id="ownbtn" disabled onclick="topUpSum(document.getElementById('own').value)">Пополнить</button></div>
   <p class="hint">Демо: оплата картой не списывается.</p>`); }
 function ownCalc(){ const v=Math.round(+document.getElementById('own').value||0), g=giftFor(v), h=document.getElementById('ownhint'), b=document.getElementById('ownbtn');
-  if(v<100){ h.textContent='От 3 000 ₽ — кэшбэк 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%'; b.disabled=true; b.textContent='Пополнить'; return; }
+  if(v<100){ h.innerHTML='Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%'; b.disabled=true; b.textContent='Пополнить'; return; }
   h.innerHTML=g?`Кэшбэк <b>${giftPct(v)}% · +${rub(g)}</b> ${cbEq(g)}<br>На балансе станет ${rub(walletTotal()+v+g)}`:`Без кэшбэка — он начинается от 3 000 ₽. Станет ${rub(walletTotal()+v)}`;
   b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; }
 function invite(){
