@@ -647,6 +647,11 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .sup{display:flex;flex-direction:column;gap:12px;min-height:100%}
 .sup-h{display:flex;align-items:center;gap:12px;padding-right:48px}.sup-h span{display:flex;flex-direction:column}.sup-h b{font-size:20px}.sup-h small{color:var(--muted);font-size:13px;line-height:1.3}
 .sup-ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0d553f,#00657f);display:grid;place-items:center;font-size:20px;flex:none}
+.sup-ava svg{width:56%;height:56%;fill:none;stroke:#f9f9f9;stroke-width:1.9;stroke-linecap:round;display:block}
+.sup-topics .sup-star{width:24px;height:24px}.smsg .sb .star-y{width:15px;height:15px;vertical-align:-2px;margin-right:2px}
+.sup-div{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}.sup-div::before,.sup-div::after{content:"";flex:1;height:1px;background:var(--line)}
+.sup-no{align-self:center;color:var(--muted)}
+.sup-new{align-self:flex-start;padding:7px 14px;border-radius:999px;border:1.5px solid #2e9e5b;color:#7cc9a2;font-weight:700;font-size:14px}
 .smsg .sup-ava{width:30px;height:30px;font-size:15px}
 .sup-list{flex:1;display:flex;flex-direction:column;gap:10px}
 .smsg{display:flex;gap:8px;align-items:flex-end;max-width:88%}.smsg.me{align-self:flex-end}
@@ -2993,40 +2998,53 @@ const SUP_ANS={order:'Спасибо! Уже разбираюсь с заказ�
 const supNight=()=>{ if(S.sup.nightDemo) return true; const h=new Date().getHours(); return h>=23||h<8; };
 const supTime=()=>new Date().toTimeString().slice(0,5);
 let supTyping=false, supOpenNow=false;
-function supAva(){ return `<span class="sup-ava">🎧</span>`; }
-function openSupport(topic){ supOpenNow=true; if(S.sup.unread){ S.sup.unread=0; S.notes.forEach(n=>{ if(n.k==='sup') n.read=1; }); save(); render(); }
-  if(topic && !(S.sup.state==='wait')) supPick(topic,true); else drawSup(); }
-function drawSup(){ const m=S.sup.msgs, showTopics=!m.length||S.sup.state==='resolved'&&S.sup.newQ;
-  const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(i):`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb">${x.t.split('|').join('<br>')}<small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
+// иконка — svg, а не эмодзи: эмодзи в круге съезжает (владелец 24.10)
+function supAva(){ return `<span class="sup-ava"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg></span>`; }
+const supIc=ic=>ic==='★'?STAR_Y.replace('star-y','star-y sup-star'):ic;   // Кофейная+ — жёлтая звезда, как везде
+/* 24.10, с критиком: темы — подсказка, а не замок. Поле ввода работает всегда; «＋ Новый вопрос» над полем — в любой момент
+   (после возврата, во время ожидания, после ответа). При возврате темы сами не появляются */
+function openSupport(topic){ supOpenNow=true; S.sup.newQ=0; if(S.sup.unread){ S.sup.unread=0; S.notes.forEach(n=>{ if(n.k==='sup') n.read=1; }); save(); render(); }
+  if(topic) supPick(topic,true); else drawSup(); }
+function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${supIc(ic)}</span>${t}</button>`).join('')}</div>`;
+  const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(x,i):x.k==='div'?`<div class="sup-div"><span>Новый вопрос</span></div>`:`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb"><span>${(x.me?x.t.replace(/^★/,STAR_Y):x.t).split('|').join('<br>')}</span><small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
   sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:00 до 23:00</small></span></div>
     <div class="sup-list" id="suplist">${msgs}${supTyping?`<div class="smsg">${supAva()}<div class="sb typing">Анна печатает<i></i><i></i><i></i></div></div>`:''}
-    ${showTopics?`<h3 class="sup-q">С чем помочь?</h3><div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${ic}</span>${t}</button>`).join('')}</div>`:''}
-    ${S.sup.state==='resolved'&&!S.sup.newQ?`<button class="btn ghost block" onclick="S.sup.newQ=1;drawSup()">Новый вопрос</button>`:''}</div>
+    ${empty?`<h3 class="sup-q">С чем помочь?</h3>${topics}`:''}
+    ${!empty&&S.sup.newQ?`<div class="sup-div"><span>Новый вопрос</span></div><div class="smsg">${supAva()}<div class="sb">С чем помочь?</div></div>${topics}<button class="link sup-no" onclick="S.sup.newQ=0;drawSup()">✕ Не надо</button>`:''}</div>
     ${supNight()?`<div class="sup-night">Сейчас мы спим 🌙<br>Напиши — ответим утром, с 8:00</div>`:''}
-    ${showTopics&&!m.length?'':`<div class="sup-in"><input id="supin" placeholder="Напиши, что случилось" autocomplete="off" oninput="document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter')supSend()"><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div>`}</div>`,1);
-  const l=document.getElementById('suplist'); if(l) l.scrollTop=l.scrollHeight; }
-function supPick(k,fromLink){ const t=SUP_T.find(x=>x[0]===k); S.sup.topic=k; S.sup.state='open'; S.sup.newQ=0;
-  S.sup.msgs.push({me:true,t:t[1]+' '+t[2],tm:supTime()},{me:false,t:SUP_ASK[k],tm:supTime()});
+    ${!empty&&!S.sup.newQ?`<button class="sup-new" onclick="S.sup.newQ=1;drawSup()">＋ Новый вопрос</button>`:''}
+    <div class="sup-in"><input id="supin" placeholder="Напиши, что случилось" autocomplete="off" oninput="document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter')supSend()"><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div></div>`,1);
+  const l=document.getElementById('suplist'); if(l) l.scrollTop=l.scrollHeight; const sh=document.querySelector('.sheet.full'); if(sh) sh.scrollTop=sh.scrollHeight; }
+function supPick(k,fromLink){ const t=SUP_T.find(x=>x[0]===k), wasWait=S.sup.state==='wait'||!!S.sup.pend, had=S.sup.msgs.length>0;
+  S.sup.topic=k; S.sup.newQ=0;
+  if(had) S.sup.msgs.push({k:'div'});
+  S.sup.msgs.push({me:true,t:t[1]+' '+t[2],tm:supTime()});
+  if(wasWait) S.sup.msgs.push({me:false,t:'Хорошо! На прошлый вопрос тоже ответим',tm:supTime()});
+  S.sup.msgs.push({me:false,t:SUP_ASK[k],tm:supTime()});
   if(k==='order') S.sup.msgs.push({k:'orders'});
+  if(!wasWait) S.sup.state='open';
   save(); drawSup(); setTimeout(()=>document.getElementById('supin')?.focus(),60); }
 function supOrders(){ const os=(S.myOrders||[]).slice(0,3);
   if(!os.length) return `<div class="sup-note">Заказов пока нет<br>Напиши, что случилось</div>`;
   return `<div class="sup-orders">${os.map(o=>`<button onclick="supSendText('Заказ № ${o.no||o.id||''} от ${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}')"><b>№ ${o.no||o.id||''}</b><small>${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}</small></button>`).join('')}</div>`; }
 function supSend(){ const el=document.getElementById('supin'), t=(el&&el.value||'').trim(); if(!t) return; supSendText(t); }
-function supSendText(t){ const ok=navigator.onLine!==false; S.sup.msgs.push({me:true,t,tm:supTime(),st:ok?'sent':'fail'}); if(S.sup.state!=='wait'&&ok) S.sup.state='wait'; save(); drawSup(); if(ok) supReply(); }
-function supRetry(i){ const x=S.sup.msgs[i]; if(navigator.onLine===false) return toast('Нет интернета<br>Проверь связь и попробуй ещё раз'); x.st='sent'; S.sup.state='wait'; save(); drawSup(); supReply(); }
-function supReply(){ if(S.sup.pend) return; if(supNight()){ S.sup.pend={k:S.sup.topic||'other'}; save(); return; }
+function supSendText(t){ const ok=navigator.onLine!==false; S.sup.msgs.push({me:true,t,tm:supTime(),st:ok?'sent':'fail'}); if(ok) S.sup.state='wait'; save(); drawSup(); if(ok) supReply(S.sup.topic||'other'); }
+function supRetry(i){ const x=S.sup.msgs[i]; if(navigator.onLine===false) return toast('Нет интернета<br>Проверь связь и попробуй ещё раз'); x.st='sent'; S.sup.state='wait'; save(); drawSup(); supReply(S.sup.topic||'other'); }
+let supQ=new Set();   // темы, на которые уже идёт ответ — не дублировать
+function supReply(k){ if(supNight()){ S.sup.pend=S.sup.pend||{k}; S.sup.pendAll=[...new Set([...(S.sup.pendAll||[]),k])]; save(); return; }
+  if(supQ.has(k)) return; supQ.add(k);
   setTimeout(()=>{ supTyping=true; if(supOpenNow&&document.getElementById('suplist')) drawSup(); },1800);
-  setTimeout(()=>{ supTyping=false; supAnswer(S.sup.topic||'other'); },5200); }
-function supAnswer(k){ S.sup.msgs.push({me:false,t:SUP_ANS[k],tm:supTime()},{k:'rate'}); S.sup.state='answered'; S.sup.pend=null;
+  setTimeout(()=>{ supTyping=false; supQ.delete(k); supAnswer(k); },5200); }
+function supAnswer(k){ S.sup.msgs.push({me:false,t:SUP_ANS[k],tm:supTime()},{k:'rate',res:null}); S.sup.state=supQ.size?'wait':'answered';
   const open=!!document.getElementById('suplist');
   if(!open){ S.sup.unread++; S.notes.unshift({k:'sup',t:'💬 Поддержка ответила',s:SUP_ANS[k].split('|')[0],day:S.day,tm:supTime(),read:0}); }
   save(); if(open) drawSup(); else { render(); toast(`<span>💬 Поддержка ответила</span><button class="toast-btn" onclick="openSupport()">Открыть</button>`,6000,'sup-toast'); } }
-function supMorning(){ if(S.sup.pend){ const k=S.sup.pend.k; S.sup.pend=null; S.sup.nightDemo=false; setTimeout(()=>supAnswer(k),900); } }
-function supRate(i){ const st=S.sup.state;
-  if(st==='resolved') return `<div class="sup-note">Спасибо! Рады помочь 😊</div>`;
-  if(S.sup.msgs.length-1!==i) return '';
-  return `<div class="sup-rate"><span>Помогли?</span><button onclick="S.sup.state='resolved';save();drawSup()">Да</button><button onclick="S.sup.msgs.push({me:false,t:'Напиши, что не так — Анна ответит',tm:supTime()});S.sup.state='open';save();drawSup();setTimeout(()=>document.getElementById('supin')?.focus(),60)">Нет</button></div>`; }
+function supMorning(){ if(S.sup.pend){ const ks=S.sup.pendAll&&S.sup.pendAll.length?S.sup.pendAll:[S.sup.pend.k]; S.sup.pend=null; S.sup.pendAll=[]; S.sup.nightDemo=false; ks.forEach((k,n)=>setTimeout(()=>supAnswer(k),900+n*700)); } }
+function supRate(x,i){   // у каждого ответа свой «Помогли?»: Да → «Спасибо!», Нет → «Напиши, что не так»
+  if(x.res==='yes') return `<div class="sup-note">Спасибо! Рады помочь 😊</div>`;
+  if(x.res) return '';
+  return `<div class="sup-rate"><span>Помогли?</span><button onclick="supRes(${i},'yes')">Да</button><button onclick="supRes(${i},'no')">Нет</button></div>`; }
+function supRes(i,r){ const x=S.sup.msgs[i]; x.res=r; if(r==='no') S.sup.msgs.push({me:false,t:'Напиши, что не так — Анна ответит',tm:supTime()}); else if(!supQ.size&&!S.sup.pend) S.sup.state='resolved'; save(); drawSup(); if(r==='no') setTimeout(()=>document.getElementById('supin')?.focus(),60); }
 // Уведомления (колокольчик) — только настоящие события
 const notesNew=()=>S.notes.filter(n=>!n.read).length;
 function openNotes(){ const ns=S.notes;
