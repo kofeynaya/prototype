@@ -1418,11 +1418,13 @@ span.lb-gift{background:none}
 .tabs.t3 .turbotab:not([aria-current="page"]) .ring{filter:saturate(.75) brightness(.92)}
 
 /* Эксперимент 24.10: карточка уровня стыкуется с «01 Твой ритм» тем же фигурным выступом; блок «Акции» и «Пригласи друга» убраны (друг — в сторис) */
-.tk-stc{padding:0;background:none}
-.tk-stc .stc{position:relative;z-index:2}
-.tk-stc .tk-bulge{z-index:3}
-.t-silver-tail{--tkbg:#c6cbd1}.t-gold-tail{--tkbg:#e3bc76}.t-plat-tail{--tkbg:#36384a}   /* цвет низа карточки уровня по центру */
-.tk-stc+.tk{margin-top:8px}
+.tk-stc{padding:0;background:none;z-index:4;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
+/* выступ — продолжение самой карточки (тот же градиент), а не отдельная фигура: карточка вырезается маской «прямоугольник со скруглёнными углами + выступ» */
+.tk-stc .stc{box-shadow:none;border-radius:22px 22px 0 0;padding-bottom:26px;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 48px) no-repeat,linear-gradient(#000 0 0) left 22px bottom 26px/calc(100% - 44px) 22px no-repeat,radial-gradient(circle at 100% 0,#000 21.5px,transparent 22px) left bottom 26px/22px 22px no-repeat,radial-gradient(circle at 0 0,#000 21.5px,transparent 22px) right bottom 26px/22px 22px no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-150 0 300 26'%3E%3Cpath d='M-106 0C-80 0-80 26-54 26H54C80 26 80 0 106 0Z'/%3E%3C/svg%3E") center bottom/300px 26px no-repeat;
+  mask:linear-gradient(#000 0 0) top/100% calc(100% - 48px) no-repeat,linear-gradient(#000 0 0) left 22px bottom 26px/calc(100% - 44px) 22px no-repeat,radial-gradient(circle at 100% 0,#000 21.5px,transparent 22px) left bottom 26px/22px 22px no-repeat,radial-gradient(circle at 0 0,#000 21.5px,transparent 22px) right bottom 26px/22px 22px no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-150 0 300 26'%3E%3Cpath d='M-106 0C-80 0-80 26-54 26H54C80 26 80 0 106 0Z'/%3E%3C/svg%3E") center bottom/300px 26px no-repeat}
+.tk-stc .stc-band{margin-bottom:-26px;padding-bottom:40px}   /* светлая подложка нижней части тянется и в выступ */
+.tk-stc+.tk{margin-top:-18px}   /* выступ (26px) входит в вырез «Твоего ритма» с зазором 8px */
 
 /* без подсветки-прямоугольника при нажатии на разделы таб-бара (владелец 24.10) */
 .tabs.t3 button{-webkit-tap-highlight-color:transparent;outline:none}
@@ -2188,7 +2190,7 @@ function turboBody(){ return `
     ${PL_OPEN('Турбо — только с ★ Кофейная+','Счётчик посещений, уровень, бонусы за ритм, каждый 6-й до −50%, сундук и подарки')}
     ${serHead(true)}
     <div class="tstack">
-      ${(()=>{ const st=serState(), k=tierOf(S.ser.n).k; return `<div class="tk tk-stc t-${k}-tail">${TK_BULGE}${statusCard(st)}</div>`; })()}
+      ${(()=>{ const st=serState(), k=tierOf(S.ser.n).k; return `<div class="tk tk-stc">${statusCard(st)}</div>`; })()}
       ${tcard('pr-ritm',1,'Твой ритм = твои бонусы',rhythm(),'tk-mint')}
       ${tcard('pr-six',2,'Каждый 6-й — дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
