@@ -252,7 +252,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .six-pick button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-align:left}
 .six-pick button .sic{width:28px;height:28px}.six-pick b{font-size:14px;line-height:1.2}.six-pick span{font-size:12px;color:var(--muted)}
 .six-pick i{font-style:normal;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg)}.six-pick i.nw{background:#2e9e5b;color:#fff}
-.six-pick button:disabled{opacity:.45}
+.six-pick button{position:relative}
+.six-pick i.old{background:#00657f;color:#fff}
+.six-pick button.on{border:2px solid #c2185b;background:color-mix(in srgb,#c2185b 12%,var(--surface));box-shadow:0 4px 14px rgba(194,24,91,.25)}
+.six-pick i.on{background:#c2185b;color:#fff}
+.six-ck{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:#c2185b;color:#fff;font-style:normal;font-weight:800;font-size:14px;display:grid;place-items:center}
 .stamp{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:var(--tint);border:1px solid var(--line)}
 .stamp.k-drink{--tint:rgba(155,217,217,.14);--acc:#00657f}.stamp.k-food{--tint:rgba(167,210,185,.14);--acc:#0d553f}
 .stamp.k-bake{--tint:rgba(242,177,90,.14);--acc:#b26a00}.stamp.k-cake{--tint:rgba(236,204,206,.16);--acc:#c2185b}
@@ -2012,7 +2016,9 @@ function openSixPick(i){ if(!S.plus) return premGate('Каждый 6-й — то
   sheet(`<h2>Что копить?</h2><p class="small muted">Купи 5 раз — шестое дешевле<br>Новое для тебя — <b>−50%</b>, привычное — −20%</p>
     ${cur&&cur.n?`<p class="small" style="color:#e53935;margin:0">Сейчас в ячейке ${cur.n} ${plural(cur.n,'отметка','отметки','отметок')} — при замене они обнулятся</p>`:''}
     ${SIX_POOL.map(g=>`<h3 class="six-gh">${g.t}</h3><div class="six-pick">${g.ids.map(id=>{ const m=byId(id), nw=!boughtWithin(id,SIX_NEW_WINDOW), busy=taken.has(id)&&(!cur||cur.id!==id);
-      return `<button ${busy?'disabled':''} onclick="setSix(${i},'${id}')">${stampIc(sixKind(id),'')}<b>${m.n}</b><span class="money">${rub(m.p)}</span><i class="${nw?'nw':''}">${busy?'уже копишь':nw?'Новое −50%':'Привычное −20%'}</i></button>`; }).join('')}</div>`).join('')}`); }
+      // 24.10: уже выбранные блюда — не тусклые, а заметно отмечены (малиновая рамка, «✓ Уже копишь» / «✓ Сейчас здесь»)
+      const here=cur&&cur.id===id;
+      return `<button class="${busy||here?'on':''}" ${busy?'aria-disabled="true"':''} onclick="${busy?`toast('${m.n} уже копишь в другой ячейке')`:here?'closeSheet()':`setSix(${i},'${id}')`}">${busy||here?'<em class="six-ck">✓</em>':''}${stampIc(sixKind(id),'')}<b>${m.n}</b><span class="money">${rub(m.p)}</span><i class="${busy||here?'on':nw?'nw':'old'}">${busy?'✓ Уже копишь':here?'✓ Сейчас здесь':nw?'Новое −50%':'Привычное −20%'}</i></button>`; }).join('')}</div>`).join('')}`); }
 function setSix(i,id){ const cur=S.six.slots[i];
   if(cur&&cur.n>0){ if(S.six.swap[i]!=null&&S.day-S.six.swap[i]<7) return toast('Менять блюдо с отметками можно раз в неделю'); S.six.swap[i]=S.day; }
   const nw=!boughtWithin(id,SIX_NEW_WINDOW); S.six.slots[i]={id,n:0,isNew:nw,last:S.day}; closeSheet(); save(); render();
