@@ -952,7 +952,7 @@ img.ava{object-fit:cover}
 .dash-pin{justify-content:space-between;align-items:center}
 .dp-side{display:flex;flex-direction:column;align-items:center;gap:1px;width:76px}
 .dp-side b{font-size:17px;white-space:nowrap}
-.dp-side small{font-size:12px;color:var(--muted)}
+.dp-side small{font-size:12px;color:var(--muted);line-height:1.15;text-align:center;white-space:nowrap}   /* «мой рекорд / подряд», «место / среди гостей» — на тестах «лучший» и «место» без пояснения были непонятны (24.10) */
 /* Карточка статуса: Серебряный / Золотой / Платиновый — свой цвет у каждого */
 .stc{display:flex;flex-direction:column;border-radius:22px;overflow:hidden;color:#2b1d0e;box-shadow:0 10px 30px -12px var(--glow,rgba(0,0,0,.4))}
 .stc-top{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px 16px 14px;cursor:pointer}
@@ -2411,9 +2411,9 @@ const TIER_TXT={silver:'Бонусы за ритм', gold:'+1% к бонусам
 function serHead(){
   const st=serState(), rank=lbRank();
   return `<div class="ser-pin dash-pin ser ${st.k}">
-      <button class="dp-side" onclick="toast('Лучший результат: ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Побьёшь?')"><b>👑 ${S.ser.best}</b><small>лучший</small></button>
+      <button class="dp-side" onclick="toast('${S.ser.best?`Твой рекорд — ${S.ser.best} ${plural(S.ser.best,'посещение','посещения','посещений')} подряд. Он не сгорает. Побьёшь?`:'Рекорда пока нет. Приходи — и он начнёт расти'}')"><b>👑 ${S.ser.best}</b><small>мой рекорд<br>подряд</small></button>
       <button class="ser-main" onclick="openVisits()" aria-label="Все мои посещения"><span class="ser-num"><svg class="ser-fl" viewBox="0 0 30 38" aria-hidden="true"><path d="${FLAME_P}"/></svg><b class="money">${S.ser.n}</b></span><small>${plural(S.ser.n,'посещение','посещения','посещений')} подряд <span class="go">›</span></small></button>
-      <button class="dp-side" onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место</small></button>
+      <button class="dp-side" onclick="document.getElementById('lb').scrollIntoView({behavior:'smooth',block:'start'})"><b>🏆 ${rank}</b><small>место<br>среди гостей</small></button>
     </div>
     ${statusCard(st)}`;
 }
