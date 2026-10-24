@@ -2550,7 +2550,7 @@ function rhythm(){
   else if(next>now){ face='😊'; l1=`Уже ${next}% — больше, чем сейчас`; }
   else if(next===now){ face='🙂'; l1=`Уже ${next}%, как сейчас`; }
   else { face='😟'; l1=`Пока ${next}% вместо ${now}%`; }
-  if(next<cap) l2 = left ? `Приходи ${today?'завтра':'сегодня'} — на новой неделе будет ${next+1}%` : `На новой неделе будет ${next}%`;   // «будет» — всегда с «на новой неделе», иначе непонятно когда (владелец 24.10)
+  if(next<cap) l2 = left ? `Приходи ${today?'завтра':'сегодня'} — на следующей неделе будет ${next+1}%` : `На следующей неделе будет ${next}%`;   // «будет» — всегда с «на следующей неделе», иначе непонятно когда (владелец 24.10)
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
