@@ -636,6 +636,10 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+/* «Мой профиль» */
+.me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:56px;overflow:hidden;text-align:left;max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.me-top{display:flex;flex-direction:column;align-items:center;gap:8px}.me-top .myph{width:104px;height:104px}.me-top .myph .pl{font-size:40px}
+.me-name{display:flex;gap:8px}.me-name .cp-in{flex:1;min-width:0}
 /* Поддержка */
 .inl-link{display:inline;padding:0;font:inherit;color:#7cc9a2;text-decoration:underline;text-underline-offset:3px}
 .badge-n,.tab-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e53935;color:#fff;font-size:12px;font-weight:700;font-style:normal}
@@ -2178,6 +2182,7 @@ const PLUS_ON = `<span class="plus-on"><svg viewBox="0 0 24 24" aria-hidden="tru
 const LOCK_IC = '<span class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>';
 const locked = (inner, what, sub) => `<div class="locked"><div class="veil">${inner}</div><div class="lockbox">${LOCK_IC}<strong>${what}</strong><span class="small">${sub||'Доступно только с подпиской&nbsp;★&nbsp;Кофейная+'}</span><button class="btn" style="padding:9px 16px" onclick="go('plus')">Подключить Кофейная+</button></div></div>`;
 const IC = {
+  phone:'<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>',
   chat:'<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
   filter:'<svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
@@ -2916,6 +2921,23 @@ const lbRank=()=>S.lbHide?'—':lbAll().findIndex(g=>g.me)+1;
 const gAva=(g,size)=>g.me?(S.photo?`<img class="ava" src="${S.photo}" width="${size}" height="${size}" alt="">`:ava(99,size)):ava(GUESTS.indexOf(g),size);
 /* Фото профиля: пустой кружок с «+» → выбрать фото → окно «Поправь фото»: двигать пальцем и приближать внутри круга,
    сразу видно, как фото будет выглядеть в профиле. Сохраняем 256×256 у гостя. С фото — без «+», по нажатию: сменить / удалить */
+/* «Мой профиль» (владелец 24.10): сюда ведут имя с телефоном в шапке профиля и строка «Мои данные» */
+function me(){ const bd=bdInfo(), b=S.birth;
+  const r=(ic,t,v,act)=>`<button class="li" onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span><small class="muted">${v}</small><span class="chev">›</span></button>`;
+  return `<section class="screen">${back('profile')}
+    <div class="me-top">${myPhoto()}<span class="small muted">${S.photo?'Нажми на фото, чтобы поменять':'Нажми на кружок, чтобы добавить фото'}</span></div>
+    <div class="panel"><label class="label" for="me-name">Имя</label>
+      <div class="me-name"><input id="me-name" class="cp-in" value="${S.name.replace(/"/g,'&quot;')}" maxlength="24" autocomplete="given-name" oninput="document.getElementById('me-save').disabled=!this.value.trim()||this.value.trim()===S.name"><button class="btn" id="me-save" disabled onclick="meSave()">Сохранить</button></div>
+      <span class="small muted">Так тебя будут видеть в рейтинге и бариста на кассе</span></div>
+    <div class="list">
+      ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('other'),900)")}
+      ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
+      ${r('card','Банковская карта',S.card,"toast('Карта ${S.card} — демо')")}
+      ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
+    </div>
+    <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
+  </section>`; }
+function meSave(){ const v=(document.getElementById('me-name')?.value||'').trim(); if(!v) return; S.name=v; save(); render(); toast('Имя сохранено'); }
 function myPhoto(){ return S.photo
   ? `<button class="myph has" onclick="openPhotoMenu()" aria-label="Фото профиля"><img src="${S.photo}" alt=""></button>`
   : `<label class="myph" aria-label="Добавить фото"><span class="pl">+</span><input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
@@ -3538,7 +3560,7 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<div class="stack" style="gap:2px;min-width:56px;overflow:hidden"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'}</span></div></div>
+    <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<button class="me-hit" onclick="go('me')" aria-label="Мой профиль"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'} ›</span></button></div>
       <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
@@ -3547,7 +3569,7 @@ function profile(){
     <div class="list">
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
-      ${row('user','Мои данные',"go('birthday')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
+      ${row('user','Мои данные',"go('me')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
       ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
@@ -3702,8 +3724,8 @@ const TABS=[
   ['home','Турбо',TURBO_IC],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
-const SCREENS={home,menu,progress:home,profile,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
-const TAB_OF={progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
+const SCREENS={home,menu,progress:home,profile,me,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
+const TAB_OF={me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
 // Перейти на вкладку и прокрутить к нужному блоку (якорь) — чтобы кнопка вела ровно туда, где выгода
 function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(sel); if(el){ const y=el.getBoundingClientRect().top+scrollY-90; scrollTo({top:y,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); } },60); }
 function go(t){ if(t==='qr'){ openQR(); return; } tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
