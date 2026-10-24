@@ -2991,11 +2991,11 @@ function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small m
 /* ===================== Поддержка (владелец 24.10, экраны — с критиком) =====================
    Входы: «через поддержку» на экране ДР, строка «Поддержка» в профиле, поиск, уведомление. Чат на весь экран.
    Пусто → «С чем помочь?» и 6 тем; ответ «Анны» имитируется; закрыл до ответа — всплывашка + кружки на «Профиле» и строке.
-   Ночью (23:00–8:00) — «Сейчас мы спим 🌙», ответ утром (в демо — после «Завтра →»). Нет сети — «Не отправилось» */
+   Ночью (22:30–8:30) — «Сейчас мы спим 🌙», ответ утром (в демо — после «Завтра →»). Нет сети — «Не отправилось» */
 const SUP_T=[['order','🧾','Заказ'],['pay','💳','Оплата и депозит'],['bonus','🪙','Бонусы и скидки'],['plus','★','Кофейная+'],['bd','🎂','День рождения'],['other','💬','Другое']];
 const SUP_ASK={order:'Какой заказ? Выбери ниже или напиши, что случилось',pay:'Что случилось с оплатой?|Напиши — разберусь',bonus:'Каких бонусов или скидки не хватает?|Напиши дату покупки',plus:'Что хочешь узнать про подписку?',bd:'Напиши новую дату рождения|Бариста проверит документ на кассе',other:'Напиши, что случилось — помогу'};
 const SUP_ANS={order:'Спасибо! Уже разбираюсь с заказом|Если была ошибка — вернём деньги на карту или депозит',pay:'Проверила — деньги на месте|Если списалось дважды, второе списание вернётся на карту за 3 дня',bonus:'Бонусы начисляются сразу после покупки|Каких не хватает — начислю вручную сегодня',plus:'Подписка бесплатна до '+FREE_UNTIL+'|Отменить можно в Профиле → Кофейная+',bd:'Приняла новую дату|При следующей покупке покажи бариста паспорт или права — и дата обновится',other:'Спасибо за сообщение!|Передала вопрос — ответим здесь же'};
-const supNight=()=>{ if(S.sup.nightDemo) return true; const h=new Date().getHours(); return h>=23||h<8; };
+const supNight=()=>{ if(S.sup.nightDemo) return true; const d=new Date(), m=d.getHours()*60+d.getMinutes(); return m>=22*60+30||m<8*60+30;   // 8:30–22:30 (владелец 24.10) };
 const supTime=()=>new Date().toTimeString().slice(0,5);
 let supTyping=false, supOpenNow=false;
 // иконка — svg, а не эмодзи: эмодзи в круге съезжает (владелец 24.10)
@@ -3007,11 +3007,11 @@ function openSupport(topic){ supOpenNow=true; S.sup.newQ=0; if(S.sup.unread){ S.
   if(topic) supPick(topic,true); else drawSup(); }
 function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${supIc(ic)}</span>${t}</button>`).join('')}</div>`;
   const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(x,i):x.k==='div'?`<div class="sup-div"><span>Новый вопрос</span></div>`:`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb"><span>${(x.me?x.t.replace(/^★/,STAR_Y):x.t).split('|').join('<br>')}</span><small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
-  sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:00 до 23:00</small></span></div>
+  sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:30 до 22:30</small></span></div>
     <div class="sup-list" id="suplist">${msgs}${supTyping?`<div class="smsg">${supAva()}<div class="sb typing">Анна печатает<i></i><i></i><i></i></div></div>`:''}
     ${empty?`<h3 class="sup-q">С чем помочь?</h3>${topics}`:''}
     ${!empty&&S.sup.newQ?`<div class="sup-div"><span>Новый вопрос</span></div><div class="smsg">${supAva()}<div class="sb">С чем помочь?</div></div>${topics}<button class="link sup-no" onclick="S.sup.newQ=0;drawSup()">✕ Не надо</button>`:''}</div>
-    ${supNight()?`<div class="sup-night">Сейчас мы спим 🌙<br>Напиши — ответим утром, с 8:00</div>`:''}
+    ${supNight()?`<div class="sup-night">Сейчас мы спим 🌙<br>Напиши — ответим утром, с 8:30</div>`:''}
     ${!empty&&!S.sup.newQ?`<button class="sup-new" onclick="S.sup.newQ=1;drawSup()">＋ Новый вопрос</button>`:''}
     <div class="sup-in"><input id="supin" placeholder="Напиши, что случилось" autocomplete="off" oninput="document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter')supSend()"><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div></div>`,1);
   const l=document.getElementById('suplist'); if(l) l.scrollTop=l.scrollHeight; const sh=document.querySelector('.sheet.full'); if(sh) sh.scrollTop=sh.scrollHeight; }
@@ -3328,7 +3328,7 @@ const SRCH_PHRASE={'без молока':['американо','эспрессо
 const SRCH_STOP=new Set(['и','в','во','на','с','со','к','у','о','а','по','для','что','как','мне','хочу','где','есть','то','бы','ли','же','можно','нужно','купить','заказать','найти','мой','моя','мои']);
 // разделы и ответы — каждый ведёт на свой экран
 const SRCH_PAGES=[
-  {ic:'💬',t:'Поддержка',s:'Напиши нам — отвечаем за 5 минут|Каждый день с 8:00 до 23:00',k:'поддержка помощь помоги вопрос проблема жалоба оператор чат написать связаться',go:"openSupport()"},
+  {ic:'💬',t:'Поддержка',s:'Напиши нам — отвечаем за 5 минут|Каждый день с 8:30 до 22:30',k:'поддержка помощь помоги вопрос проблема жалоба оператор чат написать связаться',go:"openSupport()"},
   {ic:'🏷️',t:'Как получить скидку',s:'Подключи Кофейная+|Скидка посчитается сама на кассе и в заказе',k:'скидка скидки акции выгода дешевле экономия',go:"go('plus')"},
   {ic:'★',t:'Кофейная+',s:'Подписка, которая открывает все выгоды|Бесплатно до '+FREE_UNTIL,k:'кофейная+ подписка премиум тариф подключить отменить',go:"go('plus')"},
   {ic:'☀️',t:'Предложение дня',s:'Персональная скидка на сегодня',k:'предложение дня скидка сегодня персональное',go:"goTo('home','#offer')"},
