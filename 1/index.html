@@ -1460,7 +1460,7 @@ span.lb-gift{background:none}
 .rh-row2{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .rc2{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
 .rc2 b{width:100%;height:30px;border-radius:9px;background:rgba(23,47,40,.12);display:grid;place-items:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden}
-.rc2.nx b{font-size:9.5px;color:#d6264f;border:2px solid #d6264f;background:rgba(255,255,255,.5)}
+.rc2.nx b{font-size:9px;letter-spacing:-.2px;white-space:nowrap;color:#d6264f;border:2px solid #d6264f;background:rgba(255,255,255,.5)}
 @media (prefers-reduced-motion:no-preference){.rc2.nx b{animation:rcPulse 1.4s ease-in-out infinite}}
 @keyframes rcPulse{50%{transform:scale(1.08)}}
 .rc2.f b{background:rgba(255,255,255,.75)}
@@ -2550,7 +2550,7 @@ function rhythm(){
   else if(next>now){ face='😊'; l1=`Уже ${next}% — больше, чем сейчас`; }
   else if(next===now){ face='🙂'; l1=`Уже ${next}%, как сейчас`; }
   else { face='😟'; l1=`Пока ${next}% вместо ${now}%`; }
-  if(next<cap) l2 = left ? `Приходи ${today?'завтра':'сегодня'} — будет ${next+1}%` : 'Неделя заканчивается';
+  if(next<cap) l2 = left ? `Приходи ${today?'завтра':'сегодня'} — на новой неделе будет ${next+1}%` : `На новой неделе будет ${next}%`;   // «будет» — всегда с «на новой неделе», иначе непонятно когда (владелец 24.10)
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
