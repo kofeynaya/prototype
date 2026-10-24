@@ -1356,6 +1356,9 @@ span.lb-gift{background:none}
 .sw-wrap>.stamp{position:relative;z-index:1;touch-action:pan-y;transition:transform .25s ease;background:linear-gradient(var(--tint),var(--tint)),var(--bg);user-select:none;-webkit-user-select:none}
 .tk-pink .sw-wrap{box-shadow:0 6px 18px rgba(56,45,43,.14)}.tk-pink .sw-wrap>.stamp{background:#fff;box-shadow:none}
 .sw-tip{margin:2px 0 0;font-size:12.5px;color:var(--muted);text-align:center}
+
+/* то же правило в окне «Что копить?» — на розовой подложке, как карточка «Каждый 6-й» в «Турбо» (владелец 24.10) */
+.six-howbox{padding:14px;border-radius:18px;background:#ecccce}
 </style>
 
 <div class="app" id="app"></div>
@@ -2013,7 +2016,7 @@ function sixYes(id){ const i=S.six.slots.findIndex(x=>!x); S.six.ai.cur=null; if
 function sixNo(id){ S.six.ai.no[id]=S.day+30; S.six.ai.cur=null; save(); render(); toast('Хорошо, больше не предлагаем'); }
 function openSixPick(i){ if(!S.plus) return premGate('Каждый 6-й — только с ★ Кофейная+','Выбери 3 блюда и купи каждое 5 раз — шестое дешевле');
   const cur=S.six.slots[i], taken=new Set(S.six.slots.filter(Boolean).map(x=>x.id));
-  sheet(`<h2>Что копить?</h2><p class="small muted">Купи 5 раз — шестое дешевле<br>Новое для тебя — <b>−50%</b>, привычное — −20%</p>
+  sheet(`<h2>Что копить?</h2><div class="six-howbox tk-pink">${sixHow('Купи блюдо 5 раз — шестое дешевле')}</div>
     ${cur&&cur.n?`<p class="small" style="color:#e53935;margin:0">Сейчас в ячейке ${cur.n} ${plural(cur.n,'отметка','отметки','отметок')} — при замене они обнулятся</p>`:''}
     ${SIX_POOL.map(g=>`<h3 class="six-gh">${g.t}</h3><div class="six-pick">${g.ids.map(id=>{ const m=byId(id), nw=!boughtWithin(id,SIX_NEW_WINDOW), busy=taken.has(id)&&(!cur||cur.id!==id);
       // 24.10: уже выбранные блюда — не тусклые, а заметно отмечены (малиновая рамка, «✓ Уже копишь» / «✓ Сейчас здесь»)
@@ -2046,15 +2049,15 @@ document.addEventListener('pointerup',e=>{ if(!swS) return; const s0=swS; swS=nu
   s0.st.dataset.noclick=1; setTimeout(()=>delete s0.st.dataset.noclick,50); });
 document.addEventListener('pointercancel',()=>{ if(swS){ swS.st.style.transition=''; swS.st.style.transform=swS.base?`translateX(${-swS.W}px)`:''; swS=null; } });
 document.addEventListener('click',e=>{ const st=e.target.closest('.sw-wrap>.stamp'); if(st&&st.dataset.noclick){ e.preventDefault(); e.stopPropagation(); } },true);
+// Правило «Каждого 6-го» картинкой (24.10): 5 покупок → 6-е дешевле, две скидки плашками — в карточке «Турбо» и в окне «Что копить?»
+const sixHow = t => `<div class="six-how"><p class="six-rule">${t}</p>
+      <div class="sx-path" aria-hidden="true">${[1,2,3,4,5].map(n=>`<i>${n}</i>`).join('')}<span class="sx-ar">→</span><b class="sx-6">6-е дешевле</b></div>
+      <div class="sx-offs"><span class="sx-off new"><b>−50%</b>на новое</span><span class="sx-off old"><b>−20%</b>на привычное</span></div>
+      <p class="sx-note">Новое — то, что ты не брал 2 месяца</p></div>`;
 // Блок «Каждый 6-й»: 3 ячейки, у новичка — пустые («Выбрать блюдо»), чужих блюд нет
 function stampsBlock(){
   const ai=sixAI();
-  return `<div class="stamps"><div class="six-how">   <!-- 24.10 (владелец): правило картинкой — 5 покупок → 6-е дешевле, две скидки отдельными плашками, не рвутся -->
-      <p class="six-rule">Выбери 3 блюда и купи каждое 5 раз</p>
-      <div class="sx-path" aria-hidden="true">${[1,2,3,4,5].map(n=>`<i>${n}</i>`).join('')}<span class="sx-ar">→</span><b class="sx-6">6-е дешевле</b></div>
-      <div class="sx-offs"><span class="sx-off new"><b>−50%</b>на новое</span><span class="sx-off old"><b>−20%</b>на привычное</span></div>
-      <p class="sx-note">Новое — то, что ты не брал 2 месяца</p>
-    </div>
+  return `<div class="stamps">${sixHow('Выбери 3 блюда и купи каждое 5 раз')}
     ${ai?`<div class="six-ai"><span class="pi">💡</span><span class="tx"><b>Попробуй: ${byId(ai).n}</b><small>Для тебя это новое — копи на −50%</small></span><span class="bt"><button class="btn" onclick="sixYes('${ai}')">Хочу</button><button class="btn ghost" onclick="sixNo('${ai}')">Не надо</button></span></div>`:''}
     ${[0,1,2].map(i=>{ const sl=S.six.slots[i];
       if(!sl) return `<button class="stamp empty" onclick="openSixPick(${i})"><span class="six-plus">+</span><span class="tx"><b>Выбрать блюдо</b><small>Новое −50%, привычное −20%</small></span></button>`;
