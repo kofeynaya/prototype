@@ -1435,6 +1435,17 @@ span.lb-gift{background:none}
 .tk-h2{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .tk-lbl{padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .tk-h2 h2{margin:0;font-size:28px;line-height:1.1;font-weight:800}
+
+/* «Твой ритм»: «сейчас → с понедельника» табличкой, подсказка-напоминалка, условия списком (владелец 24.10) */
+.rh-tab{display:flex;align-items:stretch;gap:8px}
+.rh-tab>div{flex:1;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.4)}
+.rh-tab>div span{font-size:13px;color:var(--muted)}
+.rh-tab>div b{font-family:var(--f-num);font-weight:400;font-size:26px;line-height:1.1}
+.rh-tab>div.nx{background:#172f28;color:#f9f9f9}.rh-tab>div.nx span{color:rgba(249,249,249,.75)}
+.rh-tab .ar{align-self:center;font-size:20px;font-weight:700}
+.rh-tip{display:flex;gap:10px;align-items:flex-start;margin:0!important;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.55);color:var(--ink)!important;font-size:14px}
+.rh-tip .rt-ic{font-size:20px;line-height:1}
+.rh-bul{margin:0;padding-left:18px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 </style>
 
 <div class="app" id="app"></div>
@@ -2528,9 +2539,9 @@ function rhythm(){
     <div class="rh-row">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     ${!S.plus?`<p class="rh-foot" style="text-align:right">★ — с подпиской Кофейная+</p>`:''}
     <div class="rh-mood ${mood}">${moodFace(mood)}<p class="rh-msg">${msg}</p></div>
-    <div class="rh-stat"><span>Сейчас <b>${now}%</b></span><span class="ar">→</span><span>с понедельника <b>${next}%</b></span></div>
-    ${next<cap?`<p class="rh-left">${!left?`Неделя заканчивается<br>С понедельника будет <b>${next}%</b>`:left===1?`Приди ${today?'в воскресенье':'сегодня'}<br>и с понедельника будет <b>${pc(cur+1)}%</b>`:`До воскресенья можно прийти ещё ${timesTxt(left)}<br>и с понедельника будет до <b>${pc(cur+left)}%</b>`}</p>`:''}
-    <p class="rh-foot">День засчитывается, если покупок за день на ${MIN_DAY} ₽ и больше. Два чека в один день — это один день.</p>
+    <div class="rh-tab"><div><span>Сейчас</span><b class="money">${now}%</b></div><span class="ar">→</span><div class="nx"><span>С понедельника</span><b class="money">${next}%</b></div></div>
+    ${next<cap?`<p class="rh-left rh-tip"><span class="rt-ic">💡</span><span>${!left?`Неделя заканчивается<br>С понедельника будет <b>${next}%</b>`:left===1?`Приди ${today?'в воскресенье':'сегодня'}<br>и с понедельника будет <b>${pc(cur+1)}%</b>`:`До воскресенья можно прийти ещё ${timesTxt(left)}<br>и с понедельника будет до <b>${pc(cur+left)}%</b>`}</span></p>`:''}
+    <ul class="rh-bul"><li>День засчитывается от ${MIN_DAY} ₽ покупок</li><li>Два чека в один день — один день</li></ul>
   </div>`;
 }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
