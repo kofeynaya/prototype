@@ -1930,7 +1930,6 @@ function applyPurchase(q, channel, doc){
   let msg = first ? `<b>🔥 ${S.ser.n}! День засчитан: ${wd} ${plural(wd,'день','дня','дней')}</b> на этой неделе → на следующей ${Math.min(wd,rateCap())}% бонусов.` : counted ? `<b>Покупка сохранена.</b> Этот день уже был засчитан.` : `<b>Покупка сохранена.</b> День засчитается, когда покупок за сегодня наберётся на ${MIN_DAY} ₽ (сейчас ${rub(dayTotal)}).`;
   if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
   msg+=` Бонусы +${q.bonus} (${rateWhy()})${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
-  if(got.length) msg+=` Новое достижение: «${got.join('», «')}».`;
   return msg;
 }
 
@@ -3140,7 +3139,6 @@ const RULES=[
   ['Подписка Кофейная+','Цены недели, бонусы до 7%, скидка в ДР. Бесплатно до '+FREE_UNTIL+', потом 99 ₽/мес.'],
   ['Как скидки сочетаются','На одну позицию — одна лучшая скидка. Поверх — бонусы и депозит.'],
   ['Заряд выгоды 🔋','Батарейка показывает, сколько выгод приложения ты уже включил: предложение дня, ритм, каждый 6-й, депозит, подписку, оплату бонусами, день рождения, друга. Чем больше включено — тем больше экономишь. Подсказка сверху говорит, что включить проще всего.'],
-  ['Достижения','Значки за посещения и выгоду.'],
 ];
 function openRules(){
   sheet(`<h2>Как всё устроено</h2><div class="pl-card" style="position:static;transform:none;width:auto;padding:14px">${STAR_Y.replace('star-y','star-y big')}<b>Все выгоды — с ★ Кофейная+</b><span>Бесплатно — заказ и QR на кассе. Предложение дня, цены недели, бонусы, депозит, каждый 6-й, день рождения, счётчик посещений и заморозки открываются с подпиской. бесплатно до ${FREE_UNTIL}, потом 99 ₽/мес</span></div>
@@ -3440,8 +3438,7 @@ function profile(){
       <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="toast('Уведомлений пока нет — это демо.')" aria-label="Уведомления">${IC.bell}${S.orders.length?'<span class="n">3</span>':''}</button></div></div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
-    <div class="stack"${F(7)}><h2>Достижения</h2>
-      <div class="ach">${ACH.map(a=>`<div class="badge ${S.ach[a.id]?'':'off'}"><span class="b" style="background:${a.bg};color:var(--on-color)">${a.n}</span>${a.t}</div>`).join('')}</div></div>
+    <!-- 24.10: блок «Достижения» убран по просьбе владельца (лишний); значки считаются дальше, в интерфейсе не показываем -->
     <button class="rate-row" onclick="openLb()"><span class="rr-ic">🏆</span><span class="tx"><b>Твой рейтинг</b><small>${S.lbHide?'Ты скрыт из рейтинга':`${lbRank()}-е место среди гостей · 🔥 ${S.ser.n}`}</small></span><span class="chev">›</span></button>
     <div class="list">
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
