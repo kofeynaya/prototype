@@ -758,7 +758,19 @@ img.ava{object-fit:cover}
 .ben-per button{flex:1 1 auto;min-width:0;white-space:nowrap;padding:7px 6px;border-radius:999px;background:var(--line);font-size:12.5px;font-weight:700;color:var(--ink)}
 .ben-per button.on{background:#2e9e5b;color:#fff;box-shadow:0 0 12px rgba(46,158,91,.5)}
 .ben-dates{display:flex;gap:8px}
-.ben-since{font-size:12.5px;color:var(--muted);margin-top:-2px}
+.ben-since{font-size:12.5px;color:var(--muted);margin-top:-2px;display:flex;align-items:center;gap:6px}
+.bd-pick{flex:1;min-width:0;padding:9px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px;text-align:center}
+.bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
+.bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0}
+.bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
+.bc-nav button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);font-size:22px;line-height:1}.bc-nav button:disabled{opacity:.25}
+.bc-wd,.bc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.bc-wd span{font-size:12px;color:var(--muted);text-transform:uppercase}
+.bc-d{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:16px;color:var(--ink);position:relative}
+.bc-d.off{color:var(--muted);opacity:.3}
+.bc-d.in{background:rgba(46,158,91,.18);border-radius:10px}.bc-d.end{background:#2e9e5b;color:#fff;border-radius:50%;font-weight:700}
+.bc-d.reg{box-shadow:inset 0 0 0 2.5px #ff4f9a}.bc-d.today::after{content:"";position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor}
+.bc-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}.bc-leg span{display:flex;align-items:center;gap:6px}
+.bc-off{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);opacity:.3}
 .ben-dates label{flex:1;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .ben-dates input{flex:1;min-width:0;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
 .ben-v{display:flex;flex-direction:column;gap:2px;padding:6px 0 2px}
@@ -3217,6 +3229,23 @@ function setBenDate(which,v){ const since=benSince(), t=S.day; let msg='';
   if(which==='from'){ benFrom=off; if(benTo!=null&&benTo<off){ benTo=off; msg=msg||'Конец не может быть раньше начала'; } }
   else { if(benFrom!=null&&off<benFrom){ off=benFrom; msg=msg||'Конец не может быть раньше начала'; } benTo=off; }
   benRefresh(); if(msg) toast(msg); }
+/* Свой календарь (владелец 25.10): системный на iPhone даёт нажать дни до регистрации. Здесь дни до регистрации и после сегодня — серые
+   и не нажимаются, день регистрации — в розовом кружке «тут ты с нами», сегодня — подчёркнут, выбранный отрезок подсвечен */
+let bcWhich='from', bcMon=null;
+function openBenCal(which){ bcWhich=which; const [lo,hi]=benRange(); const d=dateOf(which==='from'?lo:hi); bcMon=new Date(d.getFullYear(),d.getMonth(),1); drawBenCal(); }
+function drawBenCal(){ const since=benSince(), t=S.day, [lo,hi]=benRange(), y=bcMon.getFullYear(), m=bcMon.getMonth();
+  const first=dayOff(bcMon), lead=(bcMon.getDay()+6)%7, n=new Date(y,m+1,0).getDate();
+  const prevOk=dayOff(new Date(y,m,0))>=since, nextOk=dayOff(new Date(y,m+1,1))<=t;
+  let cells=''; for(let k=0;k<lead;k++) cells+='<span></span>';
+  for(let k=0;k<n;k++){ const day=first+k, off=day<since||day>t, inR=day>=lo&&day<=hi;
+    const cls=['bc-d',off?'off':'',day===since?'reg':'',day===t?'today':'',inR&&!off?'in':'',(day===lo||day===hi)&&!off?'end':''].filter(Boolean).join(' ');
+    cells+=off?`<span class="${cls}">${k+1}</span>`:`<button class="${cls}" onclick="pickBenDay(${day})">${k+1}</button>`; }
+  sheet(`<div class="bc"><h2>${bcWhich==='from'?'С какого дня':'По какой день'}</h2>
+    <div class="bc-nav"><button ${prevOk?'':'disabled'} onclick="bcMon=new Date(${y},${m-1},1);drawBenCal()" aria-label="Раньше">‹</button><b>${MON_N[m]} ${y}</b><button ${nextOk?'':'disabled'} onclick="bcMon=new Date(${y},${m+1},1);drawBenCal()" aria-label="Позже">›</button></div>
+    <div class="bc-wd">${['пн','вт','ср','чт','пт','сб','вс'].map(x=>`<span>${x}</span>`).join('')}</div>
+    <div class="bc-grid">${cells}</div>
+    <div class="bc-leg"><span><i class="bc-dot"></i>Ты с нами с этого дня</span><span><i class="bc-off"></i>Нельзя выбрать</span></div></div>`); }
+function pickBenDay(day){ closeSheet(); setBenDate(bcWhich,isoOf(day)); }
 function benRefresh(){ const el=document.getElementById('ben'); if(!el) return; el.outerHTML=benefit(); benAnimate(); }
 // «Вау»: сумма набегает с нуля, полоски растут, цифра вспыхивает
 function benAnimate(){ const el=document.getElementById('ben'); if(!el) return;
@@ -3230,7 +3259,8 @@ function benefit(){
   const chs=benChips(); if(!chs.some(c=>c[0]===benPer)) benPer=chs.some(c=>c[0]==='all')?'all':'today';
   const chips=chs.map(([k,t])=>`<button class="${benPer===k?'on':''}" onclick="setBenPer('${k}')">${t}</button>`).join('');
   const since=benSince(), [blo,bhi]=benPer==='custom'?benRange():[0,0], sd=dateOf(since);
-  const picker=benPer==='custom'?`<div class="ben-dates"><label>с<input type="date" value="${isoOf(blo)}" min="${isoOf(since)}" max="${isoOf(bhi)}" onchange="setBenDate('from',this.value)"></label><label>по<input type="date" value="${isoOf(bhi)}" min="${isoOf(blo)}" max="${isoOf(S.day)}" onchange="setBenDate('to',this.value)"></label></div><span class="ben-since">Ты с нами с ${sd.getDate()} ${MON[sd.getMonth()]} ${sd.getFullYear()}</span>`:'';
+  const fd=x=>{ const y=dateOf(x); return y.getDate()+'\u00a0'+MON[y.getMonth()]; };
+  const picker=benPer==='custom'?`<div class="ben-dates"><label>с<button class="bd-pick" onclick="openBenCal('from')">${fd(blo)}</button></label><label>по<button class="bd-pick" onclick="openBenCal('to')">${fd(bhi)}</button></label></div><span class="ben-since"><i class="bc-dot"></i>Ты с нами с ${sd.getDate()} ${MON[sd.getMonth()]} ${sd.getFullYear()}</span>`:'';
   const pct=powerPct(), lv=LV(pct), tip=powerItems().find(x=>!x.on);
   const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего <span class="pcg-${lv.k}">${pct}%</span></b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
   const head=`<div class="ben-per">${chips}</div>${picker}`;   // 24.10: заголовок вынесен над карточкой — крупный, как «Мои выгоды»
