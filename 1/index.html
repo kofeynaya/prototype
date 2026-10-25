@@ -781,6 +781,7 @@ img.ava{object-fit:cover}
 .danger{color:#e53935!important;border-color:rgba(229,57,53,.5)!important}.del-btn{background:#e53935!important;color:#fff!important}
 .ac-err{min-height:18px;font-size:13px;color:#e53935}.cp-in.bad{border-color:#e53935}
 .notice.warn{background:rgba(229,57,53,.14);border:1px solid rgba(229,57,53,.5);color:var(--ink)}
+.gb-logo{border:0;padding:0;background:currentColor;cursor:pointer}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -2390,7 +2391,7 @@ const modeChip = () => `<button class="modechip"${F(S.mode==='delivery'?20:S.mod
 /* ===================== Экраны ===================== */
 // Верхняя полоса (эксперимент): логотип · батарейка «Заряд выгоды» как на телефоне · 🔍 · QR — на всех экранах
 function gbar(){ const pct=powerPct(), lv=LV(pct);
-  return `<div class="gbar"><span class="logo" style="width:104px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span>
+  return `<div class="gbar"><button class="logo gb-logo" style="width:104px;color:var(--ink)" onclick="goHome()" aria-label="кофейная — в начало раздела"></button><span style="flex:1"></span>
     <button class="gb-ic gb-bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button>
     <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
     <button class="gb-ic" onclick="openSearch()" aria-label="Поиск">${IC.search}</button>
@@ -3972,6 +3973,11 @@ function go(t,replace){ if(t==='qr'){ openQR(); return; }
 function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
   navAnim='back'; tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
 let navSkip=0;   // «Назад» в приложении возвращает сразу; запись в истории браузера убираем следом, а её событие пропускаем
+/* Логотип (владелец 25.10): возвращает в начало того раздела нижнего меню (Меню · Турбо · Профиль), откуда человек «забурился»;
+   если уже в начале раздела — просто наверх страницы */
+function goHome(){ closeSheet(); const root=navStack.length?navStack[0].t:(TAB_OF[tab]||tab), r=root==='progress'?'home':root;
+  if(r===tab||(tab==='progress'&&r==='home')){ scrollTo({top:0,behavior:'smooth'}); return; }
+  navStack=[]; navAnim='back'; tab=TOP_TABS.includes(r)?r:'home'; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
 addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
   if(navSkip>0){ navSkip--; return; }
