@@ -1569,6 +1569,8 @@ span.lb-gift{background:none}
 .ibat{position:relative;width:28px;height:14px;border:2px solid var(--ink);border-radius:4px;padding:1px;display:block}
 .ibat::after{content:"";position:absolute;right:-5px;top:3px;width:3px;height:5px;border-radius:0 2px 2px 0;background:var(--ink)}
 .ibat i{display:block;height:100%;border-radius:2px;background:var(--lv)}
+/* 25.10 (владелец, повторно): зелёный — только на 100%; 75–99% — оранжево-зелёный градиент, ни одного чисто зелёного элемента */
+.gb-bat.lv-almost .ibat i{background:linear-gradient(90deg,#ff9100,#2e9e5b)}
 .gb-bell{position:relative}.gb-bell .n{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#e53935;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 .gb-ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface)}
 .gb-ic svg{width:19px;height:19px;stroke:var(--ink);fill:none;stroke-width:2}
@@ -2446,7 +2448,7 @@ const modeChip = () => `<button class="modechip"${F(S.mode==='delivery'?20:S.mod
 function gbar(){ const pct=powerPct(), lv=LV(pct);
   return `<div class="gbar"><button class="gb-home" onclick="goHome()" aria-label="кофейная — в начало раздела"><span class="logo" style="width:104px;color:var(--ink)" aria-hidden="true"></span></button><span style="flex:1"></span>
     <button class="gb-ic gb-bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button>
-    <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
+    <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money pcg-${lv.k}">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
     <button class="gb-ic" onclick="openSearch()" aria-label="Поиск">${IC.search}</button>
     <button class="gb-ic gb-qr" onclick="openQR()" aria-label="Показать QR на кассе">${IC.qr.replace('<svg','<svg fill="none" stroke-width="2"')}</button></div>`; }
 function demoBar(){
@@ -3388,7 +3390,7 @@ const powerPct=()=>{ const it=powerItems(); return Math.round(it.filter(x=>x.on)
 // Цвет уровня: красный — мало, оранжевый — средне, зелёный «почти» (но с оранжевой дырой — не всё гладко), небесно-голубой — идеал 100%
 const LV=pct=>pct<40?{c:'#e53935',rgb:'229,57,53',k:'low'}:pct<75?{c:'#ff9100',rgb:'255,145,0',k:'mid'}:pct<100?{c:'#2e9e5b',rgb:'46,158,91',k:'almost'}:{c:'#29b6f6',rgb:'41,182,246',k:'perfect'};
 function battery(pct,big){ const lv=LV(pct), n=8, on=Math.round(pct/100*n);
-  return `<span class="batt ${big?'big':''} lv-${lv.k}" style="--bc:${lv.c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':lv.k==='almost'?'gap':''} ${i===on-1&&lv.k!=='almost'&&pct<100?'edge':''}"></i>`).join('')}</span><span class="bt"></span></span>`; }
+  return `<span class="batt ${big?'big':''} lv-${lv.k}" style="--bc:${lv.c}"><span class="bb">${Array.from({length:n},(_,i)=>`<i class="${i<on?'on':lv.k==='almost'?'gap':''} ${i===on-1&&lv.k!=='almost'&&pct<100?'edge':''}"${i<on&&lv.k==='almost'?` style="background:color-mix(in srgb,#ff9100 ${Math.round(100-i/Math.max(1,on-1)*100)}%,#2e9e5b)"`:''}></i>`).join('')}</span><span class="bt"></span></span>`; }
 function power(){
   const it=powerItems(), on=it.filter(x=>x.on).length, pct=powerPct(), tip=it.find(x=>!x.on);
   const face=pct<40?'😕':pct<75?'🙂':pct<100?'😏':'🤩';
