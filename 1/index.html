@@ -2160,8 +2160,11 @@ const cardLbl=c=>c?'•• '+c.last4:'';
 function syncCard(){ const ok=cardsOk(); S.cards.forEach(c=>{ if(cardExpired(c)&&c.main){ c.main=false; c.wasMain=true; } }); if(ok.length&&!ok.some(c=>c.main)) ok[0].main=true; S.card=cardLbl(mainCard()); save(); }
 function cardMini(c){ return `<span class="cmini s${c.f}"><i>${cardSys(c)}</i><b class="money">${c.last4}</b></span>`; }
 // выбор карты при оплате: где = 'tp' (пополнение) | 'cp' (подписка)
-function cardPick(where){ const ok=cardsOk(), sel=where==='tp'?tp.card:cpCard, set=where==='tp'?'tp.card':'cpCard', redraw=where==='tp'?'tpCheck()':'openCardPay()';
-  return ok.map(c=>`<button class="tp-opt${c.id===sel?' on':''}" onclick="${set}='${c.id}';${redraw}">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small>${c.main?'Основная · ':''}до ${c.exp}</small></span></button>`).join('')
+/* 25.10: выбор карты — на месте (только подсветка), без перерисовки шторки: раньше окно пересоздавалось и «дёргалось» */
+function pickCard(where,id,el){ if(where==='tp') tp.card=id; else cpCard=id;
+  el.parentNode.querySelectorAll('.tp-opt:not(.add)').forEach(b=>b.classList.toggle('on',b===el));const go=document.getElementById(where==='tp'?'tpgo':'cpgo'); if(go) go.disabled=false; }
+function cardPick(where){ const ok=cardsOk(), sel=where==='tp'?tp.card:cpCard;
+  return ok.map(c=>`<button class="tp-opt${c.id===sel?' on':''}" onclick="pickCard('${where}','${c.id}',this)">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small>${c.main?'Основная · ':''}до ${c.exp}</small></span></button>`).join('')
     +`<button class="tp-opt add" onclick="openAddCard('${where}')"><span class="cm-plus">＋</span><span><b>${ok.length?'Другая карта':'Добавить карту'}</b><small>Привяжем и запомним</small></span></button>`; }
 function cards(){ syncCard(); const m=S.cards.find(c=>c.main), expMain=S.cards.find(c=>c.wasMain&&cardExpired(c));
   return `<section class="screen">${back()}<h1>Банковские карты</h1>
