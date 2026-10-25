@@ -214,7 +214,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto �
 /* 25.10, с критиком: обычное уведомление — тёплый «эспрессо» из бренда, сверху под шапкой (зелёное сливалось с таб-баром и корзиной) */
 .toast{top:calc(var(--gbar-h,50px) + env(safe-area-inset-top,0px) + 14px);bottom:auto!important;left:16px;right:16px;margin:0 auto;transform:none;width:fit-content;max-width:408px;
   background:linear-gradient(135deg,#382d2b,#4e3b35);color:#fef2e9;border:1px solid rgba(236,204,206,.45);border-radius:20px;padding:12px 18px;
-  box-shadow:0 12px 32px rgba(0,0,0,.6),0 0 0 4px rgba(56,45,43,.25);animation:toastDown .28s ease-out}
+  box-shadow:0 12px 32px rgba(0,0,0,.6),0 0 0 4px rgba(56,45,43,.25);animation:toastDown .28s ease-out;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .toast small,.toast .muted{color:#ecccce}
 @keyframes toastDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
@@ -2348,7 +2348,18 @@ function refreshBasket(id){
 /* ===================== UI-утилиты ===================== */
 const $=s=>document.querySelector(s);
 let tab='home', tTimer, qrTimer;
-function toast(html,ms=2900,cls=''){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'+(cls?' '+cls:''); t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms*2); }   // 25.10: держим вдвое дольше — владелец не успевал прочитать
+function toast(html,ms=2900,cls=''){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'+(cls?' '+cls:''); t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms*2); toastSwipe(t); }
+/* 25.10 (владелец, правило для всех уведомлений): смахнуть вверх — как в iPhone/Android: тянешь пальцем вверх, отпустил — улетает */
+function toastSwipe(t){ let y0=null,dy=0,drag=false,id=null;
+  t.addEventListener('pointerdown',e=>{ y0=e.clientY; dy=0; drag=false; id=e.pointerId; });
+  t.addEventListener('pointermove',e=>{ if(y0==null||e.pointerId!==id) return; const d=e.clientY-y0;
+    if(!drag){ if(Math.abs(d)<6) return; drag=true; try{ t.setPointerCapture(id); }catch(_){} t.style.animation='none'; t.style.transition='none'; }
+    dy=d<0?d:d/4; t.style.transform=`translateY(${dy}px)`; t.style.opacity=String(Math.max(.2,1+Math.min(0,dy)/140)); });
+  const end=()=>{ if(y0==null) return; y0=null; if(!drag) return; t.style.transition='transform .22s ease-out,opacity .22s';
+    if(dy<-28){ t.style.transform='translateY(-160%)'; t.style.opacity='0'; setTimeout(()=>t.remove(),220); }
+    else { t.style.transform=''; t.style.opacity=''; }
+    t.addEventListener('click',ev=>{ ev.stopPropagation(); ev.preventDefault(); },{capture:true,once:true}); };
+  t.addEventListener('pointerup',end); t.addEventListener('pointercancel',end); }   // 25.10: держим вдвое дольше — владелец не успевал прочитать
 const tiles = n => `<span class="tiles">${String(n).split('').map(c=>`<span class="tile">${c}</span>`).join('')}</span>`;
 const blob = (fill,seed=0) => `<svg class="blob" viewBox="0 0 200 200" aria-hidden="true"><path fill="${fill}" d="${['M100 18c30-22 74 4 70 42 30 18 30 64-4 76 6 38-40 58-66 34-26 24-72 4-66-34-34-12-34-58-4-76-4-38 40-64 70-42z','M60 30c40-30 110-10 115 45 35 30 10 95-45 95-30 25-95 20-100-30-35-35-15-95 30-110z'][seed%2]}"/></svg>`;
 const PLUS = '<span class="plus-tag">★ Кофейная+</span>';
@@ -4394,6 +4405,8 @@ function lab(){
     <div class="lab-b"><h2>4. Выгоды и подарки</h2>
       <span class="lab-l">Предложение дня</span>
       <div class="lab-wd">${[['shown','Показано'],['activated','Активировано'],['used','Использовано']].map(([k,n])=>`<button class="${S.offer&&S.offer.status===k?'on':''}" onclick="labOffer('${k}')">${n}</button>`).join('')}</div>
+      ${tg('6-е ждёт со скидкой −50% (новое для тебя блюдо)',S.six.slots.some(x=>x&&x.n>=5&&x.isNew),'labSixNew')}
+      ${tg('6-е ждёт со скидкой −20% (привычное блюдо)',S.six.slots.some(x=>x&&x.n>=5&&!x.isNew),'labSixOld')}
       ${labSixBox()}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
       ${tg('Друг приглашён (ещё не купил 3 раза — бонусов пока нет)',S.ref.friends.some(f=>!f.blocked),'labFriend')}
@@ -4414,6 +4427,15 @@ function labPlus(v){ labDo(()=>{ S.plus=v; S.plusSoon=false; }); }
 /* Пульт «Каждый 6-й» (владелец 25.10): в каждой из 3 ячеек выбрать блюдо и сколько раз уже куплено (0–5),
    изменения применяются только кнопкой «Применить» — потом сразу показываем карточку в «Турбо» */
 let labSixD=null;
+// пульт (владелец 25.10): галочкой — сразу «шестое ждёт» со скидкой −50% (новое) или −20% (привычное), и показываем карточку
+function labSixReady(isNew,on){ const sl=S.six.slots, k=sl.findIndex(x=>x&&x.n>=5&&!!x.isNew===isNew);
+  if(!on){ if(k>=0) sl[k]=null; save(); render(); return; }
+  if(k<0){ const taken=new Set(sl.filter(Boolean).map(x=>x.id)), all=SIX_POOL.flatMap(g=>g.ids);
+    const id=isNew?all.find(x=>!taken.has(x)&&!boughtWithin(x,SIX_NEW_WINDOW)):(!taken.has(ID.cap)?ID.cap:all.find(x=>!taken.has(x)&&boughtWithin(x,SIX_NEW_WINDOW)))||all.find(x=>!taken.has(x));
+    let i=sl.findIndex(x=>!x); if(i<0) i=sl.findIndex(x=>!(x.n>=5)); if(i<0) i=isNew?1:0;
+    sl[i]={id,n:5,isNew,last:S.day,ready:S.day}; }
+  S.six.usedDay=null; labSixD=null; save(); toast(S.plus?`Шестое ждёт: −${isNew?50:20}%<br>Вот как это выглядит`:'Готово, но без ★ Кофейная+ «Каждый 6-й» под замком'); goTo('progress','#pr-six'); }
+const labSixNew=on=>labSixReady(true,on), labSixOld=on=>labSixReady(false,on);
 function labSixBox(){ if(!labSixD) labSixD=S.six.slots.map(sl=>sl?{id:sl.id,n:Math.min(5,sl.n)}:{id:'',n:0});
   const opts=sel=>`<option value="">— пусто —</option>`+SIX_POOL.map(g=>`<optgroup label="${g.t}">${g.ids.map(id=>`<option value="${id}"${id===sel?' selected':''}>${byId(id).n}</option>`).join('')}</optgroup>`).join('');
   return `<span class="lab-l">«Каждый 6-й»: какие блюда копишь и сколько раз уже купил</span>
