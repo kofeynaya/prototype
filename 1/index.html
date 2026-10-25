@@ -762,6 +762,7 @@ img.ava{object-fit:cover}
 .bd-pick{flex:1;min-width:0;padding:9px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px;text-align:center}
 .h-day{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;font-size:13px;color:var(--muted);text-transform:none;border-bottom:1px solid var(--line)}.h-day b{color:var(--ink);font-size:14px}
 .h-sum{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}.h-sum span{color:var(--muted);font-size:14px}.h-sum b{font-size:20px;text-align:right}.h-sum small{grid-column:1/-1;font-size:13px}
+.rate-link{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid rgba(46,158,91,.5);background:rgba(46,158,91,.1)}.rate-link .tx{flex:1;display:flex;flex-direction:column;gap:2px}.rate-link em{font-style:normal;color:var(--ok)}.rate-link small{color:var(--muted);font-size:13px}.rate-link .chev{font-size:22px;color:var(--muted)}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -3661,12 +3662,12 @@ function giftList(){ const L=S.gft.sent.slice().reverse().slice(0,8); if(!L.leng
 function openBonus(){ const left=giftBonLeft(null), why=giftWhyNot(null);
   sheet(`<h2>Бонусы</h2>
     <div class="bon-big">${COIN}<span><b class="money">${S.bonus}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</span></div>
-    <ul class="rl-list"><li>1 бонус = 1 ₽<br>Ими можно оплатить до 30% чека</li><li>Сейчас <b>${rateAll()}%</b> бонусами с каждой покупки</li><li>Бонусы не сгорают</li></ul>
+    <ul class="rl-list"><li>1 бонус = 1 ₽<br>Ими можно оплатить до 30% чека</li><li>Бонусы не сгорают</li></ul>
+    <button class="rate-link" onclick="closeSheet();goTo('progress','#pr-ritm')"><span class="tx"><b>📈 Сейчас <em>${rateAll()}%</em> бонусами с каждой покупки</b><small>Как получить больше</small></span><span class="chev">›</span></button>
     <div class="gf-share"><b>🎁 Подари близким</b><span>Бонусы или блюдо — по номеру телефона<br>или ссылкой. Им подписка не нужна</span>
       <div class="row" style="gap:8px"><button class="btn" style="flex:1" onclick="openGift({kind:'bonus'})" ${S.plus?'':''}>🪙 Бонусы</button><button class="btn" style="flex:1" onclick="openGift({kind:'dish'})">☕ Блюдо</button></div>
       ${S.plus&&!left&&why?`<small class="muted">${why.replace('|','<br>')}</small>`:''}</div>
-    ${giftList()}
-    <button class="link" onclick="closeSheet();goTo('progress','#pr-ritm')">Мой ритм в «Турбо» ›</button>`); }
+    ${giftList()}`); }   // 25.10, с критиком: «Сейчас N%» ведёт прямо к карточке «Твой ритм»; старая ссылка «Мой ритм в «Турбо»» убрана
 
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
 function profile(){
