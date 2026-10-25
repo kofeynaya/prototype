@@ -642,6 +642,15 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+/* переход внутрь экрана — въезжает справа, «Назад» — слева (владелец 25.10: должно быть видно, что провалился) */
+main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animation:navBack .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes navFwd{from{transform:translateX(34%);opacity:0}to{transform:none;opacity:1}}
+@keyframes navBack{from{transform:translateX(-24%);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){main.nav-fwd,main.nav-back{animation:none}}
+/* шапка депозита внутри — без карты */
+.wl-head{display:flex;flex-direction:column;gap:6px;padding:4px 2px 6px}
+.wl-sum{font-family:var(--f-num);font-size:48px;line-height:1.02;white-space:nowrap!important;text-wrap:nowrap!important;letter-spacing:-.5px}.wl-sum .kop{opacity:.42}.wl-sum .cur{opacity:.6;font-size:.5em}
+.wl-parts{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:var(--muted)}.wl-parts i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .rem{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.rem-ic{font-size:44px;line-height:1}.rem h2{margin:0}.rem p{margin:0}
 /* «Мой профиль» */
 .me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:56px;overflow:hidden;text-align:left;max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -3628,9 +3637,8 @@ function openStatement(){
 }
 function wallet(){
   return `<section class="screen">${back()}
-    <div class="stack" style="gap:2px"><span class="label">Баланс</span><h1>Ваши деньги в кофейной</h1></div>
     ${PL_OPEN('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000')}
-    ${bankCard(true)}
+    ${walletHead()}
     <div class="stack"><h3>Пополнить и получить кэшбэк</h3>
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span>
         <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
@@ -3641,6 +3649,12 @@ function wallet(){
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Деньги лежат на балансе, как на счёте в банке. Видно до копейки.</li><li>Платите с баланса на кассе по QR и в заказах в приложении.</li><li>Сначала списываются деньги, потом кэшбэк.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li></ul></div>
   </section>`;
 }
+/* 25.10: внутри депозита не повторяем зелёную карту из профиля (владелец: «одинаковые экраны путают, непонятно, провалился ли»).
+   Здесь сумма — крупно прямо на фоне, без карты и без своей кнопки «Пополнить»: пополнение — список сумм ниже */
+function walletHead(){ const w=S.wallet, t=walletTotal(), [r,k]=t.toFixed(2).split('.');
+  return `<div class="wl-head"><span class="label">На депозите</span>
+    <div class="wl-sum money" style="font-size:min(${sumSize(r.length)+4}px,11.5vw)">${(+r).toLocaleString('ru-RU')}<span class="kop">,${k}</span><span class="cur"> ₽</span></div>
+    <div class="wl-parts"><span><i style="background:#f9f9f9"></i>Рублёвых ${rub(w.money)}</span><span><i style="background:#f2c230"></i>Кэшбэк ${rub(w.gift)}</span></div></div>`; }
 /* кегль суммы на карте уменьшается с числом цифр — чтобы и 300 000 ₽ влезли */
 const sumSize = n => n<=4?46:n===5?40:n===6?34:28;
 function bankCard(big){
@@ -3756,16 +3770,17 @@ function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(se
    и на то же место прокрутки. Переход на вкладку нижнего меню (Меню · Турбо · Профиль) начинает историю заново.
    go(t,1) — заменить текущий экран, не запоминая его (после оформления заказа корзина пустая — туда не возвращаем) */
 const TOP_TABS=['menu','home','progress','profile'];
-let navStack=[];
+let navStack=[], navAnim=null;   // navAnim: 'fwd' — экран въезжает справа (провалился внутрь), 'back' — слева
 // с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
 // системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
 function go(t,replace){ if(t==='qr'){ openQR(); return; }
   if(TOP_TABS.includes(t)){ navStack=[]; }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
     if(k>=0) navStack=navStack.slice(0,k); else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); try{ history.pushState({nav:navStack.length},''); }catch(e){} } }
+  if(!TOP_TABS.includes(t) && t!==tab) navAnim='fwd';
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
-  tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
+  navAnim='back'; tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
 let navFallback=null;
 function goBack(fallback){ if(navStack.length){ navFallback=fallback; try{ history.back(); return; }catch(e){} } navPop(fallback); }
 addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
@@ -4085,10 +4100,11 @@ function render(keep=true){
   const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
   app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+' glass'; // «жидкое стекло» (iOS 26) — на всех вкладках
   // демо-полоса (Касса · Завтра · Пульт) — не сверху, а внизу экранов «Турбо» и «Профиль» (владелец 24.10: сверху слишком много закреплено)
-  app.innerHTML = gbar() + `<main>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
+  app.innerHTML = gbar() + `<main${navAnim?` class="nav-${navAnim}"`:''}>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
       ? `<button class="turbotab" onclick="go('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
       : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
+  navAnim=null;
   if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
   if(tab==='plus') plusFloatWatch();
