@@ -669,7 +669,7 @@ main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animati
 .wl-parts{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:var(--muted)}.wl-parts i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .rem{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.rem-ic{font-size:44px;line-height:1}.rem h2{margin:0}.rem p{margin:0}
 /* «Мой профиль» */
-.me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:56px;overflow:hidden;text-align:left;max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;flex:1;overflow:hidden;text-align:left;max-width:100%}.me-hit h1{max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .me-top{display:flex;flex-direction:column;align-items:center;gap:8px}.me-top .myph{width:104px;height:104px}.me-top .myph .pl{font-size:40px}
 .me-name{display:flex;gap:8px}.me-name .cp-in{flex:1;min-width:0}
 /* Поддержка */
@@ -1269,6 +1269,7 @@ img.ava{object-fit:cover}
 .ph-r1 .bell{flex:none;width:44px;height:44px}.ph-r1{min-height:44px;align-items:center}
 .ph-r2{display:flex;align-items:center;justify-content:space-between;gap:8px}.ph-tel{white-space:nowrap;text-align:left;min-width:0}
 .subchip{flex:none}
+@media (max-width:360px){.screen .subchip{padding:6px 9px;border-radius:12px}.screen .subchip .t{font-size:12.5px}.screen .subchip .s{font-size:10.5px}.screen .me-hit .ph-num{font-size:12.5px}.screen .me-hit h1{font-size:24px}}   /* узкий экран: телефон целиком рядом с плашкой */
 .subchip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border-radius:14px;background:linear-gradient(135deg,#2b2b93,#5e35b1);color:#f9f9f9;text-align:left;box-shadow:0 4px 14px rgba(43,43,147,.3)}
 .subchip .t{font-weight:700;font-size:14px;white-space:nowrap}
 .subchip .s{font-size:11.5px;opacity:.85;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
@@ -1537,6 +1538,7 @@ span.lb-gift{background:none}
 .ibat{position:relative;width:28px;height:14px;border:2px solid var(--ink);border-radius:4px;padding:1px;display:block}
 .ibat::after{content:"";position:absolute;right:-5px;top:3px;width:3px;height:5px;border-radius:0 2px 2px 0;background:var(--ink)}
 .ibat i{display:block;height:100%;border-radius:2px;background:var(--lv)}
+.gb-bell{position:relative}.gb-bell .n{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#e53935;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 .gb-ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface)}
 .gb-ic svg{width:19px;height:19px;stroke:var(--ink);fill:none;stroke-width:2}
 .gb-qr{background:var(--ink)}.gb-qr svg{stroke:var(--bg)}
@@ -2317,6 +2319,7 @@ const modeChip = () => `<button class="modechip"${F(S.mode==='delivery'?20:S.mod
 // Верхняя полоса (эксперимент): логотип · батарейка «Заряд выгоды» как на телефоне · 🔍 · QR — на всех экранах
 function gbar(){ const pct=powerPct(), lv=LV(pct);
   return `<div class="gbar"><span class="logo" style="width:104px;color:var(--ink)" role="img" aria-label="кофейная"></span><span style="flex:1"></span>
+    <button class="gb-ic gb-bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button>
     <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
     <button class="gb-ic" onclick="openSearch()" aria-label="Поиск">${IC.search}</button>
     <button class="gb-ic gb-qr" onclick="openQR()" aria-label="Показать QR на кассе">${IC.qr.replace('<svg','<svg fill="none" stroke-width="2"')}</button></div>`; }
@@ -3693,9 +3696,8 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="ph-head">${myPhoto()}<div class="ph-main">
-      <div class="ph-r1"><button class="ph-name" onclick="go('me')" aria-label="Мой профиль"><h1>${S.name}</h1></button><button class="softbtn bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button></div>
-      <div class="ph-r2"><button class="ph-tel muted small money" onclick="go('me')">${S.phone||'+7 900 000-00-00'} ›</button>${S.plus?subChip():''}</div></div></div>
+    <div class="row between" style="gap:10px"><div class="row" style="gap:10px;min-width:0;flex:1">${myPhoto()}<button class="me-hit" onclick="go('me')" aria-label="Мой профиль"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'} ›</span></button></div>
+      ${S.plus?subChip():''}</div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
     <!-- 24.10: блок «Достижения» убран по просьбе владельца (лишний); значки считаются дальше, в интерфейсе не показываем -->
