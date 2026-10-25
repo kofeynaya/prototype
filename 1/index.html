@@ -768,6 +768,18 @@ img.ava{object-fit:cover}
 .substrip{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:7px 14px;border-radius:12px;background:var(--prem);color:#fff;font-size:15px;text-align:left;margin-top:-6px}
 .substrip .tx{flex:1;min-width:0}.substrip .chev{font-size:20px;opacity:.8}.substrip .ystar{color:#f2c230}
 .substrip.warn{background:linear-gradient(100deg,#e53935,#ff7043)}.substrip.warn .go{padding:4px 12px;border-radius:999px;background:#fff;color:#c62828;font-weight:700;font-size:14px;white-space:nowrap}
+.cmini{flex:none;width:46px;height:30px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between;padding:3px 5px;background:linear-gradient(135deg,#3a3a42,#1f1f24);color:#fff;font-size:8px;line-height:1;text-align:left}
+.cmini.s2{background:linear-gradient(135deg,#0d553f,#2e9e5b)}.cmini.s4{background:linear-gradient(135deg,#1a237e,#3949ab)}.cmini.s5{background:linear-gradient(135deg,#bf360c,#ff7043)}
+.cmini i{font-style:normal;opacity:.85}.cmini b{font-size:10px;align-self:flex-end}
+.cm-plus{width:46px;height:30px;border-radius:6px;border:1.5px dashed var(--line);display:grid;place-items:center;font-size:18px;color:var(--muted);flex:none}
+.cards-list{display:flex;flex-direction:column;gap:8px}
+.card-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);text-align:left;width:100%}
+.card-row .tx{flex:1;display:flex;flex-direction:column;gap:2px}.card-row small{color:var(--muted);font-size:13px}.card-row .bad{color:#e53935;font-weight:600}.card-row.exp .cmini{opacity:.45}
+.main-tag{padding:3px 9px;border-radius:999px;background:rgba(46,158,91,.18);color:var(--ok);font-size:12px;font-weight:700}.card-row .chev{color:var(--muted);font-size:20px}
+.cm-head{display:flex;align-items:center;gap:12px;padding-right:56px}.cm-head span{display:flex;flex-direction:column}.cm-head .cmini{width:64px;height:42px;font-size:10px}.cm-head .cmini b{font-size:13px}
+.danger{color:#e53935!important;border-color:rgba(229,57,53,.5)!important}.del-btn{background:#e53935!important;color:#fff!important}
+.ac-err{min-height:18px;font-size:13px;color:#e53935}.cp-in.bad{border-color:#e53935}
+.notice.warn{background:rgba(229,57,53,.14);border:1px solid rgba(229,57,53,.5);color:var(--ink)}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -1822,7 +1834,8 @@ if(!S.demoSoon1){ S.plus=true; S.plusSoon=true; S.demoSoon1=1; }
 if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // демо: серия уже идёт 87 дней, лучшая — 112
 if(!S.chats) S.chats={};
 if(!S.sup) S.sup={msgs:[],unread:0,state:'idle',topic:null,nightDemo:false,pend:null};   // поддержка (24.10)
-if(!S.notes) S.notes=[];   // уведомления — только настоящие события
+if(!S.notes) S.notes=[];
+if(!S.cards) S.cards=S.card?[{id:'c1',f:'4',last4:(S.card.match(/\d{4}/)||['4242'])[0],exp:'08/28',main:true},{id:'c2',f:'2',last4:'1111',exp:'03/29',main:false}]:[];   // банковские карты (владелец 25.10)   // уведомления — только настоящие события
 if(!S.six) S.six={slots:[{id:ID.cap,n:4,isNew:false,last:S.day-1},{id:ID.croissant,n:2,isNew:true,last:S.day-2},{id:ID.muffin,n:5,isNew:false,last:S.day-1,ready:S.day}],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; // демо
 if(!S.benDemo){ S.benDemo=1; let sd=11; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647, ids=[ID.cap,ID.croissant,ID.muffin,ID.caesar,ID.cookie].filter(Boolean), K=['offer','pp','six','offer','bd'];
   const old=[]; for(let i=0;i<24;i++){ const day=-(i*3+2), its=[ids[i%ids.length],ids[(i*3+1)%ids.length]], reg=its.reduce((a,id)=>a+byId(id).p,0);
@@ -2105,32 +2118,92 @@ function nextDay(){
 }
 /* Подключение подписки (владелец 24.10): «Подключить» → окно с картой → «Подписаться» → конфетти и сразу «Сегодня».
    В прототипе карта не проверяется: любые цифры (и даже пустые поля) проходят — это симуляция */
-function openCardPay(){ const t=TARIFFS.find(x=>x.k===S.tariff)||TARIFFS[0];
+let cpCard=null;
+function openCardPay(){ const t=TARIFFS.find(x=>x.k===S.tariff)||TARIFFS[0]; if(!cardById(cpCard)) cpCard=(mainCard()||{}).id||null;
   sheet(`<div class="cp"><h2>${STAR_Y}Кофейная+</h2>
     <div class="panel cp-sum"><div class="row between"><span>Сегодня</span><b class="money">0 ₽</b></div>
       <div class="row between"><span class="muted">С ${FREE_UNTIL}</span><b class="money">${rub(t.p)} ${t.k==='m'?'в месяц':t.k==='h'?'за 6 месяцев':'за год'}</b></div></div>
-    <div class="cp-card"><span class="cp-chip"></span><span class="cp-num money" id="cpv">•••• •••• •••• ••••</span><span class="cp-row"><span id="cpn">ИМЯ НА КАРТЕ</span><span id="cpe" class="money">ММ/ГГ</span></span></div>
-    <label class="label" for="cpnum">Номер карты</label><input id="cpnum" class="cp-in money" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="cpFmt(this)">
-    <div class="row" style="gap:10px"><div class="stack" style="gap:6px;flex:1"><label class="label" for="cpexp">Срок</label><input id="cpexp" class="cp-in money" inputmode="numeric" autocomplete="cc-exp" placeholder="ММ/ГГ" maxlength="5" oninput="cpExp(this)"></div>
-      <div class="stack" style="gap:6px;flex:1"><label class="label" for="cpcvc">CVC</label><input id="cpcvc" class="cp-in money" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="3" type="password"></div></div>
-    <button class="plus-cta" id="cpgo" onclick="cpPay()">${STAR_Y}<span>Подписаться<small>сегодня 0 ₽</small></span></button>
-    <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент</p></div>`);
-  setTimeout(()=>document.getElementById('cpnum')?.focus(),80); }
+    <span class="label">С какой карты списывать</span>
+    ${cardPick('cp')}
+    <button class="plus-cta" id="cpgo" ${cardById(cpCard)?'':'disabled'} onclick="cpPay()">${STAR_Y}<span>Подписаться<small>сегодня 0 ₽</small></span></button>
+    <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент</p></div>`); }
 function cpFmt(el){ const d=el.value.replace(/\D/g,'').slice(0,16); el.value=d.replace(/(.{4})/g,'$1 ').trim();
   const v=document.getElementById('cpv'); if(v) v.textContent=(d+'•'.repeat(16-d.length)).replace(/(.{4})/g,'$1 ').trim(); }
 function cpExp(el){ let d=el.value.replace(/\D/g,'').slice(0,4); if(d.length>2) d=d.slice(0,2)+'/'+d.slice(2); el.value=d; const e=document.getElementById('cpe'); if(e) e.textContent=d||'ММ/ГГ'; }
 function cpPay(){ const b=document.getElementById('cpgo'); if(!b||b.disabled) return; b.disabled=true; b.classList.add('wait'); b.innerHTML='<span class="cp-spin"></span><span>Подключаем…</span>';
-  const d=(document.getElementById('cpnum')?.value||'').replace(/\D/g,'');
-  setTimeout(()=>{ if(d.length>=4) S.card='•• '+d.slice(-4); S.plus=true; S.plusSoon=false; save(); closeSheet(); go('home'); confetti();
+  setTimeout(()=>{ S.plusCard=cpCard; S.plus=true; S.plusSoon=false; save(); closeSheet(); go('home'); confetti();
     toast(`${STAR_Y}<span><b>Кофейная+ подключена!</b><br>Все скидки открыты<br><span class="nowrap">Бесплатно до ${FREE_UNTIL}</span></span>`,4200,'gold'); },1100); }
 function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена. Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
+/* ===================== Банковские карты (владелец 25.10, сценарии — с критиком) =====================
+   До 5 карт; одна «основная» — ею платим по умолчанию (подписка, заказ, пополнение, подарок). Добавление: номер (проверка Луна),
+   срок (месяц 1–12, не в прошлом), CVC; дубликат — по последним 4 цифрам и сроку; «Спишем 1 ₽ и сразу вернём». Первая карта — сразу основная.
+   Удаление основной — основной становится следующая. Истёкшая карта — «Срок истёк», при оплате не показываем */
+const CARD_MAX=5;
+const cardById=id=>S.cards.find(c=>c.id===id);
+const cardExpired=c=>{ const [m,y]=c.exp.split('/').map(Number), d=dateOf(S.day); return (2000+y)<d.getFullYear()||((2000+y)===d.getFullYear()&&m<d.getMonth()+1); };
+const cardsOk=()=>S.cards.filter(c=>!cardExpired(c));
+const mainCard=()=>cardsOk().find(c=>c.main)||cardsOk()[0]||null;
+const cardSys=c=>({'2':'Мир','4':'Visa','5':'Mastercard'})[c.f]||'Карта';
+const cardLbl=c=>c?'•• '+c.last4:'';
+function syncCard(){ const ok=cardsOk(); S.cards.forEach(c=>{ if(cardExpired(c)&&c.main){ c.main=false; c.wasMain=true; } }); if(ok.length&&!ok.some(c=>c.main)) ok[0].main=true; S.card=cardLbl(mainCard()); save(); }
+function cardMini(c){ return `<span class="cmini s${c.f}"><i>${cardSys(c)}</i><b class="money">${c.last4}</b></span>`; }
+// выбор карты при оплате: где = 'tp' (пополнение) | 'cp' (подписка)
+function cardPick(where){ const ok=cardsOk(), sel=where==='tp'?tp.card:cpCard, set=where==='tp'?'tp.card':'cpCard', redraw=where==='tp'?'tpCheck()':'openCardPay()';
+  return ok.map(c=>`<button class="tp-opt${c.id===sel?' on':''}" onclick="${set}='${c.id}';${redraw}">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small>${c.main?'Основная · ':''}до ${c.exp}</small></span></button>`).join('')
+    +`<button class="tp-opt add" onclick="openAddCard('${where}')"><span class="cm-plus">＋</span><span><b>${ok.length?'Другая карта':'Добавить карту'}</b><small>Привяжем и запомним</small></span></button>`; }
+function cards(){ syncCard(); const m=S.cards.find(c=>c.main), expMain=S.cards.find(c=>c.wasMain&&cardExpired(c));
+  return `<section class="screen">${back()}<h1>Банковские карты</h1>
+    ${expMain?`<div class="notice warn">Карта ${cardLbl(expMain)} больше не работает<br>Добавь новую</div>`:''}
+    ${S.cards.length?`<div class="cards-list">${S.cards.map(c=>`<button class="card-row${cardExpired(c)?' exp':''}" onclick="openCardMenu('${c.id}')">${cardMini(c)}<span class="tx"><b>${cardSys(c)} ${cardLbl(c)}</b><small>${cardExpired(c)?'<span class="bad">Срок истёк</span>':`до ${c.exp}`}</small></span>${c.main&&!cardExpired(c)?'<span class="main-tag">Основная</span>':''}<span class="chev">›</span></button>`).join('')}</div>
+      ${m&&S.plus?`<p class="small muted" style="margin:0">Подписка спишется с ${cardLbl(m)} с ${FREE_UNTIL}</p>`:''}`
+    :`<div class="learn-empty"><span>💳</span><p class="small">Карт пока нет<br>Добавь — платить будет быстрее</p></div>`}
+    <button class="btn block" onclick="openAddCard()">＋ Добавить карту</button>
+    <p class="small muted" style="margin:0">Можно привязать до ${CARD_MAX} карт. Основной платим по умолчанию — в заказах, за подписку и пополнение</p>
+  </section>`; }
+let acBack=null;
+function openAddCard(after){ acBack=after||null; if(S.cards.length>=CARD_MAX) return toast('Можно до 5 карт<br>Удали ненужную');
+  sheet(`<div class="cp"><h2>Новая карта</h2>
+    <div class="cp-card"><span class="cp-chip"></span><span class="cp-num money" id="cpv">•••• •••• •••• ••••</span><span class="cp-row"><span id="acsys">КАРТА</span><span id="cpe" class="money">ММ/ГГ</span></span></div>
+    <label class="label" for="acnum">Номер карты</label><input id="acnum" class="cp-in money" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="cpFmt(this);acCheck()">
+    <div class="row" style="gap:10px"><div class="stack" style="gap:6px;flex:1"><label class="label" for="acexp">Срок</label><input id="acexp" class="cp-in money" inputmode="numeric" autocomplete="cc-exp" placeholder="ММ/ГГ" maxlength="5" oninput="cpExp(this);acCheck()"></div>
+      <div class="stack" style="gap:6px;flex:1"><label class="label" for="accvc">CVC</label><input id="accvc" class="cp-in money" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="3" type="password" oninput="acCheck()"></div></div>
+    <span class="ac-err" id="acerr"></span>
+    ${cardsOk().length?`<label class="toggle" for="acmain">Платить этой картой по умолчанию<input type="checkbox" id="acmain"></label>`:''}
+    <button class="btn block" id="acgo" disabled onclick="acAdd()">Привязать</button>
+    <p class="small muted" style="text-align:center;margin:0">Спишем 1 ₽ и сразу вернём — так банк проверит карту</p></div>`);
+  setTimeout(()=>document.getElementById('acnum')?.focus(),80); }
+const luhn=n=>{ let s2=0; for(let i=0;i<n.length;i++){ let d=+n[n.length-1-i]; if(i%2){ d*=2; if(d>9) d-=9; } s2+=d; } return s2%10===0; };
+function acCheck(){ const n=(document.getElementById('acnum').value||'').replace(/\D/g,''), e=document.getElementById('acexp').value, cvc=document.getElementById('accvc').value, err=document.getElementById('acerr'), go=document.getElementById('acgo');
+  document.getElementById('acsys').textContent=n?cardSys({f:n[0]}).toUpperCase():'КАРТА';
+  let msg=''; const numBox=document.getElementById('acnum');
+  if(n.length===16&&!luhn(n)) msg='Проверь номер — где-то ошибка в цифре';
+  else if(e.length===5){ const m=+e.slice(0,2); if(m<1||m>12) msg='Такого месяца нет'; else if(cardExpired({exp:e})) msg='Срок карты закончился'; }
+  if(!msg&&n.length===16&&e.length===5&&S.cards.some(c=>c.last4===n.slice(-4)&&c.exp===e)) msg='Эта карта уже есть';
+  numBox.classList.toggle('bad', msg.startsWith('Проверь')); err.textContent=msg;
+  go.disabled=!!msg||n.length<16||e.length<5||cvc.length<3; }
+function acAdd(){ const go=document.getElementById('acgo'); if(go.disabled) return; const n=document.getElementById('acnum').value.replace(/\D/g,''), e=document.getElementById('acexp').value, mk=!cardsOk().length||document.getElementById('acmain')?.checked;
+  go.disabled=true; go.innerHTML='<span class="cp-spin"></span><span>Проверяем карту…</span>';
+  setTimeout(()=>{ const c={id:'c'+Date.now().toString(36),f:n[0],last4:n.slice(-4),exp:e,main:false}; if(mk) S.cards.forEach(x=>x.main=false), c.main=true; S.cards.push(c); syncCard();
+    toast(`Карта ${cardLbl(c)} привязана ✓`);
+    if(acBack==='tp'){ tp.card=c.id; tpCheck(); } else if(acBack==='cp'){ cpCard=c.id; openCardPay(); } else { closeSheet(); render(); } },1200); }
+function openCardMenu(id){ const c=cardById(id), exp=cardExpired(c);
+  sheet(`<div class="cm-head">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small class="muted">${exp?'Срок истёк':`до ${c.exp}`}${c.main&&!exp?' · основная':''}</small></span></div>
+    ${!c.main&&!exp?`<button class="btn block" onclick="setMainCard('${id}')">Платить этой картой по умолчанию</button>`:''}
+    <button class="btn ghost block danger" onclick="askDelCard('${id}')">Удалить карту</button>`); }
+function setMainCard(id){ S.cards.forEach(c=>c.main=c.id===id); syncCard(); closeSheet(); render(); toast(`Теперь платим картой ${cardLbl(cardById(id))}`); }
+function askDelCard(id){ const c=cardById(id), rest=cardsOk().filter(x=>x.id!==id), next=c.main&&rest.length?rest[0]:null;
+  sheet(`<div class="rem"><span class="rem-ic">💳</span><h2>Удалить карту ${cardLbl(c)}?</h2>
+    ${next?`<p class="muted">Основной станет ${cardLbl(next)}</p>`:''}
+    ${!rest.length&&S.plus?`<p class="muted">С ${FREE_UNTIL} подписку оплатить будет нечем<br>Добавь другую карту до этой даты</p>`:''}
+    <button class="btn block del-btn" onclick="delCard('${id}')">Удалить</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button></div>`); }
+function delCard(id){ const c=cardById(id); S.cards=S.cards.filter(x=>x.id!==id); syncCard(); closeSheet(); render(); toast(`Карта ${cardLbl(c)} удалена`); }
 function topUp(i){ topUpSum(TOPUPS[i].sum); }
 /* Пополнение как настоящая оплата картой (владелец 24.10): проверь → карта → код из СМС (банк) → списание → чек.
    Демо: подходит любой код; 0000 — банк откажет (чтобы проверить ошибку). Кэшбэк — за каждое пополнение отдельно */
-let tp={sum:0,card:'saved',num:''};
+let tp={sum:0,card:null};
 function topUpSum(sum){ if(!S.plus) return premGate('Депозит — только с ★ Кофейная+','Пополняй депозит — вернём кэшбэк: +150 ₽ к 3 000, +400 ₽ к 5 000, +1 000 ₽ к 10 000');
-  sum=Math.round(+sum||0); if(sum<100) return; tp={sum,card:'saved',num:''}; tpCheck(); }
-const tpCardName=()=>tp.card==='saved'?'карты '+S.card:'карты •• '+tp.num.slice(-4);
+  sum=Math.round(+sum||0); if(sum<100) return; tp={sum,card:(mainCard()||{}).id||null}; tpCheck(); }
+const tpCardName=()=>'карты '+cardLbl(cardById(tp.card));
 function tpCheck(){ const g=giftFor(tp.sum);
   sheet(`<div class="tp"><h2>Проверь пополнение</h2>
     <div class="panel tp-sum"><div class="row between"><span>Пополнение</span><b class="money">${rub(tp.sum)}</b></div>
@@ -2138,13 +2211,11 @@ function tpCheck(){ const g=giftFor(tp.sum);
       ${g?`<span class="tp-eq">${cbEq(g)}</span>`:`<span class="small muted">Кэшбэк начинается от 3 000 ₽</span>`}
       <div class="row between tp-tot"><span>На балансе станет</span><b class="money">${rub(walletTotal()+tp.sum+g)}</b></div></div>
     <span class="label">С какой карты</span>
-    <button class="tp-opt${tp.card==='saved'?' on':''}" onclick="tp.card='saved';tpCheck()">${IC.card}<span><b>Карта ${S.card}</b><small>Сохранена в приложении</small></span></button>
-    <button class="tp-opt${tp.card==='new'?' on':''}" onclick="tp.card='new';tpCheck();setTimeout(()=>document.getElementById('tpnum')?.focus(),50)">${IC.card}<span><b>Другая карта</b><small>Введи номер</small></span></button>
-    ${tp.card==='new'?`<input id="tpnum" class="cp-in money" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" value="${tp.num}" oninput="cpFmt(this);tp.num=this.value.replace(/\\D/g,'');tpOk()">`:''}
+    ${cardPick('tp')}
     <button class="plus-cta tp-go" id="tpgo" onclick="tpPay()">Оплатить ${rub(tp.sum)}</button>
     <span class="small muted" style="text-align:center">Деньги спишутся с карты сразу</span>
     <button class="link" style="align-self:center" onclick="openTopup()">Изменить сумму</button></div>`); tpOk(); }
-function tpOk(){ const b=document.getElementById('tpgo'); if(b) b.disabled=tp.card==='new'&&tp.num.length<16; }
+function tpOk(){ const b=document.getElementById('tpgo'); if(b) b.disabled=!cardById(tp.card); }
 function tpPay(){ const b=document.getElementById('tpgo'); if(!b||b.disabled) return; b.disabled=true; b.innerHTML='<span class="cp-spin"></span><span>Связываемся с банком…</span>';
   setTimeout(tpCode,1100); }
 let tpTimer=null;
@@ -2167,7 +2238,7 @@ function tpFail(){
     <p class="muted">Деньги не списались<br>Проверь баланс карты или выбери другую</p>
     <button class="plus-cta tp-go" onclick="tpCheck()">Попробовать ещё раз</button>
     <button class="btn ghost block" onclick="closeSheet()">Закрыть</button></div>`); }
-function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=tp.card==='saved'?S.card:'•• '+tp.num.slice(-4), now=new Date(), no=String(Math.floor(100000+Math.random()*900000));
+function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=cardLbl(cardById(tp.card)), now=new Date(), no=String(Math.floor(100000+Math.random()*900000));
   S.wallet.money+=sum; S.wallet.gift+=g;
   (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:'Пополнение с карты '+card,sum},...(g?[{day:S.day,k:'gift',t:`Кэшбэк за пополнение ${giftPct(sum)}%`,sum:g}]:[]));
   save(); render();
@@ -3000,7 +3071,7 @@ function me(){ const bd=bdInfo(), b=S.birth;
     <div class="list">
       ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('other'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
-      ${r('card','Банковская карта',S.card,"toast('Карта ${S.card}')")}
+      ${r('card','Банковские карты',S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить',"go('cards')")}
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
@@ -3706,7 +3777,7 @@ function profile(){
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
       ${row('user','Мои данные',"go('me')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
-      ${row('card','Банковские карты',"toast('Карта ${S.card}')",`<small class="muted">${S.card}</small>`)}
+      ${row('card','Банковские карты',"go('cards')",`<small class="muted">${S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить'}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('chat','Поддержка',"openSupport()",S.sup.unread?`<span class="badge-n">${S.sup.unread}</span>`:'')}
@@ -3873,8 +3944,8 @@ const TABS=[
   ['home','Турбо',TURBO_IC],
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
-const SCREENS={home,menu,progress:home,profile,me,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
-const TAB_OF={me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
+const SCREENS={home,menu,progress:home,profile,me,cards,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
+const TAB_OF={cards:'profile',me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
 // Перейти на вкладку и прокрутить к нужному блоку (якорь) — чтобы кнопка вела ровно туда, где выгода
 function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(sel); if(el){ const y=el.getBoundingClientRect().top+scrollY-90; scrollTo({top:y,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); } },60); }
 /* История переходов (владелец 25.10: «Назад» с депозита кидало в «Турбо»): «← Назад» возвращает туда, откуда пришёл,
@@ -4125,7 +4196,7 @@ function labApplyPreset(k){
   const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
-    if(k==='new'||k==='late'){ Object.assign(S,{gft:{sent:[],recent:[]},srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+    if(k==='new'||k==='late'){ Object.assign(S,{cards:[],card:'',gft:{sent:[],recent:[]},srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
       weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; S.six={slots:[null,null,null],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; S.offer=null;
       // «Пришёл в субботу»: зарегистрировался в сб этой недели, подписка, купил — первая неделя не сгорит, ✕ за пн–пт нет (24.10)
