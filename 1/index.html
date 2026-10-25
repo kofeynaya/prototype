@@ -4001,39 +4001,49 @@ const TABS=[
   ['profile','Профиль','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>'],
 ];
 const SCREENS={home,menu,progress:home,profile,me,cards,prices,wallet,invite,birthday,plus,cart,order,myorders,power,lab};
-const TAB_OF={cards:'profile',me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
+const TAB_OF={cards:'profile',me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile',lab:'profile'};
 // Перейти на вкладку и прокрутить к нужному блоку (якорь) — чтобы кнопка вела ровно туда, где выгода
 function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(sel); if(el){ const y=el.getBoundingClientRect().top+scrollY-90; scrollTo({top:y,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); } },60); }
 /* История переходов (владелец 25.10: «Назад» с депозита кидало в «Турбо»): «← Назад» возвращает туда, откуда пришёл,
    и на то же место прокрутки. Переход на вкладку нижнего меню (Меню · Турбо · Профиль) начинает историю заново.
    go(t,1) — заменить текущий экран, не запоминая его (после оформления заказа корзина пустая — туда не возвращаем) */
 const TOP_TABS=['menu','home','progress','profile'];
-let navStack=[], navAnim=null;   // navAnim: 'fwd' — экран въезжает справа (провалился внутрь), 'back' — слева
+let navStack=[], navAnim=null;
+/* Раздел, из которого человек зашёл вглубь (25.10, с критиком): по нему — логотип, повторное нажатие на вкладку и подсветка вкладки
+   (депозит, открытый из «Турбо», — это «Турбо»); переживает перезагрузку */
+const secOf=t=>t==='progress'?'home':t;
+let secRoot=null;
+function setRoot(r){ secRoot=secOf(r); try{localStorage.setItem(KEY+'-root',secRoot)}catch(e){} }
+const curSec=()=>TOP_TABS.includes(tab)?secOf(tab):(secRoot||TAB_OF[tab]||'home');
+// очищая историю приложения, убираем и её записи в истории браузера — иначе системный «назад» (свайп) несколько раз «мёртвый»
+function navClear(){ const n=navStack.length; navStack=[]; if(n){ navSkip++; try{ history.go(-n); }catch(e){ navSkip--; } } }   // navAnim: 'fwd' — экран въезжает справа (провалился внутрь), 'back' — слева
 // с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
 // системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
 function go(t,replace){ if(t==='qr'){ openQR(); return; }
-  if(TOP_TABS.includes(t)){ navStack=[]; }
+  if(TOP_TABS.includes(t)){ navClear(); setRoot(t); }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
-    if(k>=0) navStack=navStack.slice(0,k); else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); try{ history.pushState({nav:navStack.length},''); }catch(e){} } }
+    if(k>=0){ const d=navStack.length-k; navStack=navStack.slice(0,k); navSkip++; try{ history.go(-d); }catch(e){ navSkip--; } } else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); } }
   if(!TOP_TABS.includes(t) && t!==tab) navAnim='fwd';
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
-  navAnim='back'; tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
-let navSkip=0;   // «Назад» в приложении возвращает сразу; запись в истории браузера убираем следом, а её событие пропускаем
+  navAnim='back'; tab=p.t; if(TOP_TABS.includes(tab)) setRoot(tab); render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
+let navSkip=0, pendPush=0;
+// пока браузер ещё отматывает историю (history.go/back — не сразу), новые записи откладываем: иначе отмотка снесёт и их
+function histPush(){ if(navSkip>0){ pendPush++; return; } try{ history.pushState({nav:navStack.length},''); }catch(e){} }   // «Назад» в приложении возвращает сразу; запись в истории браузера убираем следом, а её событие пропускаем
 /* Логотип (владелец 25.10): возвращает в начало того раздела нижнего меню (Меню · Турбо · Профиль), откуда человек «забурился»;
    если уже в начале раздела — просто наверх страницы */
-function goHome(){ closeSheet(); const root=navStack.length?navStack[0].t:(TAB_OF[tab]||tab), r=root==='progress'?'home':root;
-  if(r===tab||(tab==='progress'&&r==='home')){ scrollTo({top:0,behavior:'smooth'}); return; }
-  navStack=[]; navAnim='back'; tab=TOP_TABS.includes(r)?r:'home'; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
+function goHome(){ closeSheet(); const r=curSec();
+  if(TOP_TABS.includes(tab)&&secOf(tab)===r){ scrollTo({top:0,behavior:'smooth'}); return; }
+  navClear(); navAnim='back'; tab=r; setRoot(r); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 /* Повторное нажатие на вкладку нижнего меню (владелец 25.10, как в iPhone): уже в этом разделе — в его начало, наверх страницы
    (в начале раздела — плавная прокрутка; на внутреннем экране — назад, в корень раздела); другой раздел — обычный переход */
-function tabTap(id){ const cur=TAB_OF[tab]||tab, same=cur===id||(id==='home'&&(cur==='progress'||tab==='progress'));
-  if(!same){ go(id); return; } closeSheet();
+function tabTap(id){ if(curSec()!==id){ go(id); return; } closeSheet();
   if(TOP_TABS.includes(tab)){ scrollTo({top:0,behavior:'smooth'}); return; }
-  navStack=[]; navAnim='back'; tab=id; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
+  navClear(); navAnim='back'; tab=id; setRoot(id); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
-addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
-  if(navSkip>0){ navSkip--; return; }
+addEventListener('popstate',()=>{
+  if(navSkip>0){ navSkip--; if(!navSkip&&pendPush){ const k=pendPush; pendPush=0; for(let i=0;i<k;i++) try{ history.pushState({nav:navStack.length-k+i+1},''); }catch(e){} } return; }
+  if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
   if(navStack.length) navPop(); });
 
 /* ===================== Вход по СМС (имитация) ===================== */
@@ -4054,7 +4064,7 @@ function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) 
   const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7'; if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
 function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
 
 
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
@@ -4279,7 +4289,7 @@ function labApplyPreset(k){
       S.orders.push({day:S.day-1,items:[ID.cap],sum:150,goods:190,saved:0,src:{},giftSpend:0,bonus:4,bonusSpend:40,walletSpend:0,ch:'Касса'}); }
     if(k==='bday'){ labBd(0); S.six.slots[0]={id:ID.cap,n:5,isNew:false,last:S.day-1,ready:S.day}; S.ser.n=150; S.ser.best=150; S.rw.miles={30:1,50:1,100:1}; givePlat(); S.bonus=800; }
   });
-  tab=p.go; try{ localStorage.setItem(KEY+'-tab',tab); }catch(e){}
+  tab=p.go; setRoot(TAB_OF[tab]||tab); try{ localStorage.setItem(KEY+'-tab',tab); }catch(e){}
   save(); setTimeout(()=>{ toast(`Сценарий «${p.t}»: ${p.c}`,5000); if(!S.onb) openOnb(); },400);
 }
 function labState(){ const w=labWk(), lw=lastWeekDays();
@@ -4345,7 +4355,7 @@ function render(keep=true){
   const app=$('#app'), locked=document.documentElement.classList.contains('sheet-open'), y=locked?sheetY:scrollY;
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
   ensureDaily();
-  const body=(SCREENS[tab]||home)(), active=TAB_OF[tab]||tab;
+  const body=(SCREENS[tab]||home)(), active=curSec();
   app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+' glass'; // «жидкое стекло» (iOS 26) — на всех вкладках
   // демо-полоса (Касса · Завтра · Пульт) — не сверху, а внизу экранов «Турбо» и «Профиль» (владелец 24.10: сверху слишком много закреплено)
   app.innerHTML = gbar() + `<main${navAnim?` class="nav-${navAnim}"`:''}>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
@@ -4363,6 +4373,9 @@ function pinStuck(){ const p=document.querySelector('.ser-pin'), g=document.quer
   app.classList.toggle('pin-stuck', !!(p&&g) && p.getBoundingClientRect().top <= g.getBoundingClientRect().bottom+1); }
 addEventListener('scroll',()=>requestAnimationFrame(pinStuck),{passive:true});
 try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
+try{ const r=localStorage.getItem(KEY+'-root'); secRoot=TOP_TABS.includes(tab)?secOf(tab):(['home','menu','profile'].includes(r)?r:(TAB_OF[tab]||'home')); }catch(e){ secRoot=TAB_OF[tab]||'home'; }
+// после перезагрузки истории приложения нет — убираем старые записи из истории браузера, чтобы свайп «назад» не был «мёртвым»
+try{ const k=history.state&&history.state.nav; if(k>0){ navSkip++; history.go(-k); } }catch(e){}
 try{ const k=sessionStorage.getItem('labPreset'); if(k){ sessionStorage.removeItem('labPreset'); labApplyPreset(k); } }catch(e){}
 render(false);
 if(S.authed && !S.onb) setTimeout(openOnb,300);
