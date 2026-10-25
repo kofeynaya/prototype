@@ -648,7 +648,7 @@ main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animati
 @keyframes navBack{from{transform:translateX(-24%);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){main.nav-fwd,main.nav-back{animation:none}}
 /* шапка депозита внутри — без карты */
-.wl-head{display:flex;flex-direction:column;gap:6px;padding:4px 2px 6px}
+.wl-head{display:flex;flex-direction:column;gap:6px;padding:4px 2px 6px}.wl-h{margin:0 0 10px}
 .wl-sum{font-family:var(--f-num);font-size:48px;line-height:1.02;white-space:nowrap!important;text-wrap:nowrap!important;letter-spacing:-.5px}.wl-sum .kop{opacity:.42}.wl-sum .cur{opacity:.6;font-size:.5em}
 .wl-parts{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;color:var(--muted)}.wl-parts i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .rem{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.rem-ic{font-size:44px;line-height:1}.rem h2{margin:0}.rem p{margin:0}
@@ -3652,7 +3652,7 @@ function wallet(){
 /* 25.10: внутри депозита не повторяем зелёную карту из профиля (владелец: «одинаковые экраны путают, непонятно, провалился ли»).
    Здесь сумма — крупно прямо на фоне, без карты и без своей кнопки «Пополнить»: пополнение — список сумм ниже */
 function walletHead(){ const w=S.wallet, t=walletTotal(), [r,k]=t.toFixed(2).split('.');
-  return `<div class="wl-head"><span class="label">На депозите</span>
+  return `<div class="wl-head"><h1 class="wl-h">Ваш баланс в кофейной</h1><span class="label">На депозите</span>
     <div class="wl-sum money" style="font-size:min(${sumSize(r.length)+4}px,11.5vw)">${(+r).toLocaleString('ru-RU')}<span class="kop">,${k}</span><span class="cur"> ₽</span></div>
     <div class="wl-parts"><span><i style="background:#f9f9f9"></i>Рублёвых ${rub(w.money)}</span><span><i style="background:#f2c230"></i>Кэшбэк ${rub(w.gift)}</span></div></div>`; }
 /* кегль суммы на карте уменьшается с числом цифр — чтобы и 300 000 ₽ влезли */
@@ -3829,7 +3829,7 @@ const LEGEND = [
  [11,'#ff6d00','Каждый 6-й','Гость выбирает до 3 блюд: новое −50%, привычное −20%.','«Турбо»',"go('progress')"],
  [12,'#76ff03','День рождения','Скидка = ваш возраст (★), 7 дней до и после. Первый раз бариста смотрит паспорт.','Баннер на «Сегодня», «Профиль → Мои данные»',"go('birthday')"],
  [13,'#ff4081','Подписка Кофейная+','99 ₽/мес: цены недели, бонусы до 7%, ДР = возраст. Бесплатно до '+FREE_UNTIL+'.','«Профиль» → Мои выгоды (уровень), плитка на «Сегодня», значки ★',"go('profile')"],
- [14,'#00b0ff','Баланс — как в банке','Ваши деньги в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
+ [14,'#00b0ff','Баланс — как в банке','Ваш баланс в кофейной до копейки. Пополнили 10 000 — получили 11 000. Выписка операций.','«Профиль» → Мои выгоды (карта баланса)',"go('profile')"],
  [15,'#f50057','Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу. Защита: друг покупает в 3 разных дня.','«Сегодня» (плитка), «Профиль»',"go('invite')"],
  [16,'#ffc400','Самое выгодное','Все выгоды одним рядом — листайте вбок.','«Сегодня»',"go('home')"],
  [17,'#3d5afe','Меню как на сайте','Разделы с часами работы, фото, фильтр «Новое / Хит / Выбор шефа».','«Меню»',"go('menu')"],
