@@ -3274,7 +3274,7 @@ function benefit(){
     if(bs) by.bonus=(by.bonus||0)+bs; if(gs) by.gift=(by.gift||0)+gs; }
   const gain=without-paid, parts=BEN_SRC.filter(([k])=>by[k]>0), cups=cap?Math.floor(gain/cap.p):0;
   return `<div class="ben" id="ben">${head}
-    <div class="ben-v"><span class="money">+<span data-n="${gain}">${gain.toLocaleString('ru-RU')}</span> ₽</span><small>сэкономил ${lbl}${cups?` · это ${cups} ${plural(cups,'капучино','капучино','капучино')} бесплатно ☕`:''}</small></div>
+    <div class="ben-v"><span class="money">+<span data-n="${gain}">${gain.toLocaleString('ru-RU')}</span> ₽</span><small>сэкономил ${lbl}${cups?`<br>Это ${cups} ${plural(cups,'капучино','капучино','капучино')} бесплатно ☕`:''}</small></div>
     <div class="ben-r"><span>Без приложения заплатил бы</span><span class="bar"><i data-w="100" style="width:100%"></i></span><b class="money">${rub(without)}</b></div>
     <div class="ben-r me"><span>С приложением заплатил</span><span class="bar"><i data-w="${Math.round(paid/without*100)}" style="width:${Math.round(paid/without*100)}%"></i></span><b class="money">${rub(paid)}</b></div>
     <div class="ben-st">${parts.map(([k,,c])=>`<i data-f data-g="${by[k]}" style="flex-grow:${by[k]};background:${c}"></i>`).join('')}</div>
