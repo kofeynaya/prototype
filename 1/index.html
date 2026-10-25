@@ -3781,10 +3781,11 @@ function go(t,replace){ if(t==='qr'){ openQR(); return; }
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
   navAnim='back'; tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
-let navFallback=null;
-function goBack(fallback){ if(navStack.length){ navFallback=fallback; try{ history.back(); return; }catch(e){} } navPop(fallback); }
+let navSkip=0;   // «Назад» в приложении возвращает сразу; запись в истории браузера убираем следом, а её событие пропускаем
+function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
 addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
-  if(navStack.length) navPop(navFallback); navFallback=null; });
+  if(navSkip>0){ navSkip--; return; }
+  if(navStack.length) navPop(); });
 
 /* ===================== Вход по СМС (имитация) ===================== */
 let authStep='phone';
