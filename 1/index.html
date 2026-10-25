@@ -2280,7 +2280,9 @@ function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=cardLbl(cardById(tp.ca
 const nameAcc=n=>n.replace(/а$/,'у').replace(/я$/,'ю');
 function refPay(f){ f.paid=true; f.paidDay=S.day; S.bonus+=REF_REWARD; (S.refNew=S.refNew||[]).push(f.name);
   S.notes.unshift({k:'ref',t:`+${REF_T} бонусов за ${nameAcc(f.name)}`,s:'Подарок за друга пришёл',day:S.day,tm:supTime(),read:0}); }
-function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed||!S.onb||document.querySelector('.sheet-bg')||document.getElementById('onb')) return;
+function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
+  // 25.10: если мешает другое окно или онбординг — не теряем праздник, пробуем снова, пока не покажем
+  if(!S.onb||document.querySelector('.sheet-bg')||document.getElementById('onb')){ clearTimeout(refCheck.t); refCheck.t=setTimeout(refCheck,1500); return; }
   S.refNew=[]; S.notes.forEach(n=>{ if(n.k==='ref') n.read=1; }); save();
   const sum=(REF_REWARD*ns.length).toLocaleString('ru-RU'), who=ns.length>1?ns.slice(0,-1).join(', ')+' и '+ns[ns.length-1]:ns[0];
   sheet(`<div class="ref-win"><div class="rw-ic">👫</div><h2>🎉 +${sum} бонусов!</h2>
@@ -4300,8 +4302,9 @@ function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.bi
 function labRefPaid(){ const names=['Аня','Петя','Оля','Дима','Катя'], used=new Set(S.ref.friends.map(f=>f.name));
   let f=S.ref.friends.find(x=>!x.paid&&!x.blocked); if(!f){ f={name:names.find(n=>!used.has(n))||'Друг',phone:'+7 9•• •••-'+(10+S.ref.friends.length)+'-27',days:[],hold:null,paid:false}; S.ref.friends.push(f); }
   f.days=[S.day-6,S.day-4,S.day-2]; f.hold=S.day; refNote(f,`${f.name}: 3 покупки из 3 ✓`,`Проверим до ${fmtShort(S.day)} — потом +${REF_T} тебе`); refPay(f);
-  save(); try{ localStorage.setItem(KEY+'-tab','home'); localStorage.setItem(KEY+'-root','home'); }catch(e){} location.reload(); }
-function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }); }
+  save(); closeSheet(); navClear(); tab='home'; setRoot('home'); render(false); scrollTo(0,0); try{ localStorage.setItem(KEY+'-tab','home'); }catch(e){}
+  setTimeout(refCheck,500); }   // 25.10: без перезагрузки (на телефоне она подводила) — сразу «Турбо» и праздничное окно
+function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }, on?'Миша приглашён, купил 1 раз из 3<br>Бонусы придут после 3 покупок и проверки<br>Сразу увидеть — кнопка «👫 Друг выполнил условия»':''); }
 function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
 function labGift(kind,today){ labDo(()=>{ const g=giveGift(kind,today?'Проверка: сгорает сегодня':'Выдан в пульте'); if(today){ g.from=S.day-GIFT_DAYS+1; g.until=S.day; } },'Подарок выдан'); }
@@ -4391,8 +4394,8 @@ function lab(){
       <div class="lab-wd">${[['shown','Показано'],['activated','Активировано'],['used','Использовано']].map(([k,n])=>`<button class="${S.offer&&S.offer.status===k?'on':''}" onclick="labOffer('${k}')">${n}</button>`).join('')}</div>
       ${labSixBox()}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
-      ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
-      <button class="btn ghost block" onclick="labRefPaid()">👫 Друг выполнил условия — +${REF_T} бонусов (как будто заходишь в приложение)</button>
+      ${tg('Друг приглашён (ещё не купил 3 раза — бонусов пока нет)',S.ref.friends.some(f=>!f.blocked),'labFriend')}
+      <button class="btn block" onclick="labRefPaid()">👫 Друг выполнил условия — получить +${REF_T} бонусов</button>
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
       <span class="lab-l">Подарки другим и поиск</span>
