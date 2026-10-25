@@ -723,6 +723,7 @@ main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animati
 .toast.sup-toast{background:linear-gradient(120deg,#ad1457,#ff4f9a);border-color:rgba(255,255,255,.35);box-shadow:0 10px 28px rgba(214,38,79,.45);display:flex;align-items:center;justify-content:space-between;gap:10px}   /* ответ поддержки — розовый, не сливается с обычными (владелец 24.10) */
 .toast.sup-toast .toast-btn{color:#ad1457;margin-left:0;flex:none}
 .toast-btn{margin-left:10px;padding:5px 12px;border-radius:999px;background:#f9f9f9;color:#0d553f;font-weight:700;font-size:14px}
+.ref-win{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:8px}.ref-win .rw-ic{font-size:56px;line-height:1;animation:upPulse 1.8s ease-in-out 2}.ref-win h2{margin:0;font-size:30px}.ref-win .rw-t{margin:0;font-size:17px}.ref-win .rw-go{align-self:stretch;justify-content:center}
 .note{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);text-align:left;width:100%}.note .ni{font-size:22px}.note .tx{flex:1;display:flex;flex-direction:column}.note small{color:var(--muted)}
 .note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
 /* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
@@ -2127,9 +2128,9 @@ function nextDay(){
   S.six.slots.forEach(sl=>{ if(!sl) return; const nm=byId(sl.id).n.toLowerCase();
     if(sl.n>=5 && sl.ready!=null && S.day>sl.ready+GIFT_DAYS-1){ sl.n=0; sl.ready=null; if(S.plus) msg+=` 😢 Не успел забрать шестое: ${nm} — отметки сгорели.`; }
     else if(sl.n>0 && sl.n<5 && S.day-sl.last>SIX_BURN){ sl.n=0; if(S.plus) msg+=` 😢 ${byId(sl.id).n}: 30 дней без покупки — отметки сгорели.`; } });
-  for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold){ f.paid=true; S.bonus+=REF_REWARD; msg+=` Проверка друга ${f.name} пройдена: +${REF_T} бонусов.`; } }
+  for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold) refPay(f); }
   msg+=giftDay();
-  S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500);
+  S.offer=null; ensureDaily(); checkAch(); save(); render(); toast(msg, 4500); setTimeout(refCheck,700);
 }
 /* Подключение подписки (владелец 24.10): «Подключить» → окно с картой → «Подписаться» → конфетти и сразу «Сегодня».
    В прототипе карта не проверяется: любые цифры (и даже пустые поля) проходят — это симуляция */
@@ -2270,10 +2271,28 @@ function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=cardLbl(cardById(tp.ca
     <span class="small muted" style="text-align:center">Чек придёт в СМС</span>
     <button class="plus-cta tp-go" onclick="closeSheet()">Готово</button></div>`); confetti(); }
 
+/* «Пригласи друга» — бонусы пришли сами, пока гостя не было (владелец 25.10, с критиком): при входе праздничное окно с конфетти
+   (одно на все события сразу, показываем один раз), запись в колокольчике (уже прочитана, раз окно видел), у друга в списке «+1 000 у тебя ✓».
+   Промежуточные покупки друга — только тихие записи в колокольчике, без красного числа */
+const nameAcc=n=>n.replace(/а$/,'у').replace(/я$/,'ю');
+function refPay(f){ f.paid=true; f.paidDay=S.day; S.bonus+=REF_REWARD; (S.refNew=S.refNew||[]).push(f.name);
+  S.notes.unshift({k:'ref',t:`+${REF_T} бонусов за ${nameAcc(f.name)}`,s:'Подарок за друга пришёл',day:S.day,tm:supTime(),read:0}); }
+function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed||!S.onb||document.querySelector('.sheet-bg')||document.getElementById('onb')) return;
+  S.refNew=[]; S.notes.forEach(n=>{ if(n.k==='ref') n.read=1; }); save();
+  const sum=(REF_REWARD*ns.length).toLocaleString('ru-RU'), who=ns.length>1?ns.slice(0,-1).join(', ')+' и '+ns[ns.length-1]:ns[0];
+  sheet(`<div class="ref-win"><div class="rw-ic">👫</div><h2>🎉 +${sum} бонусов!</h2>
+    <p class="rw-t">${who}: ${ns.length>1?'по 3 покупки':'3 покупки'} в разные дни ✓<br>Это твой подарок за ${ns.length>1?'друзей':'друга'}</p>
+    <p class="small muted">${sum} бонусов = ${sum} ₽<br>Можно оплатить до 30% чека</p>
+    <button class="plus-cta rw-go" onclick="closeSheet();go('menu')"><span>Потратить</span></button>
+    <button class="btn ghost block" onclick="closeSheet();render()">Отлично</button></div>`);
+  render(); setTimeout(confetti,150); }
+function refNote(f,t,s){ S.notes.unshift({k:'refp',t,s,day:S.day,tm:supTime(),read:1}); }
 function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
   f.days.push(S.day);
+  if(f.days.length>=REF_DAYS) refNote(f,`${f.name}: 3 покупки из 3 ✓`,`Проверим до ${fmtShort(f.hold=S.day+REF_HOLD)} — потом +${REF_T} тебе`);
+  else refNote(f,`${f.name}: покупка ${f.days.length} из ${REF_DAYS}`,f.days.length===REF_DAYS-1?`Ещё одна — и +${REF_T} тебе`:'Друг начал ходить в кофейную');
   if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}, затем начислим ${REF_T} бонусов.`,4500); }
   else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
   save(); render();
@@ -3240,7 +3259,7 @@ function supRes(i,r){ const x=S.sup.msgs[i]; x.res=r; if(r==='no') S.sup.msgs.pu
 // Уведомления (колокольчик) — только настоящие события
 const notesNew=()=>S.notes.filter(n=>!n.read).length;
 function openNotes(){ const ns=S.notes;
-  sheet(`<h2>Уведомления</h2>${ns.length?`<div class="list">${ns.map((n,i)=>`<button class="note${n.read?'':' new'}" onclick="${n.k==='sup'?'openSupport()':''}"><span class="ni">💬</span><span class="tx"><b>${n.t}</b><small>${n.s}<br>${fmtShort(n.day)}, ${n.tm}</small></span>${n.read?'':'<i class="dot"></i>'}</button>`).join('')}</div>`:`<div class="learn-empty"><span>🔔</span><p class="small">Пока ничего нового</p></div>`}`); }
+  sheet(`<h2>Уведомления</h2>${ns.length?`<div class="list">${ns.map((n,i)=>`<button class="note${n.read?'':' new'}" onclick="${n.k==='sup'?'openSupport()':n.k&&n.k.startsWith('ref')?"closeSheet();go('invite')":''}"><span class="ni">${n.k&&n.k.startsWith('ref')?'👫':'💬'}</span><span class="tx"><b>${n.t}</b><small>${n.s}<br>${fmtShort(n.day)}, ${n.tm}</small></span>${n.read?'':'<i class="dot"></i>'}</button>`).join('')}</div>`:`<div class="learn-empty"><span>🔔</span><p class="small">Пока ничего нового</p></div>`}`); }
 function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x=>x.id===id)+1;
   sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'посещение','посещения','посещений')} подряд</span></div>
     <p class="gp-bio">«${g.bio}»</p>
@@ -3937,7 +3956,7 @@ function invite(){
     <div class="stack"><h3>Ваши друзья</h3>
       ${fr.map((f,i)=>{ if(f.blocked) return `<div class="friend"><div class="row between"><strong>${f.name}</strong><span class="chip" style="color:var(--warn)">отклонён</span></div><div class="fsteps">${'<span class="bad"></span>'.repeat(5)}</div><span class="small muted">${f.blocked}</span></div>`;
         const steps=[true, f.days.length>=1, f.days.length>=2, f.days.length>=3, f.paid];
-        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} начислено</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
+        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} у тебя ✓${f.paidDay!=null?' '+fmtShort(f.paidDay):''}</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
         return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div><div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
           <span class="small muted">Регистрация по СМС → покупка в 3 разных дня → 7 дней проверки → бонусы вам</span>
           ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">Демо: ${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
@@ -4226,7 +4245,7 @@ function drawOnb(){ const o=ONB[onbI], d=document.getElementById('onb'); if(!d) 
     <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>
   </div>`; }
 function closeOnb(){ document.getElementById('onb')?.remove(); document.documentElement.classList.remove('onb-open'); }
-function endOnb(){ S.onb=1; save(); closeOnb(); }
+function endOnb(){ S.onb=1; save(); closeOnb(); setTimeout(refCheck,400); }
 
 /* ===================== Пульт теста (демо-инструмент, не часть приложения) =====================
    4 блока: Сценарии · Время · Гость · Выгоды и подарки. Изменения применяются сразу. Невозможные состояния не собираются: лучший результат ≥ счётчика */
@@ -4250,6 +4269,11 @@ function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=la
   if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1}; }); }
 function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
 function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.birth.y||1993,m:t.getMonth(),d:t.getDate(),verified:false}; }); }
+// пульт: друг купил 3 раза, проверка прошла, пока тебя не было → перезагрузка, как будто открыл приложение
+function labRefPaid(){ const names=['Аня','Петя','Оля','Дима','Катя'], used=new Set(S.ref.friends.map(f=>f.name));
+  let f=S.ref.friends.find(x=>!x.paid&&!x.blocked); if(!f){ f={name:names.find(n=>!used.has(n))||'Друг',phone:'+7 9•• •••-'+(10+S.ref.friends.length)+'-27',days:[],hold:null,paid:false}; S.ref.friends.push(f); }
+  f.days=[S.day-6,S.day-4,S.day-2]; f.hold=S.day; refNote(f,`${f.name}: 3 покупки из 3 ✓`,`Проверим до ${fmtShort(S.day)} — потом +${REF_T} тебе`); refPay(f);
+  save(); try{ localStorage.setItem(KEY+'-tab','home'); localStorage.setItem(KEY+'-root','home'); }catch(e){} location.reload(); }
 function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }); }
 function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
@@ -4341,6 +4365,7 @@ function lab(){
       ${rng('«Каждый 6-й»: отметок в 1-й ячейке',S.six.slots[0]?S.six.slots[0].n:0,0,5,'labStamp',' из 5')}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
       ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
+      <button class="btn ghost block" onclick="labRefPaid()">👫 Друг выполнил условия — +${REF_T} бонусов (как будто заходишь в приложение)</button>
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
       <span class="lab-l">Подарки другим и поиск</span>
@@ -4385,4 +4410,5 @@ try{ const k=history.state&&history.state.nav; if(k>0){ navSkip++; history.go(-k
 try{ const k=sessionStorage.getItem('labPreset'); if(k){ sessionStorage.removeItem('labPreset'); labApplyPreset(k); } }catch(e){}
 render(false);
 if(S.authed && !S.onb) setTimeout(openOnb,300);
+setTimeout(refCheck,600);   // друг выполнил условия, пока гостя не было — праздник при входе
 </script>
