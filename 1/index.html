@@ -3978,6 +3978,12 @@ let navSkip=0;   // «Назад» в приложении возвращает 
 function goHome(){ closeSheet(); const root=navStack.length?navStack[0].t:(TAB_OF[tab]||tab), r=root==='progress'?'home':root;
   if(r===tab||(tab==='progress'&&r==='home')){ scrollTo({top:0,behavior:'smooth'}); return; }
   navStack=[]; navAnim='back'; tab=TOP_TABS.includes(r)?r:'home'; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
+/* Повторное нажатие на вкладку нижнего меню (владелец 25.10, как в iPhone): уже в этом разделе — в его начало, наверх страницы
+   (в начале раздела — плавная прокрутка; на внутреннем экране — назад, в корень раздела); другой раздел — обычный переход */
+function tabTap(id){ const cur=TAB_OF[tab]||tab, same=cur===id||(id==='home'&&(cur==='progress'||tab==='progress'));
+  if(!same){ go(id); return; } closeSheet();
+  if(TOP_TABS.includes(tab)){ scrollTo({top:0,behavior:'smooth'}); return; }
+  navStack=[]; navAnim='back'; tab=id; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
 addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
   if(navSkip>0){ navSkip--; return; }
@@ -4297,8 +4303,8 @@ function render(keep=true){
   // демо-полоса (Касса · Завтра · Пульт) — не сверху, а внизу экранов «Турбо» и «Профиль» (владелец 24.10: сверху слишком много закреплено)
   app.innerHTML = gbar() + `<main${navAnim?` class="nav-${navAnim}"`:''}>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
-      ? `<button class="turbotab" onclick="go('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
-      : `<button onclick="go('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
+      ? `<button class="turbotab" onclick="tabTap('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
+      : `<button onclick="tabTap('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
   navAnim=null;
   if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
