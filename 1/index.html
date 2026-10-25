@@ -395,6 +395,8 @@ h1,h2,h3,h4,button,.btn,b,strong,small,.nm,.title,.meta,.hint,.tx,.stc-perk,.six
 .lab-wk button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);background:none}
 .lab-wk i{display:grid;place-items:center;width:min(34px,100%);aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-style:normal;font-size:16px}
 .lab-wk .x i{color:#e53935;border-color:#e53935}.lab-wk .v i{border-color:#ff9100}.lab-wk .f i{border-color:#29b6f6}.lab-wk .fut{opacity:.35}
+.lab-six{display:flex;flex-direction:column;gap:8px}.ls-row{display:grid;grid-template-columns:14px 1.2fr 1fr;gap:6px;align-items:center}.ls-row select{min-width:0;padding:9px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+#lab-six-go.lab-dirty{animation:upPulse 1.6s ease-in-out infinite}
 .lab-r{display:flex;flex-direction:column;gap:4px;font-size:14px}.lab-r input{width:100%;accent-color:var(--green)}
 .lab-t{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}.lab-t input{width:22px;height:22px;accent-color:var(--green)}
 .lab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -4068,6 +4070,7 @@ function navClear(){ const n=navStack.length; navStack=[]; if(n){ navSkip++; try
 // с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
 // системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
 function go(t,replace){ if(t==='qr'){ openQR(); return; }
+  if(t==='lab'&&tab!=='lab') labSixD=null;   // черновик «Каждого 6-го» в пульте — заново при входе
   if(TOP_TABS.includes(t)){ navClear(); setRoot(t); }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
     if(k>=0){ const d=navStack.length-k; navStack=navStack.slice(0,k); navSkip++; try{ history.go(-d); }catch(e){ navSkip--; } } else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); } }
@@ -4353,7 +4356,7 @@ function lab(){
   const tg=(lbl,on,fn)=>`<label class="lab-t"><span>${lbl}</span><input type="checkbox" ${on?'checked':''} onchange="${fn}(this.checked)"></label>`;
   const num=(lbl,val,fn)=>`<label class="lab-n"><span>${lbl}</span><input type="number" inputmode="numeric" value="${Math.round(val)}" onchange="labDo(()=>{${fn}=Math.max(0,+this.value||0)})"></label>`;
   return `<section class="screen lab">${back()}
-    <div class="stack" style="gap:4px"><span class="label">Только для теста</span><h1>⚙️ Пульт</h1><p class="small muted" style="margin:0">Собирай любую ситуацию и смотри, как выглядит приложение. Меняется сразу</p></div>
+    <div class="stack" style="gap:4px"><span class="label">Только для теста</span><h1>⚙️ Пульт</h1><p class="small muted" style="margin:0">Собирай любую ситуацию и смотри, как выглядит приложение<br>Ползунки и галочки меняют сразу, а где есть кнопка «Применить» — нажми её</p></div>
     <div class="lab-now"><b>Что сейчас у гостя</b><span>${labState()}</span>
       <p class="small muted" style="margin:0">Нашёл баг — нажми «Скопировать» и вставь в чат с Claude вместе со скриншотом: он откроет ровно эту ситуацию. «Загрузить» — открыть ситуацию, которую прислали тебе</p>
       <div class="row" style="gap:8px"><button class="btn ghost" onclick="labCopy()">Скопировать</button><button class="btn ghost" onclick="labLoad()">Загрузить</button></div></div>
@@ -4385,7 +4388,7 @@ function lab(){
     <div class="lab-b"><h2>4. Выгоды и подарки</h2>
       <span class="lab-l">Предложение дня</span>
       <div class="lab-wd">${[['shown','Показано'],['activated','Активировано'],['used','Использовано']].map(([k,n])=>`<button class="${S.offer&&S.offer.status===k?'on':''}" onclick="labOffer('${k}')">${n}</button>`).join('')}</div>
-      ${rng('«Каждый 6-й»: отметок в 1-й ячейке',S.six.slots[0]?S.six.slots[0].n:0,0,5,'labStamp',' из 5')}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
+      ${labSixBox()}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
       ${tg('Друг приглашён',S.ref.friends.some(f=>!f.blocked),'labFriend')}
       <button class="btn ghost block" onclick="labRefPaid()">👫 Друг выполнил условия — +${REF_T} бонусов (как будто заходишь в приложение)</button>
@@ -4402,6 +4405,20 @@ function lab(){
   </section>`;
 }
 function labPlus(v){ labDo(()=>{ S.plus=v; S.plusSoon=false; }); }
+/* Пульт «Каждый 6-й» (владелец 25.10): в каждой из 3 ячеек выбрать блюдо и сколько раз уже куплено (0–5),
+   изменения применяются только кнопкой «Применить» — потом сразу показываем карточку в «Турбо» */
+let labSixD=null;
+function labSixBox(){ if(!labSixD) labSixD=S.six.slots.map(sl=>sl?{id:sl.id,n:Math.min(5,sl.n)}:{id:'',n:0});
+  const opts=sel=>`<option value="">— пусто —</option>`+SIX_POOL.map(g=>`<optgroup label="${g.t}">${g.ids.map(id=>`<option value="${id}"${id===sel?' selected':''}>${byId(id).n}</option>`).join('')}</optgroup>`).join('');
+  return `<span class="lab-l">«Каждый 6-й»: какие блюда копишь и сколько раз уже купил</span>
+    <div class="lab-six">${labSixD.map((d,i)=>`<div class="ls-row"><b>${i+1}</b><select onchange="labSixD[${i}].id=this.value;labSixDirty()">${opts(d.id)}</select>
+      <select onchange="labSixD[${i}].n=+this.value;labSixDirty()">${[0,1,2,3,4,5].map(n=>`<option value="${n}"${n===d.n?' selected':''}>${n===5?'куплено 5 — шестое ждёт':'куплено '+n}</option>`).join('')}</select></div>`).join('')}</div>
+    <button class="btn block" id="lab-six-go" onclick="labSixApply()">Применить</button>
+    <p class="small muted" id="lab-six-tip" style="margin:0">Выбери и нажми «Применить» — покажем, как это выглядит</p>`; }
+function labSixDirty(){ const b=document.getElementById('lab-six-go'), t=document.getElementById('lab-six-tip'); if(b) b.classList.add('lab-dirty'); if(t) t.textContent='Есть изменения — нажми «Применить»'; }
+function labSixApply(){ const ids=labSixD.map(d=>d.id).filter(Boolean); if(new Set(ids).size<ids.length) return toast('Одно блюдо выбрано дважды<br>Выбери разные');
+  S.six.slots=labSixD.map(d=>d.id?{id:d.id,n:d.n,isNew:!boughtWithin(d.id,SIX_NEW_WINDOW),last:S.day,ready:d.n>=5?S.day:null}:null);
+  S.six.usedDay=null; labSixD=null; save(); toast(S.plus?'Применено ✓<br>Вот как это выглядит':'Применено ✓<br>Но без ★ Кофейная+ «Каждый 6-й» под замком — включи подписку в пульте'); goTo('progress','#pr-six'); }
 function labStamp(v){ labDo(()=>{ const sl=S.six.slots[0]||(S.six.slots[0]={id:ID.cap,n:0,isNew:false,last:S.day}); sl.n=v; sl.last=S.day; sl.ready=v>=5?S.day:null; }); }
 
 /* ===================== Рендер ===================== */
