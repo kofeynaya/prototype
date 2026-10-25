@@ -706,7 +706,8 @@ main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animati
 .sup-rate button{padding:8px 18px;border-radius:999px;border:1.5px solid var(--line);font-weight:700}.sup-rate button:first-of-type{background:#a7d2b9;border-color:#a7d2b9;color:#212221}
 .sup-night{padding:10px 14px;border-radius:14px;background:rgba(43,43,147,.25);border:1px solid rgba(94,53,177,.5);font-size:14px;text-align:center;line-height:1.35}
 .sup-in{position:sticky;bottom:0;display:flex;gap:8px;padding:8px 0 4px;background:var(--bg)}
-.sup-in input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.sup-in{align-items:flex-end}.sup-in textarea{resize:none;line-height:1.3;overflow-y:auto}
+.sup-in textarea{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 16px;border-radius:22px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
 .sup-go{width:46px;height:46px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:22px;font-weight:700;flex:none}.sup-go:disabled{background:var(--line);color:var(--muted)}
 .toast.sup-toast{background:linear-gradient(120deg,#ad1457,#ff4f9a);border-color:rgba(255,255,255,.35);box-shadow:0 10px 28px rgba(214,38,79,.45);display:flex;align-items:center;justify-content:space-between;gap:10px}   /* ответ поддержки — розовый, не сливается с обычными (владелец 24.10) */
 .toast.sup-toast .toast-btn{color:#ad1457;margin-left:0;flex:none}
@@ -3069,7 +3070,7 @@ function me(){ const bd=bdInfo(), b=S.birth;
       <div class="me-name"><input id="me-name" class="cp-in" value="${S.name.replace(/"/g,'&quot;')}" maxlength="24" autocomplete="given-name" oninput="document.getElementById('me-save').disabled=!this.value.trim()||this.value.trim()===S.name"><button class="btn" id="me-save" disabled onclick="meSave()">Сохранить</button></div>
       <span class="small muted">Так тебя будут видеть в рейтинге и бариста на кассе</span></div>
     <div class="list">
-      ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('other'),900)")}
+      ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
       ${r('card','Банковские карты',S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить',"go('cards')")}
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
@@ -3137,8 +3138,14 @@ function supAva(){ return `<span class="sup-ava"><svg viewBox="0 0 24 24" aria-h
 const supIc=ic=>ic==='★'?STAR_Y.replace('star-y','star-y sup-star'):ic;   // Кофейная+ — жёлтая звезда, как везде
 /* 24.10, с критиком: темы — подсказка, а не замок. Поле ввода работает всегда; «＋ Новый вопрос» над полем — в любой момент
    (после возврата, во время ожидания, после ответа). При возврате темы сами не появляются */
+/* 25.10: переход в поддержку «по делу» (изменить дату рождения, телефон) — сразу готовый текст в поле, человек дописывает и отправляет.
+   Повторный вход по той же ссылке тему не дублирует */
+const SUP_DRAFT={bd:'Здравствуйте! Хочу изменить дату рождения. Правильная дата: ',phone:'Здравствуйте! Хочу изменить номер телефона. Новый номер: '};
+const SUP_TOPIC_OF={phone:'other'};
 function openSupport(topic){ supOpenNow=true; S.sup.newQ=0; if(S.sup.unread){ S.sup.unread=0; S.notes.forEach(n=>{ if(n.k==='sup') n.read=1; }); save(); render(); }
-  if(topic) supPick(topic,true); else drawSup(); }
+  const k=SUP_TOPIC_OF[topic]||topic, last=S.sup.msgs.slice().reverse().find(x=>x.me);
+  if(topic && !(last && S.sup.topic===k && last.t===SUP_T.find(x=>x[0]===k).slice(1).join(' '))) supPick(k,true); else drawSup();
+  const d=SUP_DRAFT[topic]; if(d) setTimeout(()=>{ const i=document.getElementById('supin'); if(!i) return; i.value=d; supGrow(i); document.getElementById('supgo').disabled=false; i.focus(); i.setSelectionRange(d.length,d.length); },80); }
 function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${supIc(ic)}</span>${t}</button>`).join('')}</div>`;
   const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(x,i):x.k==='div'?`<div class="sup-div"><span>Новый вопрос</span></div>`:`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb"><span>${(x.me?x.t.replace(/^★/,STAR_Y):x.t).split('|').join('<br>')}</span><small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
   sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:30 до 22:30</small></span></div>
@@ -3147,7 +3154,7 @@ function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup
     ${!empty&&S.sup.newQ?`<div class="sup-div"><span>Новый вопрос</span></div><div class="smsg">${supAva()}<div class="sb">С чем помочь?</div></div>${topics}<button class="link sup-no" onclick="S.sup.newQ=0;drawSup()">✕ Не надо</button>`:''}</div>
     ${supNight()?`<div class="sup-night">Сейчас мы спим 🌙<br>Напиши — ответим утром, с 8:30</div>`:''}
     ${!empty&&!S.sup.newQ?`<button class="sup-new" onclick="S.sup.newQ=1;drawSup()">＋ Новый вопрос</button>`:''}
-    <div class="sup-in"><input id="supin" placeholder="Напиши, что случилось" autocomplete="off" oninput="document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter')supSend()"><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div></div>`,1);
+    <div class="sup-in"><textarea id="supin" rows="1" placeholder="Напиши, что случилось" autocomplete="off" oninput="supGrow(this);document.getElementById('supgo').disabled=!this.value.trim()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();supSend()}"></textarea><button class="sup-go" id="supgo" disabled onclick="supSend()" aria-label="Отправить">↑</button></div></div>`,1);
   const l=document.getElementById('suplist'); if(l) l.scrollTop=l.scrollHeight; const sh=document.querySelector('.sheet.full'); if(sh) sh.scrollTop=sh.scrollHeight; }
 function supPick(k,fromLink){ const t=SUP_T.find(x=>x[0]===k), wasWait=S.sup.state==='wait'||!!S.sup.pend, had=S.sup.msgs.length>0;
   S.sup.topic=k; S.sup.newQ=0;
@@ -3161,6 +3168,7 @@ function supPick(k,fromLink){ const t=SUP_T.find(x=>x[0]===k), wasWait=S.sup.sta
 function supOrders(){ const os=(S.myOrders||[]).slice(0,3);
   if(!os.length) return `<div class="sup-note">Заказов пока нет<br>Напиши, что случилось</div>`;
   return `<div class="sup-orders">${os.map(o=>`<button onclick="supSendText('Заказ № ${o.no||o.id||''} от ${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}')"><b>№ ${o.no||o.id||''}</b><small>${fmtShort(o.day)} · ${rub(o.total||o.sum||0)}</small></button>`).join('')}</div>`; }
+function supGrow(t){ t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,120)+'px'; }
 function supSend(){ const el=document.getElementById('supin'), t=(el&&el.value||'').trim(); if(!t) return; supSendText(t); }
 function supSendText(t){ const ok=navigator.onLine!==false; S.sup.msgs.push({me:true,t,tm:supTime(),st:ok?'sent':'fail'}); if(ok) S.sup.state='wait'; save(); drawSup(); if(ok) supReply(S.sup.topic||'other'); }
 function supRetry(i){ const x=S.sup.msgs[i]; if(navigator.onLine===false) return toast('Нет интернета<br>Проверь связь и попробуй ещё раз'); x.st='sent'; S.sup.state='wait'; save(); drawSup(); supReply(S.sup.topic||'other'); }
