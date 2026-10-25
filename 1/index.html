@@ -1840,6 +1840,7 @@ const serDays = w => weekDays(w) + fzDaysIn(w).length;
    а красный ✕ (и заморозка) — только у дней начиная с дня старта счётчика и не раньше регистрации.
    Одно правило закрывает регистрацию в середине недели, подписку в середине недели и перезапуск после сгорания.
    Повторная подписка при счётчике > 0 защиты не даёт (старт остаётся прежним) — иначе отписка/подписка = бесплатные заморозки */
+if(!S.reg19){ S.reg19=1; const r=Math.round((new Date(2026,9,19)-DAY0)/864e5); if(r<S.day){ S.regDay=r; S.histPast=(S.histPast||[]).filter(d=>d>=r); } }   // владелец 25.10: в демо гость с нами с 19 октября 2026 (готовые ситуации пульта задают своё)
 function serStart(){ if(S.ser.start!=null) return S.ser.start; if(S.regDay==null) return -1e9;
   const v=S.visits.filter(d=>d>=S.regDay).sort((a,b)=>a-b); return v.length && S.ser.n<=v.length ? v[v.length-S.ser.n] : -1e9; }
 const serWin = () => Math.max(S.regDay??-1e9, S.ser.n>0 ? serStart() : 1e9);
