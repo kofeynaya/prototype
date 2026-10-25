@@ -2733,7 +2733,7 @@ function myorders(){
   return `<section class="screen">${back('profile','Профиль')}<h1${F(23)}>Мои заказы</h1>
     ${S.myOrders.length?S.myOrders.map((o,i)=>`<div class="panel"><div class="row between"><strong>${o.id} · ${MODES[o.mode]}</strong><span class="muted small">${fmtShort(o.day)}</span></div>
       <span class="small muted">${o.lines.map(l=>byId(l.id).n+(l.qty>1?' × '+l.qty:'')).join(', ')}</span>
-      <div class="row between"><span class="money">${rub(o.total)}</span><div class="row" style="gap:8px"><button class="btn ghost" style="padding:8px 14px" onclick="curOrder=${i};go('order')">Где заказ</button><button class="btn" style="padding:8px 14px" onclick="repeatOrder(${i})">Повторить</button></div></div></div>`).join(''):'<p class="empty-note">Заказов в приложении пока нет.</p>'}
+      <div class="row between"><span class="money">${rub(o.total)}</span><div class="row" style="gap:8px"><button class="btn ghost" style="padding:8px 14px" onclick="curOrder=${i};go('order')">О заказе</button><button class="btn" style="padding:8px 14px" onclick="repeatOrder(${i})">Повторить</button></div></div></div>`).join(''):'<p class="empty-note">Заказов в приложении пока нет.</p>'}
   </section>`;
 }
 function repeatOrder(i){ S.myOrders[i].lines.forEach(l=>{ for(let k=0;k<l.qty;k++) addLine(l.id,l.opts,true) }); save(); go('cart'); toast('Добавили в корзину. Скидки пересчитаны на сегодня.'); }
@@ -3946,7 +3946,7 @@ const LEGEND = [
  [20,'#00bfa5','Доставка','Адреса и условия зоны: минимальный заказ, цена, время.','Чип «Доставка» вверху меню',"openMode('delivery')"],
  [21,'#ff3d00','Самовывоз','7 кофеен с часами работы, «Заберу здесь».','Чип «Самовывоз»',"openMode('pickup')"],
  [22,'#651fff','За столик','Отсканируйте QR на столе — принесём заказ к столику.','Чип «За столик»',"openMode('table')"],
- [23,'#aeea00','Заказ и «Мои заказы»','Где заказ, код выдачи, «Повторить».','«Профиль → Мои заказы»',"go('myorders')"],
+ [23,'#aeea00','Заказ и «Мои заказы»','Статус заказа, код выдачи, «Повторить».','«Профиль → Мои заказы»',"go('myorders')"],
  [24,'#b0bec5','Вход по СМС','Номер телефона → код из СМС.','Экран входа («Профиль → Выйти»)',"logout()"],
 ];
 LEGEND.splice(0, LEGEND.length, ...LEGEND.filter(x=>!LEGEND_HIDE.includes(x[0])));
