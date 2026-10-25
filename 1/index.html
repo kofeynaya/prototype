@@ -789,7 +789,9 @@ img.ava{object-fit:cover}
 .danger{color:#e53935!important;border-color:rgba(229,57,53,.5)!important}.del-btn{background:#e53935!important;color:#fff!important}
 .ac-err{min-height:18px;font-size:13px;color:#e53935}.cp-in.bad{border-color:#e53935}
 .notice.warn{background:rgba(229,57,53,.14);border:1px solid rgba(229,57,53,.5);color:var(--ink)}
-.gb-logo{border:0;padding:0;background:currentColor;cursor:pointer}
+/* 25.10: логотип-маска пропускал нажатия между буквами (зона нажатия = только буквы высотой 12 px) — теперь кнопка-подложка 44 px, маска внутри */
+.gb-home{display:flex;align-items:center;min-height:44px;margin-left:-8px;padding:0 8px;border:0;border-radius:12px;background:transparent!important;box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gb-home .logo{pointer-events:none}.gb-home:active{opacity:.6}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -2399,7 +2401,7 @@ const modeChip = () => `<button class="modechip"${F(S.mode==='delivery'?20:S.mod
 /* ===================== Экраны ===================== */
 // Верхняя полоса (эксперимент): логотип · батарейка «Заряд выгоды» как на телефоне · 🔍 · QR — на всех экранах
 function gbar(){ const pct=powerPct(), lv=LV(pct);
-  return `<div class="gbar"><button class="logo gb-logo" style="width:104px;color:var(--ink)" onclick="goHome()" aria-label="кофейная — в начало раздела"></button><span style="flex:1"></span>
+  return `<div class="gbar"><button class="gb-home" onclick="goHome()" aria-label="кофейная — в начало раздела"><span class="logo" style="width:104px;color:var(--ink)" aria-hidden="true"></span></button><span style="flex:1"></span>
     <button class="gb-ic gb-bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button>
     <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
     <button class="gb-ic" onclick="openSearch()" aria-label="Поиск">${IC.search}</button>
