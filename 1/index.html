@@ -1776,6 +1776,8 @@ const TYPO_RX=[
 // Точка в конце не ставится в заголовках, подписях, кнопках и однофразовых описаниях (требование владельца). В текстах из нескольких фраз — остаётся
 const DOT_KEEP=/(^|[^А-ЯЁа-яёA-Za-z])(т\.\s?[дпек]|руб|ул|пр|пер|мин|шт|др|см|им|св|г|д|ч|сек|тыс|млн)\.$|\.\.\.$/i;
 function dropDot(n){ const v=n.nodeValue; if(!/\.\s*$/.test(v)||DOT_KEEP.test(v.trim())) return;
+  // 25.10 (владелец: «после ₽ точки не надо — бред»): строка, после которой явный перенос, — отдельная мысль, точка в её конце не нужна
+  const nx=n.nextSibling; if(nx&&nx.nodeName==='BR'&&n.parentNode&&!n.parentNode.closest('textarea,input,.sup-msg,.msg')){ n.nodeValue=v.replace(/\.(\s*)$/,'$1'); return; }
   let blk=n.parentNode; if(!blk||blk.nodeType!==1) return; while(blk.parentElement&&getComputedStyle(blk).display==='inline') blk=blk.parentElement;   // ближайший видимый абзац
   const all=blk.textContent.trim(); if(all.length>160||/[.!?…]["»)]?\s+\S/.test(all)) return;   // несколько фраз — точку не трогаем
   const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let last=null,x; while((x=w.nextNode())) if(x.nodeValue.trim()) last=x;
@@ -1789,7 +1791,7 @@ function splitTwo(blk){ if(!blk||/^(BUTTON|H1|H2|H3|INPUT|TEXTAREA|SELECT|OPTION
   const rx=/(?<!(?:^|[\s(«\u00A0])(?:ул|пр|пер|им|св|руб|мин|тыс|шт|г|д|т|е|п))[.!?…]["»)]?[ \u00A0]+(?=[А-ЯЁA-Z0-9«])/g, hits=all.match(rx); if(!hits||hits.length!==1) return;
   const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let n;
   while((n=w.nextNode())){ const m=/(?<!(?:^|[\s(«\u00A0])(?:ул|пр|пер|им|св|руб|мин|тыс|шт|г|д|т|е|п))[.!?…]["»)]?[ \u00A0]+(?=[А-ЯЁA-Z0-9«])/.exec(n.nodeValue); if(!m) continue;
-    const cut=m.index+m[0].length, rest=n.splitText(cut); n.nodeValue=n.nodeValue.replace(/[ \u00A0]+$/,''); rest.parentNode.insertBefore(document.createElement('br'),rest); return; } }
+    const cut=m.index+m[0].length, rest=n.splitText(cut); n.nodeValue=n.nodeValue.replace(/[ \u00A0]+$/,'').replace(/(?<!\.)\.$/,''); rest.parentNode.insertBefore(document.createElement('br'),rest); return; } }   // перед переносом точку убираем: каждая мысль — своей строкой, без точки
 function noWidow(blk){ if(!blk||blk.closest('.demo')) return; const w=document.createTreeWalker(blk,NodeFilter.SHOW_TEXT); let last=null,x;
   while((x=w.nextNode())) if(x.nodeValue.trim()) last=x; if(!last) return;
   const v=last.nodeValue, t=v.trimEnd(), sep=Math.max(t.lastIndexOf(' '),t.lastIndexOf(NB)); if(sep<0||t[sep]===NB||t.slice(sep+1).includes(NB)) return;   // уже склеено или хвост и так из нескольких слов («за 550 ₽») — не клеим
@@ -1984,8 +1986,8 @@ function makeOffer(){
   const item = rnd(MENU.filter(m=>LCAT(m)===cat && m.p<=700));
   const o = {day:S.day, cat, mech, item:item.id, status:'shown', explore, opened:false};
   const nm = item.n;
-  if(mech==='pct'){ o.pct=rnd([10,15,20]); o.title=`${nm} −${o.pct}%`; o.meta=`Сегодня со скидкой ${o.pct}%. Одна порция — на кассе или в заказе.`; }
-  if(mech==='price'){ o.newPrice=Math.round(item.p*0.8/10)*10; o.title=`${nm} за ${o.newPrice} ₽`; o.meta=`Вместо ${rub(item.p)}. Одна порция, только сегодня.`; }
+  if(mech==='pct'){ o.pct=rnd([10,15,20]); o.title=`${nm} −${o.pct}%`; o.meta=`Сегодня со скидкой ${o.pct}%<br>Одна порция — на кассе или в заказе`; }
+  if(mech==='price'){ o.newPrice=Math.round(item.p*0.8/10)*10; o.title=`${nm} за ${o.newPrice} ₽`; o.meta=`Вместо ${rub(item.p)}<br>Одна порция, только сегодня`; }
   if(mech==='gift'){ o.item=ID.cookie; o.cat='pastry'; o.title='Шоколадное печенье в подарок к кофе'; o.meta='Возьмите любой кофе — печенье добавим бесплатно.'; }
   if(mech==='combo'){ const c=rnd([ID.cap,ID.latte,ID.flat]), p=rnd([ID.croissant,ID.muffin]); o.combo=[c,p]; o.item=c;
     const full=byId(c).p+byId(p).p; o.comboPrice=Math.round(full*0.85/10)*10;
