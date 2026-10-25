@@ -3339,11 +3339,14 @@ function openHistory(per){ if(per){ histPer=per; if(per==='custom'&&histFrom==nu
     :days.map(d=>{ const ds=os.filter(o=>o.day===d), tot=ds.reduce((a,o)=>a+o.sum,0);
       return `<div class="h-day"><span>${fmt(d)}</span><b class="money">${rub(tot)}</b></div>`+ds.map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
       <span class="d">${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join(''); }).join('');
-  sheet(`<h2>История покупок</h2>
+  const html=`<div id="hist-root"><h2>История покупок</h2>
     ${S.orders.length?`<div class="ben-per">${chips}</div>
     ${histPer==='custom'?`<div class="ben-dates"><label>с<button class="bd-pick" onclick="openBenCal('from','hist')">${fd(lo)}</button></label><label>по<button class="bd-pick" onclick="openBenCal('to','hist')">${fd(hi)}</button></label></div>`:''}
     ${os.length?`<div class="h-sum"><span>${os.length} ${plural(os.length,'покупка','покупки','покупок')} · ${lo===hi?fd(lo):`с ${fd(lo)} по ${fd(hi)}`}</span><b class="money">${rub(sum)}</b>${saved?`<small class="save">экономия ${rub(saved)}</small>`:''}</div>`:''}`:''}
-    <div class="hist">${body}</div>`,1); }
+    <div class="hist">${body}</div></div>`;
+  // 25.10: фильтр не переоткрывает окно (дёргалось и прыгало) — меняем только содержимое, высота окна та же
+  const cur=document.getElementById('hist-root'); if(cur){ cur.outerHTML=html; return; }
+  sheet(html,1); }
 
 /* Справочник «Как всё устроено» — пока схема, тексты допишем по указанию владельца */
 const RULES=[
