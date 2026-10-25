@@ -1591,9 +1591,9 @@ span.lb-gift{background:none}
 
 /* Эксперимент 24.10: скругления у верхней полосы и у полосы «рекорд · посещения · место»; когда они состыкованы — стык прямой */
 .gbar{border-radius:0 0 22px 22px;margin:0 -0px}
-.ser-pin{border-radius:22px;transition:border-radius .15s}
+.ser-pin,.catbar{border-radius:22px;transition:border-radius .15s}   /* 25.10: полоса категорий в «Меню» — так же, как в «Турбо» */
 .app.pin-stuck .gbar{border-radius:0;border-bottom-color:transparent}
-.app.pin-stuck .ser-pin{border-radius:0 0 22px 22px}
+.app.pin-stuck :is(.ser-pin,.catbar){border-radius:0 0 22px 22px}
 /* таб-бар тоньше, круглая «Турбо» по-прежнему выпирает */
 .app.glass .tabs.t3{padding:3px 6px;border-radius:26px}
 .tabs.t3 button{padding:4px 0!important;gap:1px;font-size:11px}
@@ -4375,7 +4375,7 @@ function render(keep=true){
   pinStuck();
 }
 // полоса «рекорд · посещения · место» прилипла к верхней полосе — убираем скругления на стыке
-function pinStuck(){ const p=document.querySelector('.ser-pin'), g=document.querySelector('.gbar'), app=document.getElementById('app'); if(!app) return;
+function pinStuck(){ const p=document.querySelector('.ser-pin,.catbar'), g=document.querySelector('.gbar'), app=document.getElementById('app'); if(!app) return;
   app.classList.toggle('pin-stuck', !!(p&&g) && p.getBoundingClientRect().top <= g.getBoundingClientRect().bottom+1); }
 addEventListener('scroll',()=>requestAnimationFrame(pinStuck),{passive:true});
 try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order') tab=t; }catch(e){}
