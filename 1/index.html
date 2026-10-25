@@ -211,6 +211,12 @@ html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto �
 .toast b{font-weight:700}
 /* Обычные сообщения — фирменный зелёно-бирюзовый, не белый (владелец 24.10: белое выглядело «временным») */
 .toast{background:linear-gradient(120deg,#0d553f,#00657f);color:#f9f9f9;border:1px solid rgba(167,210,185,.35);padding-left:16px;box-shadow:0 10px 28px rgba(0,101,127,.35)}
+/* 25.10, с критиком: обычное уведомление — тёплый «эспрессо» из бренда, сверху под шапкой (зелёное сливалось с таб-баром и корзиной) */
+.toast{top:calc(var(--gbar-h,50px) + env(safe-area-inset-top,0px) + 14px);bottom:auto!important;left:16px;right:16px;margin:0 auto;transform:none;width:fit-content;max-width:408px;
+  background:linear-gradient(135deg,#382d2b,#4e3b35);color:#fef2e9;border:1px solid rgba(236,204,206,.45);border-radius:20px;padding:12px 18px;
+  box-shadow:0 12px 32px rgba(0,0,0,.6),0 0 0 4px rgba(56,45,43,.25);animation:toastDown .28s ease-out}
+.toast small,.toast .muted{color:#ecccce}
+@keyframes toastDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
 .confetti i{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:conf 2s cubic-bezier(.25,.6,.4,1) forwards}
 @keyframes conf{to{transform:translate(var(--dx),105vh) rotate(var(--r))}}
