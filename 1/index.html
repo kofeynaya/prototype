@@ -3287,12 +3287,10 @@ function dashboard(){
   </div>`;
 }
 function openHistory(){
-  const f=S.funnel, mx=Math.max(1,f.shown);
   sheet(`<h2>История покупок</h2><p class="small muted">Только оплаченные покупки. Экономия — обычная цена минус то, что вы заплатили.</p>
     <div class="hist">${S.orders.length?'':'<p class="small muted" style="margin:0">Покупок пока нет — они появятся здесь после первой покупки на кассе или в приложении</p>'}${S.orders.slice().reverse().map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
       <span class="d">${fmt(o.day)} · ${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join('')}</div>
-    <div class="panel"><h3>Предложения дня</h3>${f.shown?`<div class="funnel">
-      ${[['Показано',f.shown],['Открыто',f.opened],['Активировано',f.activated],['Использовано',f.used]].map(([t,n])=>`<div class="f"><span>${t}</span><span class="bar"><i style="width:${n/mx*100}%"></i></span><span class="n">${n}</span></div>`).join('')}</div>`:`<p class="small muted" style="margin:0">${S.plus?'Пока не было — первое предложение ждёт на вкладке «Сегодня»':'Предложения дня приходят с ★ Кофейная+'}</p>`}</div>`);
+  `); // 25.10: блок «Предложения дня» (воронка) убран из истории покупок — владельцу лишний
 }
 
 /* Справочник «Как всё устроено» — пока схема, тексты допишем по указанию владельца */
