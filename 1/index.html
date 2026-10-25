@@ -2084,7 +2084,7 @@ function openCardPay(){ const t=TARIFFS.find(x=>x.k===S.tariff)||TARIFFS[0];
     <div class="row" style="gap:10px"><div class="stack" style="gap:6px;flex:1"><label class="label" for="cpexp">Срок</label><input id="cpexp" class="cp-in money" inputmode="numeric" autocomplete="cc-exp" placeholder="ММ/ГГ" maxlength="5" oninput="cpExp(this)"></div>
       <div class="stack" style="gap:6px;flex:1"><label class="label" for="cpcvc">CVC</label><input id="cpcvc" class="cp-in money" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="3" type="password"></div></div>
     <button class="plus-cta" id="cpgo" onclick="cpPay()">${STAR_Y}<span>Подписаться<small>сегодня 0 ₽</small></span></button>
-    <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент<br>Демо: подойдут любые цифры</p></div>`);
+    <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент</p></div>`);
   setTimeout(()=>document.getElementById('cpnum')?.focus(),80); }
 function cpFmt(el){ const d=el.value.replace(/\D/g,'').slice(0,16); el.value=d.replace(/(.{4})/g,'$1 ').trim();
   const v=document.getElementById('cpv'); if(v) v.textContent=(d+'•'.repeat(16-d.length)).replace(/(.{4})/g,'$1 ').trim(); }
@@ -2093,7 +2093,7 @@ function cpPay(){ const b=document.getElementById('cpgo'); if(!b||b.disabled) re
   const d=(document.getElementById('cpnum')?.value||'').replace(/\D/g,'');
   setTimeout(()=>{ if(d.length>=4) S.card='•• '+d.slice(-4); S.plus=true; S.plusSoon=false; save(); closeSheet(); go('home'); confetti();
     toast(`${STAR_Y}<span><b>Кофейная+ подключена!</b><br>Все скидки открыты<br><span class="nowrap">Бесплатно до ${FREE_UNTIL}</span></span>`,4200,'gold'); },1100); }
-function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена (демо). Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
+function togglePlus(){ S.plus=!S.plus; S.plusSoon=false; save(); render(); toast(S.plus?'Кофейная+ подключена. Открыты цены недели, бонусы до 7% и скидка в ДР = возраст.':'Подписка отключена (демо).'); }
 function topUp(i){ topUpSum(TOPUPS[i].sum); }
 /* Пополнение как настоящая оплата картой (владелец 24.10): проверь → карта → код из СМС (банк) → списание → чек.
    Демо: подходит любой код; 0000 — банк откажет (чтобы проверить ошибку). Кэшбэк — за каждое пополнение отдельно */
@@ -2125,10 +2125,10 @@ function tpCode(){
     <input id="tpc" class="bank-in money" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="one-time-code" oninput="this.value=this.value.replace(/\\D/g,'');document.getElementById('tpcb').disabled=this.value.length<4">
     <button class="bank-btn" id="tpcb" disabled onclick="tpCharge()">Подтвердить</button>
     <span class="bank-re" id="tpre">Отправить код ещё раз через 0:59</span></div>
-    <span class="small muted" style="text-align:center">Демо: подойдёт любой код из 4 цифр<br>0000 — банк откажет</span></div>`);
+</div>`);
   setTimeout(()=>document.getElementById('tpc')?.focus(),80);
   let left=59; clearInterval(tpTimer); tpTimer=setInterval(()=>{ const e=document.getElementById('tpre'); if(!e) return clearInterval(tpTimer); left--;
-    if(left<=0){ clearInterval(tpTimer); e.innerHTML='<button class="link" onclick="toast(\'Новый код отправлен (демо)\');tpCode()">Отправить код ещё раз</button>'; } else e.textContent='Отправить код ещё раз через 0:'+String(left).padStart(2,'0'); },1000); }
+    if(left<=0){ clearInterval(tpTimer); e.innerHTML='<button class="link" onclick="toast(\'Новый код отправлен\');tpCode()">Отправить код ещё раз</button>'; } else e.textContent='Отправить код ещё раз через 0:'+String(left).padStart(2,'0'); },1000); }
 function tpCharge(){ const c=document.getElementById('tpc')?.value||'', b=document.getElementById('tpcb'); clearInterval(tpTimer);
   b.disabled=true; b.innerHTML=`<span class="cp-spin"></span><span>Списываем ${rub(tp.sum)}…</span>`;
   setTimeout(()=>c==='0000'?tpFail():tpDone(),1300); }
@@ -2161,7 +2161,7 @@ function friendBuy(i){
 }
 function setBirth(){ const v=document.getElementById('bd-in')?.value; if(!v) return toast('Выбери дату'); const [y,m,d]=v.split('-').map(Number);
   S.birth={y,m:m-1,d,verified:false,setDay:S.day}; save(); render(); const bd=bdInfo(); toast(bd.tooLate?'Сохранили. До дня рождения меньше 30 дней — скидка будет со следующего года':`Сохранили! Скидка −${bd.age}% будет с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}`,4500); }
-function demoBirthdayToday(){ const t=dateOf(S.day); delete S.birth.setDay; S.birth.m=t.getMonth(); S.birth.d=t.getDate(); save(); render(); toast('Демо: день рождения перенесён на сегодня.'); }
+function demoBirthdayToday(){ const t=dateOf(S.day); delete S.birth.setDay; S.birth.m=t.getMonth(); S.birth.d=t.getDate(); save(); render(); toast('День рождения перенесён на сегодня.'); }
 const refLink = () => 'https://kofeynaya.github.io/prototype/?ref='+S.ref.code;
 function copyText(t){ const done=()=>toast('Скопировано.'); try{ navigator.clipboard.writeText(t).then(done,()=>toast('Не получилось скопировать — выделите текст вручную.')) }catch(e){ toast('Не получилось скопировать — выделите текст вручную.') } }
 
@@ -2623,7 +2623,7 @@ function confirmShop(i){
   if(modeTab==='pickup'){ S.mode='pickup'; S.shop=i; save(); closeSheet(); render(); toast(`Самовывоз: ${SHOPS[i].n}, ${SHOPS[i].a}. Приготовим за ${SHOPS[i].eta}.`); return; }
   S.mode='table'; S.table={shop:i,n:7}; save(); closeSheet(); render(); toast(`${SHOPS[i].n}: заказ к столику 7. В жизни номер подставится из QR на столе.`);
 }
-function scanTable(){ S.mode='table'; S.table={shop:4,n:7}; save(); closeSheet(); render(); toast('Демо: отсканирован QR столика 7 в Кофейной 5. Закажите — принесём к столу.'); }
+function scanTable(){ S.mode='table'; S.table={shop:4,n:7}; save(); closeSheet(); render(); toast('Отсканирован QR столика 7 в Кофейной 5. Закажите — принесём к столу.'); }
 function saveAddr(){
   const v=($('#addr')?.value||'').trim(), d=($('#addr2')?.value||'').trim();
   if(!v){ toast('Введите улицу и дом.'); return; }
@@ -2671,7 +2671,6 @@ function cart(){
       <div class="r tot"><span>К оплате</span><span class="money">${rub(qt.card)}</span></div>
     </div>
     <div class="row between" style="position:sticky;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0;border-top:1px solid var(--line)"><div class="stack" style="gap:0"><span class="small muted">К оплате</span><strong style="font-size:22px" class="money">${rub(qt.card)}</strong></div><button class="btn" ${minLeft||(S.mode==='table'&&!S.table)?'disabled':''} onclick="checkout()">${minLeft?`Минимум ${rub(DELIVERY.min)}`:co.when==='asap'?'Оформить заказ':'Оформить предзаказ'}</button></div>
-    <p class="hint" style="text-align:center">Демо: оплата не списывается. Скидки посчитаны до оплаты — это главное требование к интеграции со Starter.</p>
   </section>`;
 }
 function checkout(){
@@ -2970,7 +2969,7 @@ function me(){ const bd=bdInfo(), b=S.birth;
     <div class="list">
       ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('other'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
-      ${r('card','Банковская карта',S.card,"toast('Карта ${S.card} — демо')")}
+      ${r('card','Банковская карта',S.card,"toast('Карта ${S.card}')")}
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
@@ -3020,7 +3019,7 @@ function lbLead(){ const all=lbAll(), r=all.findIndex(g=>g.me), above=r>0?all[r-
 function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Чтобы познакомиться и написать — нажми на гостя 👋</p>
     <div class="lb">${lbAll().map(lbRow).join('')}</div>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
-    <p class="rh-foot">В прототипе гости вымышленные. В приложении — только те, кто сам согласился показывать себя</p>`); }
+`); }
 /* ===================== Поддержка (владелец 24.10, экраны — с критиком) =====================
    Входы: «через поддержку» на экране ДР, строка «Поддержка» в профиле, поиск, уведомление. Чат на весь экран.
    Пусто → «С чем помочь?» и 6 тем; ответ «Анны» имитируется; закрыл до ответа — всплывашка + кружки на «Профиле» и строке.
@@ -3263,7 +3262,7 @@ function subChip(){
   const left=plusLeft(), soon=left<=SOON;
   return `<button class="subchip${soon?' soon':''}"${F(13)} onclick="go('plus')"><span class="t"><b class="ystar">★</b> Кофейная+</span><span class="s">${soon?`<i class="pdot"></i><span class="sx">осталось </span>${left} ${plural(left,'день','дня','дней')} · продлить`:`<span class="sx">активна · </span>ещё ${left} ${plural(left,'день','дня','дней')}`}</span></button>`;
 }
-function renewPlus(){ S.plusSoon=false; save(); render(); toast(`Кофейная+ продлена до ${plusEndTxt()} (демо).`); }
+function renewPlus(){ S.plusSoon=false; save(); render(); toast(`Кофейная+ продлена до ${plusEndTxt()}`); }
 function soonPlus(){ S.plusSoon=true; save(); render(); }
 function dashboard(){
   const weekSaved=S.orders.filter(o=>weekOf(o.day)===weekOf(S.day)).reduce((a,o)=>a+o.saved,0), f=S.funnel, bd=bdInfo();
@@ -3635,7 +3634,7 @@ function profile(){
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
       ${row('user','Мои данные',"go('me')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
-      ${row('card','Банковские карты',"toast('Карта ${S.card} — демо.')",`<small class="muted">${S.card}</small>`)}
+      ${row('card','Банковские карты',"toast('Карта ${S.card}')",`<small class="muted">${S.card}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('chat','Поддержка',"openSupport()",S.sup.unread?`<span class="badge-n">${S.sup.unread}</span>`:'')}
@@ -3674,7 +3673,7 @@ function wallet(){
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span>
         <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
       ${ownBox()}
-      <p class="hint">Демо: деньги с карты не списываются.</p></div>
+      </div>
     ${PL_CLOSE()}
     <button class="btn ghost" style="width:100%" onclick="openStatement()">Выписка по операциям</button>
     <div class="panel small"><strong>Как это работает</strong><ul class="rules"><li>Деньги лежат на балансе, как на счёте в банке. Видно до копейки.</li><li>Платите с баланса на кассе по QR и в заказах в приложении.</li><li>Сначала списываются деньги, потом кэшбэк.</li><li>Неиспользованные деньги можно вернуть на ту же карту. Подарок при возврате сгорает.</li></ul></div>
@@ -3709,7 +3708,7 @@ function cbEq(g){ const cap=byId('i023'), esp=byId('i019'); if(!cap||!esp) retur
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше кэшбэк.</p>
   <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
   ${ownBox()}
-  <p class="hint">Демо: оплата картой не списывается.</p>`); }
+`); }
 /* «Своя сумма» прямо на месте (владелец 25.10): ввёл — сразу кэшбэк, и аккуратная подсказка, сколько добавить до следующей ступени.
    Ступени: 3% с любой суммы, 5% от 3 000, 8% от 5 000, 10% от 10 000; после 10 000 — подсказка до следующей круглой суммы (15 000, 20 000…) */
 const OWN_HINT='Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%';
@@ -3748,7 +3747,7 @@ function birthday(){
       :bd.active?bdBanner():`<div class="panel"><strong>Твой день рождения — ${fmtDate(bd.date)}</strong><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка ${bd.age}% с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}<br>До ${rub(BD_CAP)} скидки в день`}</span>${S.plus?'':`<span class="bd-lockline">★ Только с Кофейная+</span><button class="btn" style="align-self:flex-start" onclick="go('plus')">Подключить</button><span class="small muted">Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц</span>`}</div>`}
     ${bd.set?`<div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
       <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
-      <ul class="rules"><li>Дату можно указать один раз. Изменить — через <button class="inl-link" onclick="openSupport('bd')">поддержку</button>.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка ДР — только после подтверждения на кассе (в прототипе упрощено).</li></ul></div>`:''}
+      <ul class="rules"><li>Дату можно указать один раз. Изменить — через <button class="inl-link" onclick="openSupport('bd')">поддержку</button>.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка в день рождения — только после подтверждения на кассе.</li></ul></div>`:''}
     ${bd.set?`<button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>`:''}
   </section>`;
 }
@@ -3775,7 +3774,7 @@ function plus(){
     <div class="tf-note small muted"><p>Пропустил день — посещения подряд не сгорят</p><p>Дни на отпуск даются один раз на весь срок: уехал на море — счётчик ждёт</p><p>До ${FREE_UNTIL} — бесплатно, потом выбранный тариф</p></div>
     ${S.plus?`<button class="btn block" onclick="togglePlus()">Отключить подписку (демо)</button>`:`<button class="plus-cta" onclick="openCardPay()">${STAR_Y}<span>Подключить<small>бесплатно до ${FREE_UNTIL}</small></span></button>`}
     ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
-    <p class="hint" style="text-align:center">В прототипе оплата не списывается.${S.plus&&plusLeft()>SOON?' <button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button>':''}</p>
+    ${S.plus&&plusLeft()>SOON?'<p class="hint" style="text-align:center"><button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button></p>':''}
     ${S.plus?'':`<button class="plus-float" id="plusFloat" onclick="toTariffs()"><span class="star-y-w">${STAR_Y}</span>Тарифы и подключение <span aria-hidden="true">↓</span></button>`}
   </section>`;
 }
@@ -3834,20 +3833,18 @@ function auth(){
     <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>
     ${authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
         <div class="field"><label class="label" for="phone">Номер телефона</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 123-45-67" value="${S.phone||'+7 '}" oninput="maskPhone(this)"></div>
-        <button class="btn block" type="submit">Получить код по СМС</button><p class="hint">Демо: СМС не отправляется, подойдёт любой номер.</p></form>`
+        <button class="btn block" type="submit">Получить код по СМС</button></form>`
     : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
         <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
         <div class="field code"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="4" placeholder="····" aria-label="Код из СМС" oninput="codeIn(this)"></div>
-        <button class="btn block" type="submit">Войти</button><p class="hint">Демо: подойдёт любой код из 4 цифр.</p></form>`}
+        <button class="btn block" type="submit">Войти</button></form>`}
   </div>`;
 }
 function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) d='7'+d.slice(1); if(!d.startsWith('7')) d='7'+d; d=d.slice(0,11);
   const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7'; if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
 function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! Это демо: можно заказать из меню или сымитировать покупку на кассе кнопкой сверху.',4200); }
-function logout(){ S.authed=false; authStep='phone'; save(); render(false); }
-function resetDemo(){ try{localStorage.removeItem(KEY)}catch(e){} S=seed(); S.authed=true; ensureDaily(); save(); tab='home'; render(false); toast('Демо-данные сброшены.'); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
 
 
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
