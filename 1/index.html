@@ -315,6 +315,12 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @keyframes upPulse{0%,100%{box-shadow:0 0 0 0 rgba(46,158,91,.5)}50%{box-shadow:0 0 0 6px rgba(46,158,91,0)}}
 .own-up:active{transform:scale(.97)}
 
+.own-up[hidden]{display:none}
+/* 25.10: поле суммы выглядит как поле — рамка-коробка, светлее фона, мелкая серая подсказка, при вводе зелёная рамка */
+.ownrow.own-field{border:1.5px solid var(--line);border-radius:14px;padding:6px 14px;background:var(--bg);cursor:text;transition:border-color .2s,box-shadow .2s}
+.ownrow.own-field:focus-within{border-color:#2e9e5b;box-shadow:0 0 0 3px rgba(46,158,91,.25)}
+.own-field .own-in::placeholder{font-family:var(--f-body);font-size:17px;color:var(--muted);opacity:.8}
+.own-field span{font-size:20px}
 .own-in::-webkit-outer-spin-button,.own-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.own-in{-moz-appearance:textfield;appearance:textfield}
 @keyframes ownUp{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .topup{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;padding:14px 16px;border-radius:var(--r);border:1.5px solid var(--line);background:var(--surface);text-align:left;width:100%}
@@ -3707,7 +3713,7 @@ function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="m
 /* «Своя сумма» прямо на месте (владелец 25.10): ввёл — сразу кэшбэк, и аккуратная подсказка, сколько добавить до следующей ступени.
    Ступени: 3% с любой суммы, 5% от 3 000, 8% от 5 000, 10% от 10 000; после 10 000 — подсказка до следующей круглой суммы (15 000, 20 000…) */
 const OWN_HINT='Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%';
-function ownBox(){ return `<div class="ownsum"><label>Своя сумма</label><div class="ownrow"><input class="own-in" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Введи сумму" oninput="ownCalc(this)"><span>₽</span></div>
+function ownBox(){ return `<div class="ownsum"><label>Своя сумма</label><div class="ownrow own-field" onclick="this.querySelector('input').focus()"><input class="own-in" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 7 000" oninput="ownCalc(this)"><span>₽</span></div>
   <div class="own-res">${OWN_HINT}</div><button class="own-up" hidden></button>
   <button class="btn block own-go" disabled>Пополнить</button></div>`; }
 function ownCalc(inp){ const box=inp.closest('.ownsum'), v=Math.min(300000,Math.round(+inp.value||0)), g=giftFor(v), res=box.querySelector('.own-res'), up=box.querySelector('.own-up'), b=box.querySelector('.own-go');
