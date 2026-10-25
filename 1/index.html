@@ -308,7 +308,8 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ownrow span{font-family:var(--f-num);font-size:22px;opacity:.6}
 .ownhint{font-size:13px;color:var(--muted)}.ownhint b{color:var(--ok)}
 .own-res{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-.own-res .own-l{font-size:14px;color:var(--muted)}.own-res .own-big{font-family:var(--f-num,inherit);font-size:32px;line-height:1.1;color:var(--ok);font-weight:800}.own-res .own-p{font-size:13px;color:var(--muted)}.own-res .own-next{align-self:flex-start;margin-top:6px;padding:6px 12px;border:1px solid rgba(255,183,77,.45);border-radius:999px;background:rgba(255,183,77,.12);color:#a35a00;font-size:14px;cursor:pointer}.own-res .own-next b{font-weight:700}
+.own-res .own-l{font-size:14px;color:var(--muted)}.own-res .own-big{font-family:var(--f-num,inherit);font-size:32px;line-height:1.1;color:var(--ok);font-weight:800}.own-res .own-p{font-size:13px;color:var(--muted)}.own-res .own-next{display:flex;align-items:center;flex-wrap:wrap;gap:6px;text-align:left}.own-next .on-ar{opacity:.7}.own-next .on-tw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.own-next .on-then{padding:3px 10px;border-radius:999px;background:#ffb74d;color:#3a2600;font-weight:800;white-space:nowrap}
+.own-res .own-next{align-self:flex-start;margin-top:6px;padding:6px 12px;border:1px solid rgba(255,183,77,.45);border-radius:999px;background:rgba(255,183,77,.12);color:#a35a00;font-size:14px;cursor:pointer}.own-res .own-next b{font-weight:700}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .own-res .own-next{color:#ffb74d}}:root[data-theme="dark"] .own-res .own-next{color:#ffb74d}
 .own-res .own-max{margin-top:4px;font-size:13px;color:var(--muted)}
 .own-res .eq{align-self:flex-start;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
@@ -3967,7 +3968,7 @@ function ownCalc(inp){ const box=inp.closest('.ownsum'), v=Math.min(300000,Math.
   if(v<100){ res.innerHTML=OWN_HINT; up.hidden=true; b.disabled=true; b.textContent='Пополнить'; b.onclick=null; return; }
   const next=[3000,5000,10000].find(t=>t>v), add=next?next-v:0, near=next&&(add<=1000||add<=v/2);
   res.innerHTML=`<span class="own-l">Твой кэшбэк</span><b class="own-big money" data-to="${g}">+${rub(0)}</b><span class="own-p">${giftPct(v)}% от суммы</span>`+
-    (!next?'<span class="own-max">Это максимальный кэшбэк</span>':near?'':`<button class="own-next" onclick="const i=this.closest('.ownsum').querySelector('.own-in');i.value=${next};ownCalc(i)">💡 От <b>${rub(next)}</b> — кэшбэк <b>${giftPct(next)}%</b></button>`);   // 25.10: другим цветом (тёплым) — не путать с зелёным «твой кэшбэк»
+    (!next?'<span class="own-max">Это максимальный кэшбэк</span>':near?'':`<button class="own-next" onclick="const i=this.closest('.ownsum').querySelector('.own-in');i.value=${next};ownCalc(i)"><span class="on-if">💡 Пополни на <b>${rub(next)}</b></span><span class="on-tw"><span class="on-ar">→</span><span class="on-then">кэшбэк ${giftPct(next)}%</span></span></button>`);   // 25.10: условие и результат — разными цветами   // 25.10: другим цветом (тёплым) — не путать с зелёным «твой кэшбэк»
   const big=res.querySelector('.own-big'), t0=performance.now(); (function tick(t){ const k=Math.min(1,(t-t0)/450); big.textContent='+'+rub(Math.round(g*(1-Math.pow(1-k,3)))); if(k<1) requestAnimationFrame(tick); })(t0);
   up.hidden=!near; if(near){ up.innerHTML=`<span class="up-a">Пополни на ${rub(next)}</span><span>Кэшбэк ${rub(giftFor(next))} вместо ${rub(g)}</span>`; up.onclick=()=>{ inp.value=next; ownCalc(inp); }; }
   b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; b.onclick=()=>topUpSum(v); }
