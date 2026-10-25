@@ -1593,6 +1593,12 @@ span.lb-gift{background:none}
 .demo-foot{margin:20px 0 0}
 .demo-foot .demo{position:static;height:auto;border-radius:16px;flex-wrap:wrap;padding:10px 14px}
 .stories{margin-bottom:14px}
+.ref-cnt{flex:1 1 0;min-width:0;align-self:flex-start;min-height:58px;margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:18px;border:1px solid rgba(155,217,217,.35);background:linear-gradient(135deg,rgba(155,217,217,.14),rgba(0,101,127,.18));color:var(--ink);text-align:left}
+.ref-cnt .rc-n b{font-family:var(--f-num);font-size:28px;line-height:1;color:#9bd9d9;display:inline-block;transition:transform .2s}
+.ref-cnt.bump .rc-n b{transform:scale(1.25)}
+.ref-cnt .rc-tx{display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:1.15}.ref-cnt .rc-tx small{font-size:11px;color:var(--muted)}
+@media (max-width:360px){.ref-cnt{gap:6px;padding:6px 8px}.ref-cnt .rc-n b{font-size:22px}.ref-cnt .rc-tx{font-size:11px}.ref-cnt .rc-tx small{font-size:10px}}
+.ref-cnt.zero{border-color:var(--line);background:var(--surface);opacity:.7}.ref-cnt.zero .rc-n b{color:var(--muted)}
 .sty{width:64px}.sty-ring{width:58px;height:58px}.sty-in svg{width:32px;height:32px}.sty-t{font-size:11.5px}
 
 /* Эксперимент 24.10: скругления у верхней полосы и у полосы «рекорд · посещения · место»; когда они состыкованы — стык прямой */
@@ -2614,7 +2620,12 @@ function home(){
   </section>`;
 }
 // Сторис-кружочки вверху (как в Инстаграме): день рождения, +1 000 за друга, Кофейная+ — вместо больших плиток
-function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}</div>`; }
+function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}${refCounter()}</div>`; }
+/* Счётчик приведённых друзей (владелец 25.10) — на свободном месте справа от сторис: 0 — серый и тихий,
+   дальше число растёт с анимацией (набегает от прошлого показанного), под ним — сколько бонусов это дало и кто ещё в пути */
+function refCounter(){ const fr=S.ref.friends.filter(f=>!f.blocked), done=fr.filter(f=>f.paid).length, way=fr.filter(f=>!f.paid).length, from=Math.min(S.refShown??done,done);
+  if(from!==done) setTimeout(()=>{ const el=document.querySelector('.ref-cnt b'); if(!el) return; let v=from; const st=()=>{ v++; el.textContent=v; el.parentNode.classList.add('bump'); setTimeout(()=>el.parentNode.classList.remove('bump'),250); if(v<done) setTimeout(st,350); else { S.refShown=done; save(); } }; setTimeout(st,500); },0);
+  return `<button class="ref-cnt${done?'':' zero'}" onclick="go('invite')"><span class="rc-n"><b>${from}</b></span><span class="rc-tx"><span>${plural(done,'друг','друга','друзей')}<br>по приглашению</span><small>${done?`+${(done*REF_REWARD).toLocaleString('ru-RU')} бонусов тебе`:`Пригласи — +${REF_T} ₽`}${way?`<br>ещё ${way} в пути`:''}</small></span></button>`; }
 const INV_POP=()=>`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`;
 // Всё, что было во вкладке «Турбо», — продолжением того же экрана
 function turboBody(){ return `
