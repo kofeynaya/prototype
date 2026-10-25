@@ -622,6 +622,14 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .optbtn{padding:9px 14px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;background:var(--surface)}
 .optbtn.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 .optbtn small{opacity:.7}
+.wheel{position:relative;display:flex;justify-content:center;align-items:center;gap:6px;height:220px;margin:6px 0 4px}
+.wheel .w-band{position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);border-radius:12px;background:var(--surface);border:1.5px solid var(--line);pointer-events:none}
+.wcol{position:relative;width:86px;height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;padding:88px 0;box-sizing:border-box;
+  -webkit-mask:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+.wcol::-webkit-scrollbar{display:none}
+.wcol div{height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font:600 24px/1 var(--font,inherit);font-variant-numeric:tabular-nums;color:var(--muted);cursor:pointer}
+.wcol div.on{color:var(--ink);font-size:28px}
+.w-colon{position:relative;font-size:26px}
 .qtyrow{display:flex;align-items:center;gap:12px}
 .qtyrow .qty button{width:40px;height:40px}
 .hint-chip{display:flex;gap:10px;align-items:center;padding:12px;border-radius:12px;background:var(--cream);color:var(--on-color);font-size:14px}
@@ -2740,7 +2748,40 @@ function saveAddr(){
 }
 
 /* ---------- Корзина и оформление ---------- */
-let co={bonus:false,wallet:false,when:'asap',comment:''};
+let co={bonus:false,wallet:false,when:'asap',at:null,comment:''};
+/* «Ко времени» (владелец 25.10): вместо готовых вариантов — крутилка «день · часы · минуты»; не раньше чем через час
+   от момента заказа, минуты кратны 15 (00 · 15 · 30 · 45), только пока кофейня работает (последнее время — 22:45) */
+const WHEN_STEP=15, WHEN_LEAD=60, WHEN_LAST=22*60+45;
+const whenOpen=d=>{ const x=new Date(); x.setDate(x.getDate()+d); return [0,6].includes(x.getDay())?9*60:8*60; };   // будни с 8:00, выходные с 9:00
+const whenMin=d=>{ const n=new Date(), now=n.getHours()*60+n.getMinutes(); let m=whenOpen(d); if(d===0) m=Math.max(m,Math.ceil((now+WHEN_LEAD)/WHEN_STEP)*WHEN_STEP); return m; };
+const whenDays=()=>[0,1].filter(d=>whenMin(d)<=WHEN_LAST);
+const hm=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+const atLbl=a=>(a.d?'Завтра':'Сегодня')+' к '+hm(a.t);
+const atOk=a=>a&&whenDays().includes(a.d)&&a.t>=whenMin(a.d)&&a.t<=WHEN_LAST;
+let wsel=null;
+function openWhen(){ const days=whenDays(); wsel=atOk(co.at)?{...co.at}:{d:days[0],t:whenMin(days[0])};
+  sheet(`<h2>${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</h2>
+    <p class="muted small">Не раньше чем через час<br>Можно выбрать на 00, 15, 30 или 45 минут</p>
+    <div class="optrow" id="w-days">${days.map(d=>`<button class="optbtn ${wsel.d===d?'on':''}" onclick="whenDay(${d})">${d?'Завтра':'Сегодня'}</button>`).join('')}</div>
+    <div class="wheel"><i class="w-band"></i><div class="wcol" id="w-h"></div><b class="w-colon">:</b><div class="wcol" id="w-m"></div></div>
+    <button class="btn block" id="w-ok" onclick="whenOk()"></button>`);
+  whenDraw(); }
+function whenDay(d){ wsel.d=d; wsel.t=Math.max(wsel.t,whenMin(d)); document.querySelectorAll('#w-days .optbtn').forEach((b,i)=>b.classList.toggle('on',whenDays()[i]===d)); whenDraw(); }
+function whenDraw(){ const lo=whenMin(wsel.d), hrs=[]; for(let h=Math.floor(lo/60);h*60<=WHEN_LAST;h++) hrs.push(h);
+  const h=Math.floor(wsel.t/60), mins=[0,15,30,45].filter(m=>h*60+m>=lo&&h*60+m<=WHEN_LAST);
+  if(!mins.includes(wsel.t%60)) wsel.t=h*60+mins[0];
+  whenCol('w-h',hrs.map(String),hrs.indexOf(h),i=>{ const nh=hrs[i], ms=[0,15,30,45].filter(m=>nh*60+m>=lo&&nh*60+m<=WHEN_LAST); wsel.t=nh*60+(ms.includes(wsel.t%60)?wsel.t%60:ms[0]); whenDraw(); });
+  whenCol('w-m',mins.map(m=>String(m).padStart(2,'0')),mins.indexOf(wsel.t%60),i=>{ wsel.t=h*60+mins[i]; whenLbl(); });
+  whenLbl(); }
+function whenLbl(){ const b=document.getElementById('w-ok'); if(b) b.textContent=atLbl(wsel)+' · готово'; }
+// колонка-барабан: прокрутка с защёлкой, выбранное — по центру; нажатие на строку тоже выбирает
+function whenCol(id,items,sel,onPick){ const c=document.getElementById(id); if(!c) return; const H=44;
+  c.innerHTML=items.map((x,i)=>`<div class="${i===sel?'on':''}" onclick="this.parentNode.scrollTo({top:${i*H},behavior:'smooth'})">${x}</div>`).join('');
+  c.onscroll=null; c.scrollTop=sel*H; let tm;
+  c.onscroll=()=>{ const i=Math.max(0,Math.min(items.length-1,Math.round(c.scrollTop/H)));
+    [...c.children].forEach((el,k)=>el.classList.toggle('on',k===i));
+    clearTimeout(tm); tm=setTimeout(()=>{ if(i!==sel){ sel=i; onPick(i); } },140); }; }
+function whenOk(){ co.at={...wsel}; co.when='at'; closeSheet(); render(); }
 function cart(){
   if(!S.basket.length) return `<section class="screen">${back('menu','Меню')}<h1>Корзина</h1><p class="empty-note">Пока пусто. Загляните в меню — там ваши цены недели и предложение дня.</p><button class="btn block" onclick="go('menu')">Открыть меню</button></section>`;
   const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
@@ -2748,7 +2789,6 @@ function cart(){
   // распределяем скидки по строкам корзины для показа
   const per={}; qt.lines.forEach(l=>{ (per[l.id]=per[l.id]||[]).push(l) });
   const ups=[ID.cookie,findN('Орешек со сгущенкой'),findN('Пирожное картошка'),ID.muffin].filter(id=>!qtyOf(id)).slice(0,3);
-  const slots=['asap','12:30–12:45','13:00–13:15','13:30–13:45','18:00–18:15'];
   return `<section class="screen">${back('menu','Меню')}
     <div class="row between"${F(19)}><h1>Корзина</h1><button class="link" onclick="S.basket=[];save();render()">Очистить</button></div>
     <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
@@ -2758,7 +2798,7 @@ function cart(){
         <div class="qty"><button aria-label="Меньше" onclick="cartMinus(${i})">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="cartPlus(${i})">+</button></div></div>` }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
     ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
-    <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow">${slots.map(s=>`<button class="optbtn ${co.when===s?'on':''}" onclick="co.when='${s}';render()">${s==='asap'?(S.mode==='delivery'?'Как можно скорее · '+DELIVERY.eta:'Как можно скорее · '+(S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин')):'Сегодня, '+s}</button>`).join('')}</div></div>
+    <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
       ${S.bonus>0?`<label class="opt" for="c-bonus"><span>Списать бонусы <span class="small muted">(до 30%, есть ${S.bonus})</span></span><input type="checkbox" id="c-bonus" ${co.bonus?'checked':''} onchange="co.bonus=this.checked;render()"></label>`:''}
       ${walletTotal()>0?`<label class="opt" for="c-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="c-wallet" ${co.wallet?'checked':''} onchange="co.wallet=this.checked;render()"></label>`:''}
@@ -2780,10 +2820,11 @@ function cart(){
 function checkout(){
   const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
   const ch = S.mode==='delivery'?'Доставка':S.mode==='pickup'?'Самовывоз':'За столиком';
+  if(co.when==='at'&&!atOk(co.at)){ toast('Это время уже слишком близко<br>Выбери другое — не раньше чем через час'); openWhen(); return; }
   const msg=applyPurchase(qt, ch, false);
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
-  S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when, code:String(10+Math.floor(Math.random()*89))});
-  S.basket=[]; co={bonus:false,wallet:false,when:'asap',comment:''}; save();
+  S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when==='at'?atLbl(co.at):'asap', code:String(10+Math.floor(Math.random()*89))});
+  S.basket=[]; co={bonus:false,wallet:false,when:'asap',at:null,comment:''}; save();
   curOrder=0; go('order',1); toast(msg,4500); askRemind();
 }
 let curOrder=0;
@@ -2796,7 +2837,7 @@ function order(){
   const o=S.myOrders[curOrder]; if(!o) return home();
   const steps=STEPS[o.mode];
   return `<section class="screen">${back('home','Сегодня')}
-    <div class="stack" style="gap:4px"><span class="label">Заказ ${o.id} · ${MODES[o.mode]}</span><h1>${steps[Math.min(o.status,3)][0]}</h1><span class="muted">${o.place}${o.when&&o.when!=='asap'?` · к ${o.when}`:''}</span></div>
+    <div class="stack" style="gap:4px"><span class="label">Заказ ${o.id} · ${MODES[o.mode]}</span><h1>${steps[Math.min(o.status,3)][0]}</h1><span class="muted">${o.place}${o.when&&o.when!=='asap'?` · ${/^\d/.test(o.when)?'к '+o.when:o.when}`:''}</span></div>
     ${o.mode==='pickup'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Код выдачи</span><span class="bigcode">${o.code}</span><span class="small muted">Назовите его бариста</span></div>`:''}
     ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
     <div class="panel"${F(23)}><div class="statusline">${steps.map((s,i)=>`<div class="st ${i<o.status?'done':i===o.status?'cur':''}"><span class="b"></span><span class="tx"><strong>${s[0]}</strong><small>${s[1]}</small></span></div>`).join('')}</div></div>
