@@ -1373,11 +1373,16 @@ img.ava{object-fit:cover}
 .ostat svg{width:18px;height:18px;padding:3px;border-radius:50%;background:#a7d2b9;fill:none;stroke:#0d553f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .ostat.used{background:#212221;box-shadow:none}.ostat.used svg{background:#f9f9f9;stroke:#212221}
 .hello{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;margin-top:-24px;margin-bottom:-6px}   /* верх «Аня» — по низу кнопки поиска (владелец 23.10: экономим место) */
-.hello .hname{font-family:var(--f-num);font-size:40px;line-height:1;color:var(--ink)}
+.hello .hname{font-family:var(--f-num);font-size:40px;line-height:1;color:var(--ink);display:block;max-width:100%;white-space:nowrap;padding-bottom:.08em}.hello .hname.brk{white-space:normal;overflow:visible;overflow-wrap:anywhere;line-height:1.08}
 .hello .hsub{font-size:19px;line-height:1.25;font-weight:600;align-self:stretch}.hello .h-main{display:block;max-width:330px}
 .privi-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .privi-name{font-family:'Dela Gothic One',sans-serif;font-size:30px;line-height:1.05;color:#f9f9f9}
-.privi .plus-on{flex:none;max-width:none;white-space:nowrap;font-size:11px;line-height:1.2;text-align:left}   /* две строки явно: на iPhone склеенное «подписчиков Премиум» вылезало за плашку */
+.privi .plus-on{flex:0 1 auto;min-width:0;max-width:46%;white-space:normal;font-size:11px;line-height:1.2;text-align:left}
+/* 25.10 (владелец: «в который раз разламываешь»): плашка НИКОГДА не выходит за карточку — fitPrivi() после каждой отрисовки:
+   1) плашка переносится в 2–3 строки; 2) имя уменьшается до 20px; 3) если всё равно тесно — плашка встаёт отдельной строкой над именем */
+.privi-head>.stack{flex:1 1 0;min-width:0}
+.privi-name{white-space:nowrap}.privi-name.brk{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.privi-head.wrap{flex-direction:column-reverse;align-items:flex-start;gap:8px}.privi-head.wrap .plus-on{max-width:100%}   /* две строки явно: на iPhone склеенное «подписчиков Премиум» вылезало за плашку */
 
 /* Поиск */
 .sheet.sr-sheet{min-height:86%}
@@ -4465,6 +4470,14 @@ function labSixApply(){ const ids=labSixD.map(d=>d.id).filter(Boolean); if(new S
 function labStamp(v){ labDo(()=>{ const sl=S.six.slots[0]||(S.six.slots[0]={id:ID.cap,n:0,isNew:false,last:S.day}); sl.n=v; sl.last=S.day; sl.ready=v>=5?S.day:null; }); }
 
 /* ===================== Рендер ===================== */
+function fitPrivi(){ document.querySelectorAll('.privi-head').forEach(h=>{ const nm=h.querySelector('.privi-name'), b=h.querySelector('.plus-on'); if(!nm||!b) return;
+  h.classList.remove('wrap'); nm.style.fontSize=''; const out=()=>b.getBoundingClientRect().right>h.getBoundingClientRect().right+0.5||nm.scrollWidth>nm.clientWidth+1||b.scrollWidth>b.clientWidth+1;
+  nm.classList.remove('brk'); let f=parseFloat(getComputedStyle(nm).fontSize); const f0=f; while(out()&&f>20){ f-=1; nm.style.fontSize=f+'px'; }
+  if(out()){ h.classList.add('wrap'); f=f0; nm.style.fontSize=''; while(out()&&f>16){ f-=1; nm.style.fontSize=f+'px'; } if(out()) nm.classList.add('brk'); } });
+  // имя в приветствии «Турбо»: уменьшаем до 24px, дальше переносим по словам (длинное имя не выходит за экран)
+  document.querySelectorAll('.hello .hname').forEach(nm=>{ nm.style.fontSize=''; nm.classList.remove('brk'); let f=parseFloat(getComputedStyle(nm).fontSize);
+    while(nm.scrollWidth>nm.clientWidth+1&&f>24){ f-=1; nm.style.fontSize=f+'px'; } if(nm.scrollWidth>nm.clientWidth+1) nm.classList.add('brk'); }); }
+addEventListener('resize',()=>requestAnimationFrame(fitPrivi)); try{ document.fonts.ready.then(fitPrivi); }catch(e){}
 function render(keep=true){
   const app=$('#app'), locked=document.documentElement.classList.contains('sheet-open'), y=locked?sheetY:scrollY;
   if(!S.authed){ app.className='app'; app.innerHTML=auth(); return; }
@@ -4476,7 +4489,7 @@ function render(keep=true){
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
       ? `<button class="turbotab" onclick="tabTap('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
       : `<button onclick="tabTap('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
-  navAnim=null;
+  navAnim=null; fitPrivi(); setTimeout(fitPrivi,60);   // и после типографики (неразрывные пробелы меняют ширину)
   if(locked) sheetY=keep?y:0; else if(keep) scrollTo(0,y);
   if(tab==='menu') spy();
   if(tab==='plus') plusFloatWatch();
