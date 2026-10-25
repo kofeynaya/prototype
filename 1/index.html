@@ -636,6 +636,7 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic span{position:absolute;top:10px;left:10px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
+.rem{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}.rem-ic{font-size:44px;line-height:1}.rem h2{margin:0}.rem p{margin:0}
 /* «Мой профиль» */
 .me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:56px;overflow:hidden;text-align:left;max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .me-top{display:flex;flex-direction:column;align-items:center;gap:8px}.me-top .myph{width:104px;height:104px}.me-top .myph .pl{font-size:40px}
@@ -1972,7 +1973,7 @@ function applyPurchase(q, channel, doc){
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   let mile=null;
-  if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n) S.ser.start=S.day; S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: любой напиток −50% — 3 дня',4500),mile?6000:3400); } }
+  if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n){ S.ser.start=S.day; if(S.remind==null) S.remindAsk=1; } S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: любой напиток −50% — 3 дня',4500),mile?6000:3400); } }
   (q.giftsUsed||[]).forEach(id=>{ const g=S.rw.gifts.find(x=>x.id===id); if(g) g.used=S.day; });
   if(mile) setTimeout(()=>celebrateMile(mile),2600);
   S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
@@ -2648,7 +2649,7 @@ function checkout(){
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
   S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when, code:String(10+Math.floor(Math.random()*89))});
   S.basket=[]; co={bonus:false,wallet:false,when:'asap',comment:''}; save();
-  curOrder=0; go('order'); toast(msg,4500);
+  curOrder=0; go('order'); toast(msg,4500); askRemind();
 }
 let curOrder=0;
 const STEPS = {
@@ -3596,8 +3597,7 @@ function profile(){
     </div>
     <div class="panel"${F(9)}><h3>Что приложение о тебе узнало</h3>
       ${learnBlock()}</div>
-    <div class="panel"><h3>Уведомления</h3>
-      ${[['offer','Новое предложение дня'],['streak','Напоминание: не дай посещениям сгореть 🔥'],['savings','Итоги выгоды за месяц']].map(([k,t])=>`<label class="toggle" for="n-${k}">${t}<input type="checkbox" id="n-${k}" ${S.notif[k]?'checked':''} onchange="S.notif['${k}']=this.checked;save()"></label>`).join('')}</div>
+    <!-- 24.10, с критиком: блок «Уведомления» убран; о напоминании «не дай посещениям сгореть» спрашиваем один раз после первой покупки (askRemind) -->
     <div class="stack"><button class="btn ghost block" onclick="logout()">Выйти</button>
       <button class="link" style="align-self:center" onclick="resetDemo()">Сбросить демо-данные</button></div>
   </section>`;
@@ -3874,7 +3874,14 @@ function drawKassa(){
     <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
   const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=st; } else sheet(html);
 }
-function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); }
+/* Напоминание «не дай посещениям сгореть» (24.10, с критиком) — единственный пуш, который работает на цель 3→4→5.
+   Спрашиваем один раз: сразу после первой покупки, которая запустила счётчик (0 → 1), только с Кофейная+. «Не надо» — больше не спрашиваем */
+function askRemind(){ if(!S.remindAsk||!S.plus) return; S.remindAsk=0; save();
+  setTimeout(()=>{ document.querySelectorAll('.toast').forEach(t=>t.remove()); sheet(`<div class="rem"><span class="rem-ic">🔥</span><h2>Напомнить, если посещения могут сгореть?</h2>
+    <p class="muted">Напишем один раз, когда до конца недели останется мало дней</p>
+    <button class="plus-cta" onclick="S.remind=true;save();closeSheet();toast('Готово! Напомним вовремя 🔥')">Да, напомнить</button>
+    <button class="btn ghost block" onclick="S.remind=false;save();closeSheet()">Не надо</button></div>`); },1800); }
+function payKassa(){ const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko); if(!qt.lines.length) return; const msg=applyPurchase(qt,'Касса',ko.doc); save(); closeSheet(); render(); toast(msg,4500); askRemind(); }
 
 /* «Что приложение о вас узнало» — ТОЛЬКО по настоящим данным гостя (баг 22.10: у новичка показывались готовые полоски).
    Что любит — по позициям в его покупках; какие акции ближе — только по тем, что он уже пробовал. Нет данных — честно пишем, что пока не знаем */
@@ -3946,7 +3953,7 @@ function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='us
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
 function labGift(kind,today){ labDo(()=>{ const g=giveGift(kind,today?'Проверка: сгорает сегодня':'Выдан в пульте'); if(today){ g.from=S.day-GIFT_DAYS+1; g.until=S.day; } },'Подарок выдан'); }
 function labBuy(){ const n=Math.max(1,Math.round(+document.getElementById('lab-sum').value||0)), cap=byId(ID.cap), bon=document.getElementById('lab-bon')?.checked;
-  const q=quote([{id:ID.cap,qty:1,sur:n-cap.p}],{bonus:bon}); const msg=applyPurchase(q,'Касса'); save(); render(); toast(msg,4500); }
+  const q=quote([{id:ID.cap,qty:1,sur:n-cap.p}],{bonus:bon}); const msg=applyPurchase(q,'Касса'); save(); render(); toast(msg,4500); askRemind(); }
 function labCopy(){ copyText(JSON.stringify(S)); }
 function labLoad(){ let t; try{ t=prompt('Вставь скопированное состояние'); }catch(e){} if(!t) return; try{ const x=JSON.parse(t); if(!x||!x.ser) throw 0; S=x; save(); render(); toast('Состояние загружено'); }catch(e){ toast('Не получилось прочитать состояние'); } }
 // Готовые сценарии: сбрасываем демо и собираем ситуацию с нуля (через перезагрузку — так проходит вся обычная инициализация)
