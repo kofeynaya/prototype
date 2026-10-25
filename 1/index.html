@@ -2228,7 +2228,7 @@ const catIcon = c => ({
   food:'<svg viewBox="0 0 40 40"><path fill="#212221" d="M4 20h32a16 12 0 0 1-32 0z"/></svg>'})[c];
 const photo = (m, cls='ph') => m.img ? `<img class="${cls}" src="${m.img}" alt="${m.n}" loading="lazy" decoding="async">` : `<span class="${cls} empty" style="background:${SWATCH[LCAT(m)]}">${catIcon(LCAT(m))}</span>`;
 function plural(n,a,b,c){ n=Math.abs(n)%100; const n1=n%10; if(n>10&&n<20) return c; if(n1>1&&n1<5) return b; if(n1===1) return a; return c; }
-const back = (to='home', t='Назад') => `<button class="back" onclick="go('${to}')">← ${t}</button>`;
+const back = (to) => `<button class="back" onclick="goBack(${to?`'${to}'`:''})">← Назад</button>`;   // всегда «Назад» и всегда туда, откуда пришёл
 const minPrice = m => { const pp=myPrice(m.id); return pp!=null && pp<m.p ? pp : m.p; };
 function loyalTag(m){
   const o=S.offer, bd=bdInfo();
@@ -2655,7 +2655,7 @@ function checkout(){
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
   S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when, code:String(10+Math.floor(Math.random()*89))});
   S.basket=[]; co={bonus:false,wallet:false,when:'asap',comment:''}; save();
-  curOrder=0; go('order'); toast(msg,4500); askRemind();
+  curOrder=0; go('order',1); toast(msg,4500); askRemind();
 }
 let curOrder=0;
 const STEPS = {
@@ -3752,7 +3752,24 @@ const SCREENS={home,menu,progress:home,profile,me,prices,wallet,invite,birthday,
 const TAB_OF={me:'profile',progress:'home',power:'home',prices:'home',wallet:'profile',invite:'profile',birthday:'profile',plus:'profile',cart:'menu',order:'home',myorders:'profile'};
 // Перейти на вкладку и прокрутить к нужному блоку (якорь) — чтобы кнопка вела ровно туда, где выгода
 function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(sel); if(el){ const y=el.getBoundingClientRect().top+scrollY-90; scrollTo({top:y,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); } },60); }
-function go(t){ if(t==='qr'){ openQR(); return; } tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
+/* История переходов (владелец 25.10: «Назад» с депозита кидало в «Турбо»): «← Назад» возвращает туда, откуда пришёл,
+   и на то же место прокрутки. Переход на вкладку нижнего меню (Меню · Турбо · Профиль) начинает историю заново.
+   go(t,1) — заменить текущий экран, не запоминая его (после оформления заказа корзина пустая — туда не возвращаем) */
+const TOP_TABS=['menu','home','progress','profile'];
+let navStack=[];
+// с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
+// системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
+function go(t,replace){ if(t==='qr'){ openQR(); return; }
+  if(TOP_TABS.includes(t)){ navStack=[]; }
+  else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
+    if(k>=0) navStack=navStack.slice(0,k); else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); try{ history.pushState({nav:navStack.length},''); }catch(e){} } }
+  tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
+function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
+  tab=p.t; render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
+let navFallback=null;
+function goBack(fallback){ if(navStack.length){ navFallback=fallback; try{ history.back(); return; }catch(e){} } navPop(fallback); }
+addEventListener('popstate',()=>{ if(document.querySelector('.sheet-bg')){ closeSheet(); try{ history.pushState({nav:navStack.length},''); }catch(e){} return; }
+  if(navStack.length) navPop(navFallback); navFallback=null; });
 
 /* ===================== Вход по СМС (имитация) ===================== */
 let authStep='phone';
