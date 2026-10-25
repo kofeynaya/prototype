@@ -1924,11 +1924,12 @@ const walletTotal = () => S.wallet.money+S.wallet.gift;
 const GIFT_DAYS=3, CHEST_MIN=5, TIER_PLUS={gold:1,plat:2};
 const isDrink=m=>['coffee','tea'].includes(LCAT(m)), isSweet=m=>LCAT(m)==='pastry';
 const GIFT_KIND={
-  drink50:{t:'Любой напиток −50%', ic:'☕', fit:isDrink, off:.5},
-  drink30:{t:'Любой напиток −30%', ic:'☕', fit:isDrink, off:.3},
-  sweet50:{t:'Любой десерт −50%',  ic:'🧁', fit:isSweet, off:.5},
-  drink100:{t:'Любой напиток в подарок', ic:'☕', fit:isDrink, off:1},
-  sweet100:{t:'Любой десерт в подарок',  ic:'🧁', fit:isSweet, off:1},
+  // 25.10 (владелец): подарок — ОДНА штука; «Любой десерт −50%» читалось как «все десерты 3 дня» — пишем «Один десерт на выбор»
+  drink50:{t:'Один напиток на выбор −50%', ic:'☕', fit:isDrink, off:.5},
+  drink30:{t:'Один напиток на выбор −30%', ic:'☕', fit:isDrink, off:.3},
+  sweet50:{t:'Один десерт на выбор −50%',  ic:'🧁', fit:isSweet, off:.5},
+  drink100:{t:'Один напиток на выбор в подарок', ic:'☕', fit:isDrink, off:1},
+  sweet100:{t:'Один десерт на выбор в подарок',  ic:'🧁', fit:isSweet, off:1},
 };
 // Вехи: 30, 50, 100, а дальше каждые 100 — до бесконечности (200, 300, 400…)
 const mileAt=n=>n===30?{n,g:['drink30']}:n===50?{n,g:['drink50']}:n===100?{n,g:['drink100']}:n>100&&n%100===0?{n,g:['drink100','sweet100']}:null;
@@ -1947,11 +1948,11 @@ function givePlat(){ const w=weekOf(S.day); if(S.plus&&tierOf(S.ser.n).k==='plat
 function checkMile(){ const m=mileAt(S.ser.n); if(!m||S.rw.miles[m.n]) return null; S.rw.miles[m.n]=1; m.g.forEach(k=>giveGift(k,`${m.n} посещений подряд`)); return m; }
 function celebrateMile(m){ confetti(); setTimeout(confetti,700);
   sheet(`<div class="mile"><div class="mile-n">🎉<b class="money">${m.n}</b></div><h2>${m.n} посещений подряд!</h2><p>Ты молодец. Держи подарок:</p>
-    ${m.g.map(k=>`<div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>Действует ${GIFT_DAYS} дня — успей</small></span></div>`).join('')}
+    ${m.g.map(k=>`<div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>1 штука — на одну покупку<br>Действует ${GIFT_DAYS} дня — успей</small></span></div>`).join('')}
     <p class="small muted">Скидка посчитается сама — на кассе по QR или в заказе</p><button class="btn block" onclick="closeSheet()">Ура!</button></div>`); }
 function openChest(){ if(!S.plus) return premGate('Сундук — только с ★ Кофейная+','Неделя, где 5 и больше посещений, — сундук с призом');
   const c=S.rw.chest; if(!c||c.open) return; c.open=true; const k=CHEST_PRIZES[Math.floor(Math.random()*CHEST_PRIZES.length)]; giveGift(k,'Приз из сундука'); save(); render(); confetti();
-  sheet(`<div class="mile"><div class="mile-n">🎁</div><h2>Твой приз</h2><div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>Действует ${GIFT_DAYS} дня — потом сгорит</small></span></div>
+  sheet(`<div class="mile"><div class="mile-n">🎁</div><h2>Твой приз</h2><div class="gift-row"><span class="gi">${GIFT_KIND[k].ic}</span><span class="tx"><b>${GIFT_KIND[k].t}</b><small>1 штука — на одну покупку<br>Действует ${GIFT_DAYS} дня — потом сгорит</small></span></div>
     <p class="small muted">Скидка посчитается сама — на кассе по QR или в заказе</p><button class="btn block" onclick="closeSheet()">Забрать</button></div>`); }
 const chestReady=()=>S.plus&&S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week===weekOf(S.day)-1;
 // Блок «Мои подарки»: сундук + живые подарки с таймером. Пусто — ничего не показываем
@@ -1959,7 +1960,7 @@ function giftsBlock(){
   const gs=giftsLive(), ch=chestReady(); if(!gs.length&&!ch) return '';
   return `<div class="gifts">
     ${ch?`<button class="gift-row chest" onclick="openChest()"><span class="gi">🎁</span><span class="tx"><b>Сундук за прошлую неделю</b><small>5 и больше посещений — держи приз</small></span><span class="go">Открыть ›</span></button>`:''}
-    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${GIFT_KIND[g.kind].ic}</span><span class="tx"><b>${GIFT_KIND[g.kind].t}</b><small>${g.why}</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
+    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${GIFT_KIND[g.kind].ic}</span><span class="tx"><b>${GIFT_KIND[g.kind].t}</b><small>${g.why}<br>1 штука — на одну покупку</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
   </div>`;
 }
 
@@ -2071,7 +2072,7 @@ function applyPurchase(q, channel, doc){
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   let mile=null;
-  if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n){ S.ser.start=S.day; if(S.remind==null) S.remindAsk=1; } S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: любой напиток −50% — 3 дня',4500),mile?6000:3400); } }
+  if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n){ S.ser.start=S.day; if(S.remind==null) S.remindAsk=1; } S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: один напиток на выбор −50% (1 штука) — 3 дня',4500),mile?6000:3400); } }
   (q.giftsUsed||[]).forEach(id=>{ const g=S.rw.gifts.find(x=>x.id===id); if(g) g.used=S.day; });
   if(mile) setTimeout(()=>celebrateMile(mile),2600);
   S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
@@ -2126,7 +2127,7 @@ function nextDay(){
       else { const n0=S.ser.pend?S.ser.pend.n:S.ser.n; S.ser.pend=S.ser.pend||{weeks:[],n:S.ser.n}; S.ser.pend.weeks.push(w); burnPend();
         msg+=` 💔 На прошлой неделе было меньше ${SER_MIN} посещений, а заморозок не хватило — счётчик ${n0} сгорел. 👑 Лучший результат (${S.ser.best}) остался.`; } }
     if(S.plus&&d>=CHEST_MIN){ S.rw.chest={week:w,open:false}; msg+=` 🎁 За ${d} ${plural(d,'посещение','посещения','посещений')} — сундук с призом! Открой в «Турбо».`; }
-    if(givePlat()) msg+=' 💎 Подарок Платинового: любой напиток −50% — 3 дня.';
+    if(givePlat()) msg+=' 💎 Подарок Платинового: один напиток на выбор −50% (1 штука) — 3 дня.';
   }
   const gone=S.rw.gifts.filter(g=>!g.used&&!g.gone&&g.until<S.day); gone.forEach(g=>g.gone=true);
   if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>GIFT_KIND[g.kind].t.toLowerCase()).join(', ')}.`;
@@ -2598,7 +2599,7 @@ function home(){
       ${artSvg(o.art??S.day%ARTS.length)}
       ${status}
       <div class="title">${o.title}</div>
-      <div class="meta">${o.meta}</div>
+      <div class="meta">${o.meta.replace(/(₽|%)\.\s+/g,'$1<br>')}</div>
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
         ${o.status==='shown' ? `<button class="btn ghost" onclick="event.stopPropagation();activate()">На кассе по QR</button>` : o.status==='activated' ? `<button class="btn ghost" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ''}
@@ -3074,7 +3075,7 @@ function statusCard(st){
     </div>
   </div>`;
 }
-const TIER_FULL={silver:'Бонусы за ритм: сколько дней заходил — столько %', gold:'Всё, что у Серебряного, и +1% к бонусам с каждой покупки', plat:'+2% к бонусам и каждый понедельник любой напиток −50%'};
+const TIER_FULL={silver:'Бонусы за ритм: сколько дней заходил — столько %', gold:'Всё, что у Серебряного, и +1% к бонусам с каждой покупки', plat:'+2% к бонусам и каждый понедельник один напиток на выбор −50%'};
 // Демо: догнать счётчик до 100 — увидеть праздник и подарок Платинового
 function demoPlat(){ closeSheet(); S.ser.n=Math.max(S.ser.n,99); S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); const m=checkMile(); givePlat(); save(); render(); if(m) celebrateMile(m); else toast('💎 Ты Платиновый!'); }
 function openTiers(){
@@ -3575,7 +3576,7 @@ const RULES=[
     <ul class="rl-list">
       <li><b>🥈 Серебряный</b> (0–29) — бонусы за ритм.</li>
       <li><b>🥇 Золотой</b> (30–99) — +1% к бонусам с каждой покупки.</li>
-      <li><b>💎 Платиновый</b> (100+) — +2% к бонусам и каждый понедельник любой напиток −50%.</li>
+      <li><b>💎 Платиновый</b> (100+) — +2% к бонусам и каждый понедельник один напиток на выбор −50%.</li>
       <li><b>🎁 Сундук</b> — за неделю, где ${CHEST_MIN} и больше посещений. Открываешь в понедельник — внутри случайный приз.</li>
       <li><b>🎉 Праздник</b> на 30, 50, 100 посещений подряд, а дальше каждые 100 — 200, 300, 400… Подарок за каждую цифру — один раз.</li>
       <li><b>⏳ Подарок живёт ${GIFT_DAYS} дня</b> — потом сгорает. Копить подарки нельзя, забрать оптом тоже.</li>
