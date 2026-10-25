@@ -307,6 +307,14 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .ownrow input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-family:var(--f-num);font-size:26px;outline:none;padding:4px 0}
 .ownrow span{font-family:var(--f-num);font-size:22px;opacity:.6}
 .ownhint{font-size:13px;color:var(--muted)}.ownhint b{color:var(--ok)}
+.own-res{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.own-res .own-cb{font-size:16px;color:var(--ink);font-weight:600}.own-res .own-cb b{color:var(--ok);font-size:18px}
+.own-res .eq{align-self:flex-start;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
+.own-up{align-self:flex-start;text-align:left;padding:8px 12px;border-radius:12px;border:1.5px dashed #2e9e5b;color:var(--ink);font-size:14px;line-height:1.3;animation:ownUp .3s ease-out}.own-up b{color:var(--ok)}
+.own-up:active{transform:scale(.97)}
+
+.own-in::-webkit-outer-spin-button,.own-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.own-in{-moz-appearance:textfield;appearance:textfield}
+@keyframes ownUp{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .topup{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;padding:14px 16px;border-radius:var(--r);border:1.5px solid var(--line);background:var(--surface);text-align:left;width:100%}
 .topup .s{font-family:var(--f-num);font-size:22px}
 .topup .g{color:var(--ok);font-weight:600}
@@ -3642,7 +3650,7 @@ function wallet(){
     <div class="stack"><h3>Пополнить и получить кэшбэк</h3>
       <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span>
         <span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · на балансе станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
-      <button class="btn ghost block" onclick="openTopup();setTimeout(()=>document.getElementById('own')?.focus(),50)">Своя сумма</button>
+      ${ownBox()}
       <p class="hint">Демо: деньги с карты не списываются.</p></div>
     ${PL_CLOSE()}
     <button class="btn ghost" style="width:100%" onclick="openStatement()">Выписка по операциям</button>
@@ -3677,12 +3685,21 @@ function cbEq(g){ const cap=byId('i023'), esp=byId('i019'); if(!cap||!esp) retur
   return n>=1?`≈\u00a0${n} капучино бесплатно ☕`:g>=esp.p?'≈\u00a0эспрессо бесплатно ☕':''; }
 function openTopup(){ sheet(`<h2>Пополнить баланс</h2><p class="muted small">Чем больше пополнение — тем больше кэшбэк.</p>
   <div class="topups">${TOPUPS.map((t,i)=>`<button class="topup" onclick="topUp(${i})"><span class="s money">${rub(t.sum)}</span><span class="g money">+${rub(t.gift)}</span><span class="eq">${cbEq(t.gift)}</span><span class="n">Кэшбэк ${Math.round(t.gift/t.sum*100)}% · станет ${rub(walletTotal()+t.sum+t.gift)}</span></button>`).join('')}</div>
-  <div class="ownsum"><label for="own">Своя сумма</label><div class="ownrow"><input id="own" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Например, 20 000" oninput="ownCalc()"><span>₽</span></div><span class="ownhint" id="ownhint">Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%</span><button class="btn block" id="ownbtn" disabled onclick="topUpSum(document.getElementById('own').value)">Пополнить</button></div>
+  ${ownBox()}
   <p class="hint">Демо: оплата картой не списывается.</p>`); }
-function ownCalc(){ const v=Math.round(+document.getElementById('own').value||0), g=giftFor(v), h=document.getElementById('ownhint'), b=document.getElementById('ownbtn');
-  if(v<100){ h.innerHTML='Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%'; b.disabled=true; b.textContent='Пополнить'; return; }
-  h.innerHTML=g?`Кэшбэк <b>${giftPct(v)}% · +${rub(g)}</b> ${cbEq(g)}<br>На балансе станет ${rub(walletTotal()+v+g)}`:`Без кэшбэка — он начинается от 3 000 ₽. Станет ${rub(walletTotal()+v)}`;
-  b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; }
+/* «Своя сумма» прямо на месте (владелец 25.10): ввёл — сразу кэшбэк, и аккуратная подсказка, сколько добавить до следующей ступени.
+   Ступени: 3% с любой суммы, 5% от 3 000, 8% от 5 000, 10% от 10 000; после 10 000 — каждая 1 000 ₽ даёт ещё 100 ₽ */
+const OWN_HINT='Кэшбэк 3% с любой суммы<br>От 3 000 ₽ — 5%, от 5 000 ₽ — 8%, от 10 000 ₽ — 10%';
+function ownBox(){ return `<div class="ownsum"><label>Своя сумма</label><div class="ownrow"><input class="own-in" type="number" inputmode="numeric" min="100" max="300000" step="100" placeholder="Введи сумму" oninput="ownCalc(this)"><span>₽</span></div>
+  <div class="own-res">${OWN_HINT}</div><button class="own-up" hidden></button>
+  <button class="btn block own-go" disabled>Пополнить</button></div>`; }
+function ownCalc(inp){ const box=inp.closest('.ownsum'), v=Math.min(300000,Math.round(+inp.value||0)), g=giftFor(v), res=box.querySelector('.own-res'), up=box.querySelector('.own-up'), b=box.querySelector('.own-go');
+  if(v<100){ res.innerHTML=OWN_HINT; up.hidden=true; b.disabled=true; b.textContent='Пополнить'; b.onclick=null; return; }
+  res.innerHTML=`<span class="own-cb">Кэшбэк ${giftPct(v)}% · <b class="money">+${rub(g)}</b></span>${cbEq(g)?`<span class="eq">${cbEq(g)}</span>`:''}<span class="own-tot">На балансе станет ${rub(walletTotal()+v+g)}</span>`;
+  const next=[3000,5000,10000].find(t=>t>v), to=next||v+1000, add=to-v, g2=giftFor(to);
+  up.hidden=false; up.innerHTML=next?`＋ Добавь ${rub(add)}<br>Кэшбэк ${giftPct(to)}%: <b>+${rub(g2)}</b> вместо +${rub(g)}`:`＋ Добавь ${rub(add)}<br>Ещё <b>+${rub(g2-g)}</b> кэшбэка`;
+  up.onclick=()=>{ inp.value=to; ownCalc(inp); };
+  b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; b.onclick=()=>topUpSum(v); }
 function invite(){
   const fr=S.ref.friends;
   return `<section class="screen">${back()}
