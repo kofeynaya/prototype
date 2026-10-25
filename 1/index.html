@@ -765,6 +765,9 @@ img.ava{object-fit:cover}
 .rate-link{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid rgba(46,158,91,.5);background:rgba(46,158,91,.1)}.rate-link .tx{flex:1;display:flex;flex-direction:column;gap:2px}.rate-link em{font-style:normal;color:var(--ok)}.rate-link small{color:var(--muted);font-size:13px}.rate-link .chev{font-size:22px;color:var(--muted)}
 #hist-root{display:flex;flex-direction:column;gap:16px}#hist-root>h2{margin:0;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* воздух между фильтром, датами и итогом; заголовок на высоте крестика */
 #hist-root .h-sum{margin-bottom:4px}
+.substrip{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:7px 14px;border-radius:12px;background:var(--prem);color:#fff;font-size:15px;text-align:left;margin-top:-6px}
+.substrip .tx{flex:1;min-width:0}.substrip .chev{font-size:20px;opacity:.8}.substrip .ystar{color:#f2c230}
+.substrip.warn{background:linear-gradient(100deg,#e53935,#ff7043)}.substrip.warn .go{padding:4px 12px;border-radius:999px;background:#fff;color:#c62828;font-weight:700;font-size:14px;white-space:nowrap}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -3299,6 +3302,10 @@ function subChip(){
   const left=plusLeft(), soon=left<=SOON;
   return `<button class="subchip${soon?' soon':''}"${F(13)} onclick="go('plus')"><span class="t"><b class="ystar">★</b> Кофейная+</span><span class="s">${soon?`<i class="pdot"></i><span class="sx">осталось </span>${left} ${plural(left,'день','дня','дней')} · продлить`:`<span class="sx">активна · </span>ещё ${left} ${plural(left,'день','дня','дней')}`}</span></button>`;
 }
+/* 25.10, с критиком: подписка — тонкой полосой под шапкой на всю ширину, а не плашкой рядом с именем (имя и телефон обрезались) */
+function subStrip(){ const left=plusLeft(), d=`${left} ${plural(left,'день','дня','дней')}`;
+  if(left<=1) return `<button class="substrip warn" onclick="go('plus')"><b class="ystar">★</b><span class="tx">Осталось ${d}</span><span class="go">Продлить ›</span></button>`;
+  return `<button class="substrip" onclick="go('plus')"><b class="ystar">★</b><span class="tx"><span class="nowrap">Кофейная+</span> · ${left<=SOON?`осталось ${d}`:`активна, ещё ${d}`}</span><span class="chev">›</span></button>`; }
 function renewPlus(){ S.plusSoon=false; save(); render(); toast(`Кофейная+ продлена до ${plusEndTxt()}`); }
 function soonPlus(){ S.plusSoon=true; save(); render(); }
 function dashboard(){
@@ -3680,7 +3687,8 @@ function profile(){
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
     <div class="row between" style="gap:8px"><div class="row" style="gap:10px;min-width:0">${myPhoto()}<button class="me-hit" onclick="go('me')" aria-label="Мой профиль"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'} ›</span></button></div>
-      <div class="row" style="gap:6px;flex:none">${S.plus?subChip():''}<button class="softbtn bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button></div></div>
+      <div class="row" style="gap:6px;flex:none"><button class="softbtn bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button></div></div>
+    ${S.plus?subStrip():''}
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
     <!-- 24.10: блок «Достижения» убран по просьбе владельца (лишний); значки считаются дальше, в интерфейсе не показываем -->
