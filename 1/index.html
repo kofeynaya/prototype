@@ -3833,7 +3833,7 @@ function giftAmt(inp){ const left=giftBonLeft(gf.to); let v=Math.floor(+inp.valu
 let gf=null;
 function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
-  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', dq:'', msg:''};
+  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
   drawGift(); }
 function giftTo(to){ gf.to=to; gf.step=2; if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
@@ -3868,8 +3868,8 @@ function drawGift(){ const s=gf.step, t=gf.to;
   let body='';
   if(s===1){ const rec=(S.gft.recent||[]).slice(0,4);
     body=`<h2>Кому подарить?</h2>
-      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" oninput="phTen(this,event)"></div>
-        <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off"><button class="btn block" onclick="giftPhone()">Дальше</button>
+      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" value="${gf.phone||''}" data-v="${(gf.phone||'').replace(/\D/g,'')}" oninput="phTen(this,event);gf.phone=this.value"></div>
+        <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off" value="${esc(gf.nm||'')}" oninput="gf.nm=this.value"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
       ${rec.length?`<span class="label">Недавние</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">📱</span>`}<span>${r.short}</span></button>`).join('')}</div>`:''}
