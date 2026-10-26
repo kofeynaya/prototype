@@ -4253,8 +4253,8 @@ let kc={}, ko={};
 /* Бонусы при оплате (владелец 26.10: «это то, что человек копил — показать заметно, не раздувая»): монетка и крупно «2 048 бонусов»,
    под ними — сколько спишется в этом заказе и сколько останется; полоска — какая часть чека оплачивается бонусами (до 30%); переключатель справа */
 function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(paid*BONUS_MAX_SHARE)):0, pct=paid?Math.round(can/paid*100):0;
-  return `<label class="bon-card${on&&can?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top"><b class="money">${S.bonus.toLocaleString('ru-RU')}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')}</span>
-    <span class="bc-sub">${!S.plus?'Списать — только с ★ Кофейная+':!can?'В этом заказе списать нечего':on?`<b>−${rub(can)}</b> в этом заказе<br>Останется ${(S.bonus-can).toLocaleString('ru-RU')}`:`Можно списать <b>${rub(can)}</b><br>Это до 30% чека`}</span>
+  return `<label class="bon-card${on&&can?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top">Бонусы <b class="money">${S.bonus.toLocaleString('ru-RU')}</b></span>
+    <span class="bc-sub">${!S.plus?'Списать — только с ★ Кофейная+':!can?'В этом заказе списать нечего':on?`<b>−${rub(can)}</b> бонусами<br>Останется ${(S.bonus-can).toLocaleString('ru-RU')}`:`Можно списать <b>${rub(can)}</b><br>Это до 30% чека`}</span>
     ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }   // 26.10 (владелец): над переключателем подпись — сразу ясно, что нажать
 /* Депозит при оплате (владелец 26.10): списывается ПО УМОЛЧАНИЮ — зачем иначе класть деньги; выключить можно переключателем.
    Тот же вид, что у бонусов: значок, крупно сумма на депозите, сколько спишем и сколько останется, «Списать/Списываю» над переключателем */
