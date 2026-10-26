@@ -1441,6 +1441,7 @@ img.ava{object-fit:cover}
 .gf-kind{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border-radius:20px;border:2px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
 .gf-kind .big{font-size:36px}.gf-kind b{font-size:18px}.gf-kind small{font-size:12.5px;color:var(--muted);line-height:1.25}
 .gf-kind.on{border-color:#2e9e5b;background:rgba(46,158,91,.1)}.gf-kind.off{opacity:.55}
+.gf-in{margin-bottom:8px}.gf-in span{font-size:16px;color:var(--muted)}.gf-quick{display:flex;flex-wrap:wrap;gap:8px}.hint .bad{color:#e53935}
 .gf-amts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gf-amts button{display:flex;flex-direction:column;align-items:center;padding:12px 6px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
 .gf-amts b{font-size:24px;font-family:var(--f-num)}.gf-amts small{font-size:12px;color:var(--muted)}.gf-amts .on{border-color:#2e9e5b;background:rgba(46,158,91,.1)}
@@ -3789,24 +3790,23 @@ function drawSearch(){ const out=document.getElementById('srout'); if(!out) retu
 
 /* ---------- Подарки: бонусы и блюда другим людям (владелец 22.10; правила — с критиком) ----------
    Дарить — только с ★ Кофейная+; получателю подписка не нужна (придёт СМС или ссылка).
-   Бонусы: до 500 в день и до 1 500 в месяц, не больше 3 людям в месяц, дарить можно после 3 дней с покупкой. В интерфейсе — «подарить», не «перевод».
+   Бонусы: сколько угодно, но не больше, чем есть (владелец 26.10 убрал лимиты в день/месяц/людям). В интерфейсе — «подарить», не «перевод».
    Блюдо: бонусами — до 30% цены (как в любом чеке), остальное — с депозита или картой онлайн. Цена фиксируется. Живёт 30 дней, не забрали — деньги вернутся на депозит, бонусы — бонусами.
    Подарок не растит получателю счётчик, отметки 6-го и ритм — они только за свои покупки. */
-const GIFT_BON=[100,300,500], GIFT_DAY_MAX=500, GIFT_MONTH_MAX=1500, GIFT_PEOPLE=3, GIFT_MIN_DAYS=3, GIFT_DISH_DAYS=30;
+const GIFT_BON=[100,300,500], GIFT_DISH_DAYS=30;   // 26.10 (владелец): лимитов на подарок бонусами нет — «его бонусы, пусть сам распоряжается»; нельзя только больше, чем есть
 const monthOf = d => { const x=dateOf(d); return x.getFullYear()*12+x.getMonth(); };
 function giftBonUsed(){ const L=S.gft.sent; return { day:L.filter(g=>g.day===S.day).reduce((a,g)=>a+g.pay.bonus,0), month:L.filter(g=>monthOf(g.day)===monthOf(S.day)).reduce((a,g)=>a+g.pay.bonus,0),
   people:new Set(L.filter(g=>monthOf(g.day)===monthOf(S.day)&&g.pay.bonus>0).map(g=>g.to.key)) }; }
-// сколько бонусов можно подарить этому человеку прямо сейчас
-function giftBonLeft(to){ const u=giftBonUsed(); if(visitDaysTotal()<GIFT_MIN_DAYS) return 0;
-  if(to && u.people.size>=GIFT_PEOPLE && !u.people.has(to.key)) return 0;
-  return Math.max(0,Math.min(S.bonus, GIFT_DAY_MAX-u.day, GIFT_MONTH_MAX-u.month)); }
-function giftWhyNot(to){ const u=giftBonUsed(), vd=visitDaysTotal();
-  if(vd<GIFT_MIN_DAYS) return `Дарить бонусы можно после ${GIFT_MIN_DAYS} дней с покупкой|Сейчас ${vd} из ${GIFT_MIN_DAYS}`;
-  if(!S.bonus) return 'Бонусов пока нет|Они приходят с покупок';
-  if(to && u.people.size>=GIFT_PEOPLE && !u.people.has(to.key)) return `В этом месяце ты уже дарил бонусы ${GIFT_PEOPLE} людям|Блюдо подарить можно`;
-  if(u.day>=GIFT_DAY_MAX) return `Сегодня уже подарено ${GIFT_DAY_MAX} бонусов|Завтра можно снова`;
-  if(u.month>=GIFT_MONTH_MAX) return `В этом месяце уже подарено ${GIFT_MONTH_MAX.toLocaleString('ru-RU')} бонусов|Блюдо подарить можно`;
-  return ''; }
+// сколько бонусов можно подарить прямо сейчас — ровно столько, сколько есть (26.10: без лимитов в день/месяц/людям)
+function giftBonLeft(to){ return Math.max(0,Math.floor(S.bonus||0)); }
+function giftWhyNot(to){ return S.bonus>0?'':'Бонусов пока нет|Они приходят с покупок'; }
+/* 26.10: сумму подарка бонусами гость вводит сам — от 1 до всех своих бонусов; больше, чем есть, отправить нельзя */
+function giftAmtHint(){ const left=giftBonLeft(gf&&gf.to), a=gf&&gf.amt||0;
+  if(a>left) return `<b class="bad">Столько нет — у тебя ${left.toLocaleString('ru-RU')} ${plural(left,'бонус','бонуса','бонусов')}</b>`;
+  return a>0?`У тебя останется ${(left-a).toLocaleString('ru-RU')} ${plural(left-a,'бонус','бонуса','бонусов')}`:`У тебя ${left.toLocaleString('ru-RU')} ${plural(left,'бонус','бонуса','бонусов')}`; }
+function giftAmt(inp){ const left=giftBonLeft(gf.to); let v=Math.floor(+inp.value||0); if(v<0) v=0; gf.amt=v;
+  const h=document.getElementById('gamt-h'), b=document.getElementById('gamt-go'); if(h) h.innerHTML=giftAmtHint(); if(b) b.disabled=!(v>0&&v<=left);
+  document.querySelectorAll('.gf-quick .optbtn').forEach(x=>x.classList.remove('on')); }
 let gf=null;
 function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
@@ -3852,11 +3852,14 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <div class="gf-dishes">${list.length?list.map(m=>`<button class="sr-row" onclick="gf.item='${m.id}';gf.step=3;drawGift()">${photo(m,'sr-ph')}<span class="tx"><span class="nm">${m.n}</span><small>${wt(m)}</small></span><span class="pr money">${rub(m.p)}</span></button>`).join(''):'<p class="empty-note">Не нашли такое блюдо</p>'}</div>
         <button class="link" onclick="gf.kind=null;drawGift()">← Подарить бонусы</button>`; }
     else body=`${toLine}<h2>Что подарить?</h2>
-      <div class="gf-kinds"><button class="gf-kind${gf.kind==='bonus'?' on':''}${left?'':' off'}" onclick="${left?"gf.kind='bonus';drawGift()":`toast('${why.replace('|','. ')}')`}"><span class="big">🪙</span><b>Бонусы</b><small>${left?`Можно до ${left}`:why.split('|')[0]}</small></button>
+      <div class="gf-kinds"><button class="gf-kind${gf.kind==='bonus'?' on':''}${left?'':' off'}" onclick="${left?"gf.kind='bonus';drawGift()":`toast('${why.replace('|','. ')}')`}"><span class="big">🪙</span><b>Бонусы</b><small>${left?`У тебя ${left.toLocaleString('ru-RU')}`:why.split('|')[0]}</small></button>
         <button class="gf-kind" onclick="gf.kind='dish';drawGift()"><span class="big">☕</span><b>Блюдо</b><small>Кофе, десерт<br>или завтрак</small></button></div>
-      ${gf.kind==='bonus'?`<span class="label">Сколько бонусов</span><div class="gf-amts">${[...new Set([...GIFT_BON.filter(a=>a<=left), ...(left&&!GIFT_BON.includes(left)&&left<GIFT_BON[2]?[left]:[])])].sort((a,b)=>a-b).map(a=>`<button class="${gf.amt===a?'on':''}" onclick="gf.amt=${a};drawGift()"><b class="money">${a}</b><small>${plural(a,'бонус','бонуса','бонусов')}</small></button>`).join('')}</div>
-        <p class="hint">У тебя ${S.bonus} ${plural(S.bonus,'бонус','бонуса','бонусов')}<br>Дарить можно до ${GIFT_DAY_MAX} в день и до 1&nbsp;500 в месяц</p>
-        <button class="btn block" ${gf.amt?'':'disabled'} onclick="gf.step=4;drawGift()">Дальше</button>`:''}`; }
+      ${gf.kind==='bonus'?`<span class="label">Сколько бонусов</span>
+        <div class="ownrow own-field gf-in" onclick="this.querySelector('input').focus()"><input class="own-in" id="gamt" type="number" inputmode="numeric" min="1" max="${left}" step="1" placeholder="Сколько подарить" value="${gf.amt||''}" oninput="giftAmt(this)"><span>бонусов</span></div>
+        <div class="gf-quick">${[...GIFT_BON.filter(a=>a<left),left].map(a=>`<button class="optbtn${gf.amt===a?' on':''}" onclick="gf.amt=${a};drawGift()">${a===left?`Все ${left.toLocaleString('ru-RU')}`:a}</button>`).join('')}</div>
+        <p class="hint" id="gamt-h">${giftAmtHint()}</p>
+        <button class="btn block" id="gamt-go" ${gf.amt>0&&gf.amt<=left?'':'disabled'} onclick="gf.step=4;drawGift()">Дальше</button>`:''}`; }
+
   if(s===3){ const m=byId(gf.item), p=giftPrice(), canB=Math.min(giftBonLeft(t),Math.floor(m.p*BONUS_MAX_SHARE)), w=walletTotal();
     body=`${toLine}<h2>Чем оплатить?</h2>
       <div class="gf-item">${photo(m,'sr-ph')}<span class="tx"><b>${m.n}</b><small>${wt(m)}</small></span><b class="money">${rub(m.p)}</b></div>
@@ -3885,7 +3888,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
   sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
   if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
 function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
-  if(p.bonus>giftBonLeft(t)) return toast('Столько бонусов сейчас подарить нельзя');
+  if(!(p.bonus>=0)||p.bonus>S.bonus||(gf.kind==='bonus'&&!(p.bonus>0))) return toast(`Столько бонусов нет<br>У тебя ${S.bonus.toLocaleString('ru-RU')}`);   // нельзя больше, чем в кошельке
   if(p.dep>walletTotal()) return toast('На депозите не хватает');
   S.bonus-=p.bonus;
   if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m.n} для ${t.short}`,sum:-p.dep}); }
