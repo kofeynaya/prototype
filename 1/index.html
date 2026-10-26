@@ -1752,7 +1752,7 @@ const MODES = {delivery:'Доставка', pickup:'Самовывоз', table:'
    Без подписки максимум FREE_CAP%, с подпиской — PLUS_CAP%. День засчитывается от MIN_DAY ₽ покупок за день. */
 const FREE_CAP = 0, PLUS_CAP = 7, MIN_DAY = 150; // решение владельца 22.10: все выгоды — только с Премиум (★ Кофейная+)
 const BD_FREE = 0, BD_CAP = 1500;
-const REF_REWARD = 1000, REF_DAYS = 3, REF_HOLD = 7;
+const REF_REWARD = 1000, REF_DAYS = 3, REF_HOLD = 0;   // 26.10 (владелец): ждать нечего — в кофейне заказ не возвращают; бонусы сразу после третьей покупки
 const REF_T = REF_REWARD.toLocaleString('ru-RU');   // «1 000» — для текстов
 const TOPUPS = [{sum:3000,gift:150},{sum:5000,gift:400},{sum:10000,gift:1000}];
 // кэшбэк за любую сумму (владелец 24.10): до 3 000 — 3%, от 3 000 — 5%, от 5 000 — 8%, от 10 000 — 10%
@@ -2318,10 +2318,9 @@ function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
   f.days.push(S.day);
-  if(f.days.length>=REF_DAYS) refNote(f,`${f.name}: 3 покупки из 3 ✓`,`+${REF_T} бонусов придут тебе ${fmtShort(f.hold=S.day+REF_HOLD)}`);
-  else refNote(f,`${f.name}: покупка ${f.days.length} из ${REF_DAYS}`,f.days.length===REF_DAYS-1?`Ещё одна — и +${REF_T} тебе`:'Друг начал ходить в кофейную');
-  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name}: ${REF_DAYS} покупки в разные дни ✓<br>+${REF_T} бонусов придут тебе ${fmtShort(f.hold)}`,4500); }
-  else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
+  if(f.days.length>=REF_DAYS){ f.hold=S.day; refPay(f); save(); render(); setTimeout(refCheck,300); return; }   // третья покупка — бонусы сразу, праздничное окно
+  refNote(f,`${f.name}: покупка ${f.days.length} из ${REF_DAYS}`,f.days.length===REF_DAYS-1?`Ещё одна — и +${REF_T} тебе`:'Друг начал ходить в кофейную');
+  toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS}<br>${f.days.length===REF_DAYS-1?`Ещё одна — и +${REF_T} бонусов тебе`:'Нужны покупки в разные дни'}`);
   save(); render();
 }
 function setBirth(){ const v=document.getElementById('bd-in')?.value; if(!v) return toast('Выбери дату'); const [y,m,d]=v.split('-').map(Number);
@@ -2634,7 +2633,7 @@ function home(){
 function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}${refCounter()}</div>`; }
 /* Счётчик приглашённых друзей (владелец 25.10) — кружок как сторис: та же градиентная обводка, внутри ч/б композиция и крупная цифра;
    0 — серо-белое и тихое, есть друзья — цифра яркая; новое число набегает от прошлого показанного (S.refShown) */
-function refCounter(){ const done=S.ref.friends.filter(f=>!f.blocked).length, from=Math.min(S.refShown??done,done);   // приглашённые = все засчитанные друзья (и уже с бонусом, и в пути)
+function refCounter(){ const done=S.ref.friends.filter(f=>!f.blocked&&f.paid).length, from=Math.min(S.refShown??done,done);   // приглашённый = условия выполнены, бонус пришёл (как на экране друзей)
   if(from!==done) setTimeout(()=>{ const el=document.querySelector('.ref-cnt .rc-n'); if(!el) return; let v=from; const st=()=>{ v++; el.textContent=v; el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),250); if(v<done) setTimeout(st,350); else { S.refShown=done; save(); } }; setTimeout(st,500); },0);
   return `<button class="sty ref-cnt${done?'':' zero'}" onclick="go('invite')" aria-label="Приглашённые друзья: ${done}"><span class="sty-ring"><span class="sty-in"><span class="rc-n">${from}</span></span></span><span class="sty-t">Приглашённые<br>друзья</span></button>`; }
 const INV_POP=()=>`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`;
@@ -4012,14 +4011,14 @@ function ownCalc(inp){ const box=inp.closest('.ownsum'), v=Math.min(300000,Math.
   const big=res.querySelector('.own-big'), t0=performance.now(); (function tick(t){ const k=Math.min(1,(t-t0)/450); big.textContent='+'+rub(Math.round(g*(1-Math.pow(1-k,3)))); if(k<1) requestAnimationFrame(tick); })(t0);
   up.hidden=!near; if(near){ up.innerHTML=`<span class="up-a">Пополни на ${rub(next)}</span><span>Кэшбэк ${rub(giftFor(next))} вместо ${rub(g)}</span>`; up.onclick=()=>{ inp.value=next; ownCalc(inp); }; }
   b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; b.onclick=()=>topUpSum(v); }
-/* Экран «Пригласить друга» (владелец 25.10): счётчик друзей сверху, без слова «проверка» — простыми словами «ждём 7 дней на случай возврата»,
+/* Экран «Пригласить друга» (владелец 25.10): счётчик друзей сверху, без слова «проверка»; бонусы сразу после третьей покупки (26.10: в кофейне заказ не возвращают — ждать нечего),
    друзья с фамилией, кнопка-инструмент без слова «Демо» */
 function invite(){
-  const fr=S.ref.friends, ok=fr.filter(f=>!f.blocked), done=ok.filter(f=>f.paid).length, way=ok.length-done;
+  const fr=S.ref.friends, ok=fr.filter(f=>!f.blocked), done=ok.filter(f=>f.paid).length, way=ok.length-done;   // 26.10 (владелец): «приглашён» = условия выполнены и бонус пришёл; кто ещё покупает — «в пути»
   return `<section class="screen">${back()}
     <div class="stack"${F(15)}><span class="label">Пригласить друга</span><h1>+${REF_T} ₽ тебе и другу</h1>
-      <p class="muted small">Друг получает ${REF_T} ₽ бонусами на первую покупку<br>Тебе — ${REF_T} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня<br>Придут через ${REF_HOLD} дней после третьей покупки — на случай, если друг вернёт заказ</p></div>
-    <div class="inv-stats"><div><b>${ok.length}</b><span>${plural(ok.length,'друг','друга','друзей')}<br>${ok.length%10===1&&ok.length%100!==11?'приглашён':'приглашено'}</span></div><div><b>${way}</b><span>ещё<br>в пути</span></div><div class="ok"><b>+${(done*REF_REWARD).toLocaleString('ru-RU')}</b><span>бонусов<br>тебе</span></div></div>
+      <p class="muted small">Друг получает ${REF_T} ₽ бонусами на первую покупку<br>Тебе — ${REF_T} ₽ бонусами сразу, как друг купит в ${REF_DAYS} разных дня</p></div>
+    <div class="inv-stats"><div><b>${done}</b><span>${plural(done,'друг','друга','друзей')}<br>${done%10===1&&done%100!==11?'приглашён':'приглашено'}</span></div><div><b>${way}</b><span>ещё<br>в пути</span></div><div class="ok"><b>+${(done*REF_REWARD).toLocaleString('ru-RU')}</b><span>бонусов<br>тебе</span></div></div>
     <div class="stack" style="gap:6px"><span class="label">Твоя ссылка</span>
       <div class="copyrow"><code id="reflink">${refLink()}</code><button class="btn" style="padding:10px 14px" onclick="copyText(refLink())">Копировать</button></div></div>
     <div class="stack"><h3>Твои друзья</h3>
@@ -4028,9 +4027,9 @@ function invite(){
         const steps=[true, f.days.length>=1, f.days.length>=2, f.days.length>=3, f.paid];
         const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} у тебя ✓${f.paidDay!=null?' '+fmtShort(f.paidDay):''}</span>`: f.hold!=null?`<span class="chip">+${REF_T} придут ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} покупок</span>`;
         return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div><div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
-          <span class="small muted">Зарегистрировался → купил в 3 разных дня → ждём 7 дней → бонусы тебе</span>
+          <span class="small muted">Зарегистрировался → купил в 3 разных дня → бонусы тебе</span>
           ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
-    <div class="panel small"><strong>Чтобы всё было честно</strong><ul class="rules"><li>Друг — новый гость: его номера ещё нет у нас.</li><li>Только мобильные номера, не виртуальные.</li><li>Покупки друга — в 3 разных дня, с его телефона. Твоя карта не засчитывается.</li><li>Бонусы приходят через 7 дней после третьей покупки. Если друг вернёт заказ, покупка не засчитается.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
+    <div class="panel small"><strong>Чтобы всё было честно</strong><ul class="rules"><li>Друг — новый гость: его номера ещё нет у нас.</li><li>Только мобильные номера, не виртуальные.</li><li>Покупки друга — в 3 разных дня, с его телефона. Твоя карта не засчитывается.</li><li>Бонусы приходят сразу после третьей покупки друга.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
   </section>`;
 }
 function birthday(){
@@ -4340,13 +4339,13 @@ function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=la
   if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1}; }); }
 function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
 function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.birth.y||1993,m:t.getMonth(),d:t.getDate(),verified:false}; }); }
-// пульт: друг купил 3 раза, проверка прошла, пока тебя не было → перезагрузка, как будто открыл приложение
+// пульт: друг купил 3 раза, пока тебя не было → сразу «Турбо» и праздничное окно
 function labRefPaid(){ const names=['Аня Белова','Петя Соколов','Оля Морозова','Дима Ковалёв','Катя Лебедева'], used=new Set(S.ref.friends.map(f=>f.name));
   let f=S.ref.friends.find(x=>!x.paid&&!x.blocked); if(!f){ f={name:names.find(n=>!used.has(n))||'Друг',phone:'+7 9•• •••-'+(10+S.ref.friends.length)+'-27',days:[],hold:null,paid:false}; S.ref.friends.push(f); }
-  f.days=[S.day-6,S.day-4,S.day-2]; f.hold=S.day; refNote(f,`${f.name}: 3 покупки из 3 ✓`,`+${REF_T} бонусов придут тебе ${fmtShort(S.day)}`); refPay(f);
+  f.days=[S.day-4,S.day-2,S.day]; f.hold=S.day; refPay(f);
   save(); closeSheet(); navClear(); tab='home'; setRoot('home'); render(false); scrollTo(0,0); try{ localStorage.setItem(KEY+'-tab','home'); }catch(e){}
   setTimeout(refCheck,500); }   // 25.10: без перезагрузки (на телефоне она подводила) — сразу «Турбо» и праздничное окно
-function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша Хвостов',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }, on?'Миша Хвостов приглашён, купил 1 раз из 3<br>Бонусы придут после 3 покупок и проверки<br>Сразу увидеть — кнопка «👫 Друг выполнил условия»':''); }
+function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша Хвостов',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }, on?'Миша Хвостов приглашён, купил 1 раз из 3<br>Бонусы придут сразу после его 3-й покупки<br>Сразу увидеть — кнопка «👫 Друг выполнил условия»':''); }
 function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
 function labGift(kind,today){ labDo(()=>{ const g=giveGift(kind,today?'Проверка: сгорает сегодня':'Выдан в пульте'); if(today){ g.from=S.day-GIFT_DAYS+1; g.until=S.day; } },'Подарок выдан'); }
@@ -4438,7 +4437,7 @@ function lab(){
       ${tg('6-е ждёт со скидкой −20% (привычное блюдо)',S.six.slots.some(x=>x&&x.n>=5&&!x.isNew),'labSixOld')}
       ${labSixBox()}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
-      ${tg('Друг приглашён (ещё не купил 3 раза — бонусов пока нет)',S.ref.friends.some(f=>!f.blocked),'labFriend')}
+      ${tg('Друг зарегистрировался (купил 1 раз из 3 — бонусов пока нет)',S.ref.friends.some(f=>!f.blocked),'labFriend')}
       <button class="btn block" onclick="labRefPaid()">👫 Друг выполнил условия — получить +${REF_T} бонусов</button>
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
       <div class="lab-row"><button class="btn ghost" onclick="labDo(()=>{S.rw.gifts=[];S.rw.chest=null},'Подарки убраны')">Убрать подарки</button><button class="btn ghost" onclick="labDo(()=>{S.rw.miles={}},'Праздники снова сработают')">Сбросить праздники</button></div>
