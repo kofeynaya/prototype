@@ -2719,7 +2719,9 @@ function home(){
   </section>`;
 }
 // Сторис-кружочки вверху (как в Инстаграме): день рождения, +1 000 за друга, Кофейная+ — вместо больших плиток
-function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}${refCounter()}</div>`; }
+function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}${refCounter()}${giftStory()}</div>`; }
+/* 26.10 (владелец): вход в «Кому подарить?» — таким же кружком в сторис */
+const giftStory=()=>`<button class="sty gift-sty" onclick="openGift()" aria-label="Подарить другу"><span class="sty-ring"><span class="sty-in" style="background:#fef2e9"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="17" width="26" height="17" rx="2.5" fill="#d6264f"/><rect x="5" y="12" width="30" height="7" rx="2" fill="#ff4f6d"/><rect x="18" y="12" width="4" height="22" fill="#f2c230"/><path d="M20 12c-3-6-10-6-9-2 .6 2.4 5 2 9 2zM20 12c3-6 10-6 9-2-.6 2.4-5 2-9 2z" fill="#f2c230"/></svg></span></span><span class="sty-t">Подарить<br>другу</span></button>`;
 /* Счётчик приглашённых друзей (владелец 25.10) — кружок как сторис: та же градиентная обводка, внутри ч/б композиция и крупная цифра;
    0 — серо-белое и тихое, есть друзья — цифра яркая; новое число набегает от прошлого показанного (S.refShown) */
 function refCounter(){ const done=S.ref.friends.filter(f=>!f.blocked&&f.paid).length, from=Math.min(S.refShown??done,done);   // приглашённый = условия выполнены, бонус пришёл (как на экране друзей)
