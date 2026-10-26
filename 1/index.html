@@ -722,7 +722,7 @@ main.nav-fwd,main.nav-back{animation:none}
 .me-top{display:flex;flex-direction:column;align-items:center;gap:8px}.me-top .myph{width:104px;height:104px}.me-top .myph .pl{font-size:40px}
 .me-name{display:flex;gap:8px}.me-name .cp-in{flex:1;min-width:0}
 .gf-last{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1px dashed var(--line);background:none;color:var(--ink);text-align:left;font-size:14px}.gf-last b{flex:none;color:#2e9e5b}
-.me-fio{display:flex;flex-direction:column;gap:8px}.me-fio .label+.cp-in{margin-bottom:4px}
+.me-fio{display:flex;flex-direction:column;gap:8px}.me-sex{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}.me-sex .optbtn{padding:12px}.me-fio .label+.cp-in{margin-bottom:4px}
 /* Поддержка */
 .inl-link{display:inline;padding:0;font:inherit;color:#7cc9a2;text-decoration:underline;text-underline-offset:3px}
 .badge-n,.tab-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e53935;color:#fff;font-size:12px;font-weight:700;font-style:normal}
@@ -1909,7 +1909,15 @@ function noWidow(blk){ if(!blk||blk.closest('.demo')) return; const w=document.c
   if(_cv.measureText(run).width>cw) return;   // склеенный кусок должен влезать в строку, иначе браузер разорвёт его посреди слова
   last.nodeValue=v.slice(0,sep)+NB+v.slice(sep+1); }
 const _cv=document.createElement('canvas').getContext('2d');
-function typo(str){ let t=str; for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
+/* 26.10 (владелец): пол в профиле — обращения к гостю в женском роде, если выбран «Женский». Только фразы, которые точно про самого гостя
+   (не про друга или другого гостя); работает для любого выведенного текста, как и типографика */
+const S_ = '[\\s\\u00a0]+';
+const SEX_F=[['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
+  ['красавчик!','красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
+  ['сэкономил','сэкономила'],['Ты'+S_+'уже'+S_+'дарил','Ты уже дарила'],['Ты'+S_+'подарил','Ты подарила'],['ты'+S_+'уже'+S_+'включил','ты уже включила'],['Что'+S_+'покупал','Что покупала']].map(([a,b])=>[new RegExp('(^|[^А-Яа-яё])'+a+'(?![А-Яа-яё])','g'),'$1'+b]);
+SEX_F.push([/^(\s*(?:ещё[\s\u00a0]+)?не[\s\u00a0]+)был(\s*)$/,'$1была$2']);   // «ты ещё <b>не был</b>» — фраза разбита тегом
+const sexFix=t=>S&&S.sex==='f'?SEX_F.reduce((x,[rx,to])=>x.replace(rx,to),t):t;
+function typo(str){ let t=sexFix(str); for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
 function typoNode(root){ if(root.nodeType===3){ if(root.parentNode&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(root.parentNode.nodeName)) return; const t=typo(root.nodeValue); if(t!==root.nodeValue) root.nodeValue=t; dropDot(root); const b=blockOf(root); if(b){ splitTwo(b); noWidow(b); } return; }
   if(root.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(root.nodeName)) return;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT), ns=[]; let n; while((n=w.nextNode())){ if(/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)) continue; const t=typo(n.nodeValue); if(t!==n.nodeValue) n.nodeValue=t; ns.push(n); }
@@ -3387,9 +3395,12 @@ function me(){ const bd=bdInfo(), b=S.birth;
     <div class="panel me-fio"><label class="label" for="me-name">Имя</label>
       <input id="me-name" class="cp-in" value="${esc(S.name)}" maxlength="24" autocomplete="given-name" placeholder="Имя" oninput="meDirty()">
       <label class="label" for="me-last">Фамилия</label>
-      <input id="me-last" class="cp-in" value="${esc(S.last||'')}" maxlength="30" autocomplete="family-name" placeholder="Например, Иванова" oninput="meDirty()">
+      <input id="me-last" class="cp-in" value="${esc(S.last||'')}" maxlength="30" autocomplete="family-name" placeholder="${S.sex==='f'?'Например, Иванова':S.sex==='m'?'Например, Иванов':'Фамилия'}" oninput="meDirty()">
       <button class="btn block" id="me-save" disabled onclick="meSave()">Сохранить</button>
       <span class="small muted">Так тебя увидят в рейтинге, в подарках и бариста на кассе</span></div>
+    <div class="panel me-fio"><span class="label">Пол</span>
+      <div class="me-sex"><button class="optbtn ${S.sex==='m'?'on':''}" onclick="setSex('m',this)">Мужской</button><button class="optbtn ${S.sex==='f'?'on':''}" onclick="setSex('f',this)">Женский</button></div>
+      <span class="small muted">Чтобы приложение обращалось к тебе правильно — в мужском или женском роде</span></div>
     <div class="list">
       ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
@@ -3398,6 +3409,8 @@ function me(){ const bd=bdInfo(), b=S.birth;
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
   </section>`; }
+// пол сохраняется сразу, без «Сохранить»: переключаем кнопки на месте, страницу не перерисовываем (ничего не прыгает)
+function setSex(x,el){ S.sex=x; save(); el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('me-last'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; toast(x==='f'?'Будем обращаться к тебе в женском роде':'Будем обращаться к тебе в мужском роде'); }
 function meDirty(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(), b=document.getElementById('me-save'); if(b) b.disabled=!n||(n===S.name&&l===(S.last||'')); }
 function meSave(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(); if(!n) return; const had=S.last; S.name=n; S.last=l; save(); render(); toast(l&&!had?'Сохранено ✓<br>Теперь тебя узнают по фамилии':'Сохранено ✓'); }
 function myPhoto(){ return S.photo
@@ -4614,7 +4627,7 @@ function labApplyPreset(k){
   const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
-    if(k==='new'||k==='late'){ Object.assign(S,{last:'',cards:[],card:'',gft:{sent:[],recent:[]},gin:[],srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+    if(k==='new'||k==='late'){ Object.assign(S,{last:'',sex:null,cards:[],card:'',gft:{sent:[],recent:[]},gin:[],srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
       weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; S.six={slots:[null,null,null],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; S.offer=null;
       // «Пришёл в субботу»: зарегистрировался в сб этой недели, подписка, купил — первая неделя не сгорит, ✕ за пн–пт нет (24.10)
