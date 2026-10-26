@@ -1473,6 +1473,7 @@ img.ava{object-fit:cover}
 .gf-go{background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;border:0}
 .gf-share{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:20px;background:linear-gradient(160deg,rgba(214,38,79,.14),rgba(255,109,0,.08));border:1px solid rgba(214,38,79,.35)}
 .gf-share>b{font-size:18px}.gf-share>span{font-size:14px;color:var(--muted)}
+.gh-ava{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;font-weight:800;font-size:17px}.gf-h .tx b{font-size:16px}.gh-what{font-size:14px}.gh-st{flex:none;text-align:right;max-width:34%}
 .gf-h{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.gf-h .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-h small{font-size:12.5px;color:var(--muted)}
 .bon-big{display:flex;align-items:center;gap:12px;font-size:20px}.bon-big .coin{width:44px;height:44px}.bon-big b{font-size:34px;font-family:var(--f-num)}
 .lb-gift{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none;background:rgba(214,38,79,.1)}
@@ -3930,13 +3931,16 @@ function giftDay(){ let msg=''; for(const g of S.gft.sent){ if(g.st!=='wait') co
     if(S.day>g.until){ g.st='back'; S.bonus+=g.pay.bonus; const back=g.pay.dep+g.pay.card; if(back){ S.wallet.money+=back; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'top',t:`Возврат: подарок «${byId(g.item).n}» не забрали`,sum:back}); }
       msg+=` 🎁 Подарок «${byId(g.item).n}» не забрали — ${back?rub(back)+' вернулись на депозит':''}${g.pay.bonus&&back?', ':''}${g.pay.bonus?g.pay.bonus+' бонусов вернулись':''}.`; } }
   return msg; }
-function giftList(){ const L=S.gft.sent.slice().reverse().slice(0,8); if(!L.length) return '';
+/* История подарков (владелец 26.10): копится вся, в каждой строке — КОМУ (крупно, с буквой-аватаром), ЧТО и сколько, когда и подпись открытки */
+function giftList(){ const L=S.gft.sent.slice().reverse(); if(!L.length) return '';
   const st=g=>g.kind==='bonus'?'<span class="save">подарено ✓</span>':g.st==='took'?'<span class="save">забрали ✓</span>':g.st==='back'?'вернулось тебе':`ждёт до ${fmtShort(g.until)}`;
-  return `<div class="stack" style="gap:6px"><span class="label">Ты подарил</span>${L.map(g=>`<div class="gf-h"><span>${g.kind==='bonus'?'🪙':'☕'}</span><span class="tx"><b>${g.kind==='bonus'?`${g.pay.bonus} ${plural(g.pay.bonus,'бонус','бонуса','бонусов')}`:byId(g.item).n}</b><small>${g.to.n} · ${fmtShort(g.day)}</small>${g.msg?`<small>«${esc(g.msg)}»</small>`:''}</span><small>${st(g)}</small></div>`).join('')}</div>`; }
+  const who=g=>g.to.via==='link'?'По ссылке':g.to.n, ava=g=>g.to.via==='link'?'🔗':esc((g.to.n||'?')[0]);
+  const what=g=>g.kind==='bonus'?`${g.pay.bonus.toLocaleString('ru-RU')} ${plural(g.pay.bonus,'бонус','бонуса','бонусов')}`:`${byId(g.item).n} · ${rub(g.price||byId(g.item).p)}`;
+  return `<div class="stack" style="gap:6px"><span class="label">Ты подарил · ${L.length}</span>${L.map(g=>`<div class="gf-h"><span class="gh-ava">${ava(g)}</span><span class="tx"><b>${esc(who(g))}</b><span class="gh-what">${g.kind==='bonus'?'🪙':'🎁'} ${what(g)}</span><small>${fmtShort(g.day)}${g.msg?` · «${esc(g.msg)}»`:''}</small></span><small class="gh-st">${st(g)}</small></div>`).join('')}</div>`; }
 // экран «Бонусы» — сюда проваливаешься из профиля
 function openBonus(){ const left=giftBonLeft(null), why=giftWhyNot(null);
   sheet(`<h2>Бонусы</h2>
-    <div class="bon-big">${COIN}<span><b class="money">${S.bonus}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</span></div>
+    <div class="bon-big">${COIN}<span><b class="money">${S.bonus.toLocaleString('ru-RU')}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</span></div>
     <ul class="rl-list"><li>1 бонус = 1 ₽<br>Ими можно оплатить до 30% чека</li><li>Бонусы не сгорают</li></ul>
     <button class="rate-link" onclick="closeSheet();goTo('progress','#pr-ritm')"><span class="tx"><b>📈 Сейчас <em>${rateAll()}%</em> бонусами с каждой покупки</b><small>Как получить больше</small></span><span class="chev">›</span></button>
     <div class="gf-share"><b>🎁 Подари близким</b><span>Бонусы или блюдо — по номеру телефона<br>или ссылкой. Им подписка не нужна</span>
