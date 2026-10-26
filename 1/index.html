@@ -1455,6 +1455,7 @@ img.ava{object-fit:cover}
 .gf-steps span{display:flex;align-items:center;gap:4px}.gf-steps i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-size:12px;font-weight:700}
 .gf-steps .on{color:var(--ink);font-weight:700}.gf-steps .on i{background:var(--ink);color:var(--bg);border-color:var(--ink)}.gf-steps .done i{background:#2e9e5b;color:#fff;border-color:#2e9e5b}
 .gf-ph{gap:8px}.gf-ph input{font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.gf-more{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 0;background:none;border:0;color:inherit;text-align:left}
 .gf-people{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .gf-people button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--ink)}
 .gf-people button>span:last-child{max-width:100%;text-align:center;overflow-wrap:anywhere;line-height:1.15}
@@ -3352,7 +3353,11 @@ function giftGuestOpen(id){ if(!S.plus) return openGift(); const g=GUESTS.find(x
 // 24.10: рейтинг переехал из «Турбо» в профиль — строка «🏆 Твой рейтинг», полный список в окне
 function lbLead(){ const all=lbAll(), r=all.findIndex(g=>g.me), above=r>0?all[r-1]:null, gap=above?above.s-S.ser.n+1:0;
   return r<0?`Ты скрыт из рейтинга`:r===0?`<b>Ты на 1-м месте! 👑</b> Не сбавляй`:`До <b>${r}-го места</b> — ${gap} ${plural(gap,'посещение','посещения','посещений')} подряд<br>Впереди — ${above.n}, 🔥 ${above.s}`; }
-function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Чтобы познакомиться и написать — нажми на гостя 👋</p>
+/* 26.10 (владелец): «Гости кофейной» в подарке ведёт сюда же — в рейтинг; в этом режиме нажатие на гостя сразу делает его получателем */
+function openLb(mode){ if(mode==='gift'&&gf) return sheet(`<h2>Гости кофейной</h2><p class="small muted" style="margin:0">Нажми на гостя — подарок будет для него 🎁</p>
+    <div class="lb">${lbAll().map((g,i)=>g.me?'':`<div class="lbr" role="button" tabindex="0" onclick="giftGuest('${g.id}')"><span class="pos">${i+1}</span>${gAva(g,40)}<span class="lb-who"><span class="nm">${g.n}</span><span class="st">🔥 ${g.s} подряд</span></span><span class="lb-give"><span class="gi">🎁</span><span class="gt">Подарить</span></span></div>`).join('')}</div>
+    <button class="link" onclick="drawGift()">← Назад</button>`);
+  sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Чтобы познакомиться и написать — нажми на гостя 👋</p>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
     <div class="lb">${lbAll().map(lbRow).join('')}</div>
 `); }   // 26.10: переключатель над списком — список под ним меняется, а сам он не прыгает
@@ -3944,7 +3949,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off" value="${esc(gf.nm||'')}" oninput="gf.nm=this.value"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
-      <span class="label">Гости кофейной</span><div class="gf-people">${GUESTS.slice(0,8).map(g=>`<button onclick="giftGuest('${g.id}')">${ava(GUESTS.indexOf(g),52)}<span>${g.n.split(' ')[0]}</span></button>`).join('')}</div>`; }
+      <button class="gf-more" onclick="openLb('gift')"><span class="label">Гости кофейной</span><span class="link small">Все гости ›</span></button><div class="gf-people">${GUESTS.slice(0,8).map(g=>`<button onclick="giftGuest('${g.id}')">${ava(GUESTS.indexOf(g),52)}<span>${g.n.split(' ')[0]}</span></button>`).join('')}</div>`; }
   if(s===2){ const left=giftBonLeft(t), why=giftWhyNot(t);
     if(gf.kind==='dish'){ const q=SRCH_N(gf.dq), list=q?srchRun(gf.dq,{dishes:true}).slice(0,20).map(x=>x.d.m):KASSA.map(byId);
       body=`${toLine}<h2>Какое блюдо?</h2>
