@@ -1474,6 +1474,8 @@ img.ava{object-fit:cover}
 .gf-share{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:20px;background:linear-gradient(160deg,rgba(214,38,79,.14),rgba(255,109,0,.08));border:1px solid rgba(214,38,79,.35)}
 .gf-share>b{font-size:18px}.gf-share>span{font-size:14px;color:var(--muted)}
 .gh-ava{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;font-weight:800;font-size:17px}.gf-h .tx b{font-size:16px}.gh-what{font-size:14px}.gh-st{flex:none;text-align:right;max-width:34%}
+.ph-field{display:flex;align-items:center;gap:6px;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);cursor:text}.ph-field:focus-within{border-color:#2e9e5b;box-shadow:0 0 0 3px rgba(46,158,91,.25)}
+.ph-pre{font-size:18px;font-weight:700;color:var(--ink);flex:none}.ph-field input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:18px;padding:14px 0;color:var(--ink)}
 .gf-h{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.gf-h .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-h small{font-size:12.5px;color:var(--muted)}
 .bon-big{display:flex;align-items:center;gap:12px;font-size:20px}.bon-big .coin{width:44px;height:44px}.bon-big b{font-size:34px;font-family:var(--f-num)}
 .lb-gift{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none;background:rgba(214,38,79,.1)}
@@ -3835,8 +3837,11 @@ function openGift(pre={}){
   drawGift(); }
 function giftTo(to){ gf.to=to; gf.step=2; if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
-function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d=v.replace(/\D/g,'').replace(/^8/,'7');
-  if(d.length!==11 || d[0]!=='7') return toast('Проверь номер: +7 и ещё 10 цифр');
+/* 26.10 (владелец): «+7» стоит всегда и не стирается — гость вводит только 10 цифр; вставили «+7…» или «8…» — лишнее убираем */
+function phTen(el){ let d=el.value.replace(/\D/g,''); if(d.length>10&&/^[78]/.test(d)) d=d.slice(1); d=d.slice(0,10);
+  el.value=[d.slice(0,3),d.slice(3,6),d.slice(6,8),d.slice(8,10)].reduce((a,x,i)=>x?a+(i===0?'':i===1?' ':'-')+x:a,''); }
+function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d='7'+v.replace(/\D/g,'').slice(-10);
+  if(d.length!==11) return toast('Проверь номер: после +7 нужно 10 цифр');
   if(d.slice(1)===(S.phone||'').replace(/\D/g,'').slice(-10)) return toast('Это твой номер — себе подарить нельзя 🙂');
   if(!/^79/.test(d)) return toast('Нужен мобильный номер — он начинается с +7 9');
   const nm=((document.getElementById('gnm')||{}).value||'').trim();
@@ -3860,7 +3865,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
   let body='';
   if(s===1){ const rec=(S.gft.recent||[]).slice(0,4);
     body=`<h2>Кому подарить?</h2>
-      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><input id="gph" type="tel" inputmode="tel" placeholder="+7 900 000-00-00" autocomplete="off">
+      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" oninput="phTen(this)"></div>
         <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
