@@ -1210,6 +1210,9 @@ img.ava{object-fit:cover}
 .gift-row .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
 .gift-row .tx small{color:var(--muted);font-size:13px}
 .gift-row .gw{font-size:13px;font-weight:700;white-space:nowrap;color:#b26a00}
+.gift-row.gu{cursor:pointer}.gu-pill{flex:none;align-self:center;padding:8px 14px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;white-space:nowrap}
+.gu-pill.in{background:#2e9e5b;color:#fff}.gift-row.hot .gu-pill:not(.in){background:#e53935;color:#fff}
+.gu-sh{display:flex;flex-direction:column;gap:12px}.gu-sh .gu-ph{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px}.gu-ic{font-size:64px;line-height:1}.gu-sh .gu-ph.empty{display:grid;place-items:center;width:120px;aspect-ratio:1}.gu-sh .gu-ph.empty svg{width:64px;height:64px}
 .gift-row.hot{border-color:#e53935}.gift-row.hot .gw{color:#e53935}
 /* Сундук — бирюзовый (фирменный #00657f), чтобы не сливаться ни с одним статусом: серебро — серое, золото — жёлтое, платина — тёмно-синяя */
 .gift-row.chest{background:linear-gradient(135deg,#00657f,#1aa39a);border:none;color:#fff;cursor:pointer;box-shadow:0 8px 22px -10px rgba(0,101,127,.8)}
@@ -2055,11 +2058,29 @@ function openChest(){ if(!S.plus) return premGate('Сундук — только
     <p class="small muted">Скидка посчитается сама — на кассе по QR или в заказе</p><button class="btn block" onclick="closeSheet()">Забрать</button></div>`); }
 const chestReady=()=>S.plus&&S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week===weekOf(S.day)-1;
 // Блок «Мои подарки»: сундук + живые подарки с таймером. Пусто — ничего не показываем
+/* 26.10 (владелец + критик): подарок нажимается — шторка «Заказать в приложении» / «Забрать на кассе».
+   Сразу в корзину не кладём: гость может уже стоять в кофейне, ему нужен QR. В корзине подарок один — повторное нажатие открывает корзину */
+const giftInCart=g=>S.basket.some(l=>gk(g).fit(byId(l.id)));
+const giftById=id=>S.rw.gifts.find(x=>String(x.id)===String(id));
+function openGiftUse(id){ const g=giftById(id); if(!g) return; const k=gk(g), m=g.kind==='friend'?byId(g.item):null, inC=giftInCart(g), drink=k.fit===isDrink;
+  sheet(`<div class="gu-sh">${m?photo(m,'gu-ph'):`<span class="gu-ic">${k.ic}</span>`}<h2>${k.t}</h2>
+    <p class="muted">${g.why}<br>1 штука — на одну покупку<br>${giftLeft(g)<=1?'🔥 Сегодня последний день':`⏳ Забери до ${fmtShort(g.until)}`}</p>
+    ${inC?`<button class="btn block" onclick="closeSheet();go('cart')">✓ Уже в корзине — открыть</button>`
+      :`<button class="btn block" onclick="giftOrder('${g.id}')">${m?'Заказать в приложении':drink?'Выбрать напиток':'Выбрать десерт'}</button>`}
+    <button class="btn ghost block" onclick="closeSheet();openQR()">Забрать на кассе — показать QR</button>
+    <p class="hint">${m?'Подарок спишется сам':'Скидка посчитается сама'} — в заказе или когда покажешь QR</p></div>`); }
+function giftOrder(id){ const g=giftById(id); if(!g) return; const k=gk(g);
+  if(g.kind==='friend'){ const m=byId(g.item); closeSheet();
+    if(hasOpts(m)){ openProduct(m.id); toast('Обычная порция — в подарок<br>Больше размер или добавки — доплата'); return; }
+    addLine(m.id,null,true); go('cart'); toast(`${m.n} в корзине — в подарок ✓`); return; }
+  const drink=k.fit===isDrink; closeSheet(); go('menu'); setTimeout(()=>jump(drink?'kofeinaya_klassika1':'vipechka_i_deserti'),200);
+  toast(`Выбери ${drink?'один напиток':'один десерт'}<br>${k.off===1?'Он будет в подарок':`Он будет −${Math.round(k.off*100)}%`} — посчитаем в корзине`); }
 function giftsBlock(){
   const gs=giftsLive(), ch=chestReady(); if(!gs.length&&!ch) return '';
   return `<div class="gifts">
     ${ch?`<button class="gift-row chest" onclick="openChest()"><span class="gi">🎁</span><span class="tx"><b>Сундук за прошлую неделю</b><small>5 и больше посещений — держи приз</small></span><span class="go">Открыть ›</span></button>`:''}
-    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${gk(g).ic}</span><span class="tx"><b>${gk(g).t}</b><small>${g.why}<br>1 штука — на одну покупку</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
+    ${gs.map(g=>{ const inC=giftInCart(g), hot=giftLeft(g)<=1;
+      return `<button class="gift-row gu ${hot?'hot':''}" onclick="openGiftUse('${g.id}')"><span class="gi">${gk(g).ic}</span><span class="tx"><b>${gk(g).t}</b><small>${g.why}<br>1 штука — на одну покупку</small><span class="gw">${hot?'🔥 ':'⏳ '}${giftWhen(g)}</span></span><span class="gu-pill ${inC?'in':''}">${inC?'✓ В корзине':'Забрать ›'}</span></button>`; }).join('')}
   </div>`;
 }
 
