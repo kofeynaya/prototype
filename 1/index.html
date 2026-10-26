@@ -721,6 +721,8 @@ main.nav-fwd,main.nav-back{animation:none}
 .me-hit{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;flex:1;overflow:hidden;text-align:left;max-width:100%}.me-hit h1{max-width:100%}.me-hit .ph-num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .me-top{display:flex;flex-direction:column;align-items:center;gap:8px}.me-top .myph{width:104px;height:104px}.me-top .myph .pl{font-size:40px}
 .me-name{display:flex;gap:8px}.me-name .cp-in{flex:1;min-width:0}
+.gf-last{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1px dashed var(--line);background:none;color:var(--ink);text-align:left;font-size:14px}.gf-last b{flex:none;color:#2e9e5b}
+.me-fio{display:flex;flex-direction:column;gap:8px}.me-fio .label+.cp-in{margin-bottom:4px}
 /* Поддержка */
 .inl-link{display:inline;padding:0;font:inherit;color:#7cc9a2;text-decoration:underline;text-underline-offset:3px}
 .badge-n,.tab-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e53935;color:#fff;font-size:12px;font-weight:700;font-style:normal}
@@ -3330,7 +3332,9 @@ function ava(i,size=44){ const bg=AV_BG[i%7], sk=AV_SKIN[(i*3)%4], hr=AV_HAIR[(i
     `<circle cx="22" cy="7" r="4" fill="${hr}"/><path fill="${hr}" d="M12 19q0-10 10-10t10 10q-4-3-10-3t-10 3z"/>`,
     `<path fill="${hr}" d="M11 18q2-9 11-9t11 9q-2-2-4-2 1-2-2-3-2 3-5 3-3 0-5-2-3 2-6 4z"/>`][st];
   return `<svg class="ava" width="${size}" height="${size}" viewBox="0 0 44 44" aria-hidden="true"><clipPath id="avc${i}"><circle cx="22" cy="22" r="22"/></clipPath><g clip-path="url(#avc${i})"><rect width="44" height="44" fill="${bg}"/><path fill="${['#00657f','#2b2b93','#0d553f','#382d2b','#d6264f'][i%5]}" d="M6 46q2-12 16-12t16 12z"/><circle cx="22" cy="21" r="9.5" fill="${sk}"/>${hair}<circle cx="18.5" cy="21.5" r="1.2" fill="#212221"/><circle cx="25.5" cy="21.5" r="1.2" fill="#212221"/><path d="M19 25.5q3 2.5 6 0" fill="none" stroke="#212221" stroke-width="1.3" stroke-linecap="round"/></g></svg>`; }
-const lbAll=()=>{ const me={id:'me', n:S.name||'Ты', s:S.ser.n, me:true}; return [...GUESTS, ...(S.lbHide?[]:[me])].sort((a,b)=>b.s-a.s||(a.me?-1:1)); };
+/* 26.10 (владелец): фамилия — чтобы в рейтинге и в подарках было понятно, кто это; в приветствиях — только имя */
+const fullName=()=>[S.name,S.last].filter(x=>x&&x.trim()).join(' ');
+const lbAll=()=>{ const me={id:'me', n:fullName()||'Ты', s:S.ser.n, me:true}; return [...GUESTS, ...(S.lbHide?[]:[me])].sort((a,b)=>b.s-a.s||(a.me?-1:1)); };
 const lbRank=()=>S.lbHide?'—':lbAll().findIndex(g=>g.me)+1;
 const gAva=(g,size)=>g.me?(S.photo?`<img class="ava" src="${S.photo}" width="${size}" height="${size}" alt="">`:ava(99,size)):ava(GUESTS.indexOf(g),size);
 /* Фото профиля: пустой кружок с «+» → выбрать фото → окно «Поправь фото»: двигать пальцем и приближать внутри круга,
@@ -3340,9 +3344,12 @@ function me(){ const bd=bdInfo(), b=S.birth;
   const r=(ic,t,v,act)=>`<button class="li" onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span><small class="muted">${v}</small><span class="chev">›</span></button>`;
   return `<section class="screen">${back('profile')}
     <div class="me-top">${myPhoto()}<span class="small muted">${S.photo?'Нажми на фото, чтобы поменять':'Нажми на кружок, чтобы добавить фото'}</span></div>
-    <div class="panel"><label class="label" for="me-name">Имя</label>
-      <div class="me-name"><input id="me-name" class="cp-in" value="${S.name.replace(/"/g,'&quot;')}" maxlength="24" autocomplete="given-name" oninput="document.getElementById('me-save').disabled=!this.value.trim()||this.value.trim()===S.name"><button class="btn" id="me-save" disabled onclick="meSave()">Сохранить</button></div>
-      <span class="small muted">Так тебя будут видеть в рейтинге и бариста на кассе</span></div>
+    <div class="panel me-fio"><label class="label" for="me-name">Имя</label>
+      <input id="me-name" class="cp-in" value="${esc(S.name)}" maxlength="24" autocomplete="given-name" placeholder="Имя" oninput="meDirty()">
+      <label class="label" for="me-last">Фамилия</label>
+      <input id="me-last" class="cp-in" value="${esc(S.last||'')}" maxlength="30" autocomplete="family-name" placeholder="Например, Иванова" oninput="meDirty()">
+      <button class="btn block" id="me-save" disabled onclick="meSave()">Сохранить</button>
+      <span class="small muted">Так тебя увидят в рейтинге, в подарках и бариста на кассе</span></div>
     <div class="list">
       ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
@@ -3351,7 +3358,8 @@ function me(){ const bd=bdInfo(), b=S.birth;
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
   </section>`; }
-function meSave(){ const v=(document.getElementById('me-name')?.value||'').trim(); if(!v) return; S.name=v; save(); render(); toast('Имя сохранено'); }
+function meDirty(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(), b=document.getElementById('me-save'); if(b) b.disabled=!n||(n===S.name&&l===(S.last||'')); }
+function meSave(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(); if(!n) return; const had=S.last; S.name=n; S.last=l; save(); render(); toast(l&&!had?'Сохранено ✓<br>Теперь тебя узнают по фамилии':'Сохранено ✓'); }
 function myPhoto(){ return S.photo
   ? `<button class="myph has" onclick="openPhotoMenu()" aria-label="Фото профиля"><img src="${S.photo}" alt=""></button>`
   : `<label class="myph" aria-label="Добавить фото"><span class="pl">+</span><input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
@@ -4027,7 +4035,8 @@ function drawGift(){ const s=gf.step, t=gf.to;
       <div class="gf-msgs">${GIFT_MSGS.map(x=>`<button class="sr-chip" onclick="giftMsg(this.textContent)">${x}</button>`).join('')}</div>
       <textarea id="gmsg" class="gf-ta" maxlength="${GIFT_MSG_MAX}" rows="2" placeholder="Например: С праздником! Выпей кофе за моё здоровье ☕" oninput="giftMsg(this.value,1)">${esc(gf.msg)}</textarea>
       <span class="label">Так увидит ${t.via==='app'?t.short:'получатель'}</span>
-      <div class="gf-chat"><div class="gc-row"><span class="gc-ava">${esc((S.name||'?')[0])}</span><div class="gc-col"><span class="gc-who">${esc(S.name)}</span>
+      ${S.last?'':`<button class="gf-last" onclick="closeSheet();go('me')"><span>👤 Добавь фамилию — так ${t.via==='app'?t.short:'получатель'} точно поймёт, от кого подарок</span><b>Добавить ›</b></button>`}
+      <div class="gf-chat"><div class="gc-row"><span class="gc-ava">${esc((S.name||'?')[0])}</span><div class="gc-col"><span class="gc-who">${esc(fullName())}</span>
         <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):''}<b>${m?m.n:`<span class="gc-cn">${COIN}</span>${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
         <div class="gc-bub gc-txt" id="gnote"${gf.msg.trim()?'':' hidden'}>${esc(gf.msg)}</div><span class="gc-time">${new Date().toTimeString().slice(0,5)}</span></div></div></div>
       ${giftTerms(m,until)}
@@ -4565,7 +4574,7 @@ function labApplyPreset(k){
   const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
-    if(k==='new'||k==='late'){ Object.assign(S,{cards:[],card:'',gft:{sent:[],recent:[]},gin:[],srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+    if(k==='new'||k==='late'){ Object.assign(S,{last:'',cards:[],card:'',gft:{sent:[],recent:[]},gin:[],srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
       weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; S.six={slots:[null,null,null],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; S.offer=null;
       // «Пришёл в субботу»: зарегистрировался в сб этой недели, подписка, купил — первая неделя не сгорит, ✕ за пн–пт нет (24.10)
