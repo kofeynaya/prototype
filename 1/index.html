@@ -676,6 +676,9 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .story.pic{border-color:var(--sage)}
 .sheet > *{flex-shrink:0}
 /* переход внутрь экрана — въезжает справа, «Назад» — слева (владелец 25.10: должно быть видно, что провалился) */
+/* 26.10 (владелец: «экран при переходе передёргивает, апскейлит»): въезжающий экран на миг выходил за правый край —
+   страница становилась шире телефона, и iPhone на долю секунды уменьшал её. Всё, что шире экрана, обрезаем; масштаб текста не трогаем */
+html,body{overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}.app{overflow-x:clip}
 main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animation:navBack .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes navFwd{from{transform:translateX(34%);opacity:0}to{transform:none;opacity:1}}
 @keyframes navBack{from{transform:translateX(-24%);opacity:0}to{transform:none;opacity:1}}
