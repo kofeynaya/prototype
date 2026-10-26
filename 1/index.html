@@ -1210,6 +1210,8 @@ img.ava{object-fit:cover}
 .gift-row .tx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
 .gift-row .tx small{color:var(--muted);font-size:13px}
 .gift-row .gw{font-size:13px;font-weight:700;white-space:nowrap;color:#b26a00}
+.pd-perk{display:flex;flex-direction:column;align-items:center;gap:8px}.pd-perk .btn{width:100%}
+.pp-col{display:flex;flex-direction:column;align-items:center;line-height:1.15}.pp-col s{font-size:12px;font-weight:400;opacity:.65}
 .gift-row.gu{cursor:pointer}.gu-pill{flex:none;align-self:center;padding:8px 14px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;white-space:nowrap}
 .gu-pill.in{background:#2e9e5b;color:#fff}.gift-row.hot .gu-pill:not(.in){background:#e53935;color:#fff}
 .gu-sh{display:flex;flex-direction:column;gap:12px}.gu-sh .gu-ph{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px}.gu-ic{font-size:64px;line-height:1}.gu-sh .gu-ph.empty{display:grid;place-items:center;width:120px;aspect-ratio:1}.gu-sh .gu-ph.empty svg{width:64px;height:64px}
@@ -2905,18 +2907,26 @@ function openProduct(id){ const m=byId(id); pd={id, opts:defOpts(m), qty:1, more
 function drawProduct(){
   const m=byId(pd.id), x=m.vars[pd.opts.v], pp=myPrice(m.id), base=unitPrice(m,pd.opts), unit=pp!=null&&pd.opts.v===0? base-(m.p-pp) : base;
   const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, readyOk=six&&st>=5&&S.six.usedDay!==S.day;
+  /* 26.10 (владелец + критик): выгода на ОДНУ штуку (шестое, подарок) — без «− 1 +»: одна кнопка «В корзину · цена», вторая штука — ссылкой «Ещё один — за 190 ₽» */
+  const gPerk=!readyOk&&giftsLive().find(g=>gk(g).fit(m)&&!giftInCart(g)), perkOff=readyOk?Math.round(m.p*SOFF):gPerk?Math.round(m.p*gk(gPerk).off):0, perk=perkOff>0;
+  if(perk) pd.qty=1;
+  const perkPrice=unit-perkOff;
+  const perkBanner=readyOk?`<div class="party"><span class="pe">🎉</span><span><b>Ура, это твоё шестое!</b><br>1 штука — ${rub(perkPrice)} вместо ${rub(unit)}</span></div>`
+    :gPerk?`<div class="party"><span class="pe">🎁</span><span><b>${gPerk.kind==='friend'?gPerk.why.replace(/^От:\s*/,'Подарок · '):'Подарок за посещения'}</b><br>1 штука — ${perkPrice?`${rub(perkPrice)} вместо ${rub(unit)}`:'бесплатно'}</span></div>`:'';
   const sizes = m.vars.length>1 ? `<div class="optgroup"><strong>${m.vt||'Размер'}</strong><div class="seg" style="grid-template-columns:repeat(${m.vars.length},1fr)">${m.vars.map((v,i)=>`<button class="${pd.opts.v===i?'on':''}" onclick="pd.opts=defOpts(byId(pd.id),${i});drawProduct()">${v.l}</button>`).join('')}</div></div>` : '';
   const groups = x.g.map((g,gi)=>{ const one=g.max===1, sel=pd.opts.s[gi]||[], lim=pd.more[gi]?g.v.length:6;
     return `<div class="optgroup"><div class="stack" style="gap:0"><strong>${g.t}</strong>${g.min?`<span class="small muted">Минимум: ${g.min}</span>`:g.max>1&&g.max<g.v.length?`<span class="small muted">Можно выбрать до ${g.max}</span>`:''}</div>
       <div class="list">${g.v.slice(0,lim).map(([n,p],i)=>`<label class="opt" style="border-bottom:1px dashed var(--line)"><span>${n}${p?` <span class="muted">+ ${rub(p)}</span>`:''}</span><input type="${one?'radio':'checkbox'}" name="g${gi}" ${sel.includes(i)?'checked':''} onchange="pickOpt(${gi},${i})"></label>`).join('')}</div>
       ${g.v.length>6&&!pd.more[gi]?`<button class="link" style="align-self:flex-start" onclick="pd.more[${gi}]=1;drawProduct()">Показать ещё ${g.v.length-6}</button>`:''}</div>` }).join('');
-  const html=`<div class="pd stack"${F(18)} style="gap:16px">${photo(m)}${readyOk?`<div class="party"><span class="pe">🎉</span><span><b>Ура, ты добежал!</b><br>Это твоё шестое: ${m.n.toLowerCase()} — на ${Math.round(SOFF*100)}% дешевле: <b>${rub(unit-Math.round(m.p*SOFF))}</b> вместо ${rub(unit)}. Скидка — на одну штуку.</span></div>`:''}
+  const html=`<div class="pd stack"${F(18)} style="gap:16px">${photo(m)}${perkBanner}
     <div class="stack" style="gap:4px"><h2>${m.n}</h2><span class="muted small">${wt(m,pd.opts.v)}${m.b?` · ${{new:'Новое',hit:'Хит! :)',chef:'Выбор шефа'}[m.b]}`:''}</span>${m.c?`<p class="small muted">Состав: ${m.c}</p>`:''}</div>
     ${six&&st<5?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'раз','раза','раз')} — и шестое на ${Math.round(SOFF*100)}% дешевле.`}</span></div>`:''}
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
-    <div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
-      ${(()=>{ const off=readyOk?Math.round(m.p*SOFF):0; return `<button class="btn${off?' btn-party':''}" style="flex:1" onclick="addFromPd()">${off?`<s style="opacity:.6;font-weight:400">${rub(unit*pd.qty)}</s> `:''}${rub(unit*pd.qty-off)} +</button>` })()}</div></div>`;
+    ${perk?`<div class="sheet-foot pd-perk"><button class="btn btn-party block" onclick="addFromPd()">${perkPrice?`<span class="pp-col"><s>${rub(unit)}</s><span>В корзину · ${rub(perkPrice)}</span></span>`:'Забрать в корзину · бесплатно'}</button>
+      <button class="link" onclick="addFromPd(1)">Взять 2 — вторая за ${rub(unit)} ›</button></div>`
+    :`<div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
+      <button class="btn" style="flex:1" onclick="addFromPd()">В корзину · ${rub(unit*pd.qty)}</button></div>`}</div>`;
   const was=!!document.querySelector('.sheet .pd'); sheet(html); if(!was&&readyOk) confetti();   // 26.10: перерисовка — через sheet(), без прыжков
 }
 function pickOpt(gi,i){
@@ -2927,8 +2937,10 @@ function pickOpt(gi,i){
   else pd.opts.s[gi]=[...a,i];
   drawProduct();
 }
-function addFromPd(){ for(let i=0;i<pd.qty;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, psl=sixReady(id), party=!!psl; closeSheet(); refreshBasket(id);
-  if(party){ confetti(); toast(`🎉 Ура! Твоё шестое в корзине: ${byId(id).n.toLowerCase()} — на ${Math.round(sixOff(psl)*100)}% дешевле.`,4000); } else toast(`${byId(id).n} — в корзине.`); }
+function addFromPd(extra){ const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), psl=sixReady(id), party=!!psl;
+  closeSheet(); refreshBasket(id);
+  if(extra){ if(party) confetti(); toast(`${m.n} — 2 шт. в корзине<br>Одна со скидкой, вторая по обычной цене`,4000); return; }
+  if(party){ confetti(); toast(`🎉 Шестое в корзине<br>${m.n} — на ${Math.round(sixOff(psl)*100)}% дешевле`,4000); } else toast(`${m.n} — в корзине`); }
 /* Конфетти — праздник на 6-й позиции */
 function confetti(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box=document.createElement('div'); box.className='confetti'; const C=['#f2c230','#ff4f9a','#9bd9d9','#a7d2b9','#ff6d00','#5e35b1','#e53935'];
