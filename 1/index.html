@@ -294,8 +294,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 @keyframes sixglow{50%{box-shadow:0 0 0 7px rgba(242,194,48,.15);transform:scale(1.05)}}
 .bday{border-radius:var(--r);padding:18px;background:var(--blue);color:#f9f9f9;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
 .bday .big{font-family:var(--f-num);font-size:44px;line-height:1}
-.bday .blob{width:160px;height:160px;right:-40px;top:-50px}
-.bday > *:not(.blob){position:relative}
+.bday .bd-cake{position:absolute;right:6px;top:10px;width:118px;height:118px;pointer-events:none}
+.bday > .label{padding-right:118px}.bday > .big{white-space:nowrap}
+@media (max-width:360px){.bday .bd-cake{width:80px;height:80px;right:4px}.bday > .label{padding-right:82px}}
+.bday > *:not(.blob):not(.bd-cake){position:relative}
 .bd-lockline{font-weight:700;color:#5e35b1}
 .bday .bd-with{font-weight:700;font-size:15px;color:#ffd54f}
 .bday .bd-age{font-size:20px;font-weight:700}
@@ -2588,12 +2590,27 @@ function demoBar(){
     <button onclick="nextDay()" aria-label="Перемотать на завтра">Завтра →</button>
     <button class="lab-btn" onclick="go('lab')" aria-label="Пульт для теста">⚙️ Пульт</button></div>`;
 }
+/* 26.10 (владелец): «синяя с какой-то херней в углу» — нужен образ дня рождения: торт со свечами, конфетти, плоско, с чёрным контуром, как герои дня */
+const BD_CAKE=`<svg class="bd-cake" viewBox="0 0 140 140" aria-hidden="true">
+  <g stroke="#212221" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="70" cy="122" rx="56" ry="9" fill="#f9f9f9"/>
+    <rect x="24" y="84" width="92" height="36" rx="8" fill="#ecccce"/>
+    <rect x="36" y="58" width="68" height="28" rx="7" fill="#fef2e9"/>
+    <path d="M36 66c6 0 6 8 12 8s6-8 11-8 6 8 11 8 6-8 11-8 6 8 11 8 6-8 12-8" fill="none"/>
+    <path d="M24 93c7 0 7 9 15 9s7-9 15-9 7 9 16 9 7-9 15-9 7 9 15 9 7-9 16-9" fill="none" stroke="#f9f9f9" stroke-width="5"/>
+    <path d="M24 93c7 0 7 9 15 9s7-9 15-9 7 9 16 9 7-9 15-9 7 9 15 9 7-9 16-9" fill="none"/>
+    <rect x="49" y="34" width="8" height="24" rx="3" fill="#9bd9d9"/><rect x="66" y="30" width="8" height="28" rx="3" fill="#ffd54f"/><rect x="83" y="34" width="8" height="24" rx="3" fill="#ff8a80"/>
+    <path d="M53 20c4 5 4 9 0 11-4-2-4-6 0-11z" fill="#ffb300"/><path d="M70 15c4 5 4 9 0 11-4-2-4-6 0-11z" fill="#ffb300"/><path d="M87 20c4 5 4 9 0 11-4-2-4-6 0-11z" fill="#ffb300"/>
+  </g>
+  <g stroke="none"><circle cx="46" cy="108" r="3" fill="#2b2b93"/><circle cx="74" cy="110" r="3" fill="#00657f"/><circle cx="98" cy="106" r="3" fill="#0d553f"/><circle cx="60" cy="76" r="2.5" fill="#d6264f"/><circle cx="84" cy="74" r="2.5" fill="#2b2b93"/></g>
+  <g stroke="none"><rect x="10" y="22" width="7" height="7" rx="1.5" fill="#ffd54f" transform="rotate(20 13 25)"/><rect x="118" y="44" width="7" height="7" rx="1.5" fill="#ff8a80" transform="rotate(-25 121 47)"/><circle cx="122" cy="16" r="4" fill="#9bd9d9"/><circle cx="16" cy="60" r="3.5" fill="#ff8a80"/><rect x="108" y="8" width="5" height="12" rx="2" fill="#a7d2b9" transform="rotate(30 110 14)"/></g>
+</svg>`;
 function bdBanner(){
   // 24.10, с критиком: без подписки скидки нет — не пишем «−0%», а честно: «С Кофейная+ −33% / Сейчас скидки нет» + Подключить
   const bd=bdInfo(); if(!bd.active) return '';
   const when = bd.diff>0 ? `День рождения через ${bd.diff} ${plural(bd.diff,'день','дня','дней')}` : bd.diff<0 ? `День рождения был ${-bd.diff} ${plural(-bd.diff,'день','дня','дней')} назад` : 'С днём рождения! 🎉';
   const age = bd.diff>0 ? `Скоро ${bd.age} — скидка ${bd.age}%` : `Тебе ${bd.age} — скидка ${bd.age}%`;
-  return `<button class="bday"${F(12)} style="text-align:left;width:100%" onclick="go('${S.plus?'birthday':'plus'}')">${blob('rgba(249,249,249,.12)',1)}
+  return `<button class="bday"${F(12)} style="text-align:left;width:100%" onclick="go('${S.plus?'birthday':'plus'}')">${BD_CAKE}
     <span class="label" style="color:#f9f9f9;opacity:.85">${when}</span>
     ${S.plus?'':`<span class="bd-with">★ С Кофейная+</span>`}
     <span class="big">−${bd.age}%</span>
