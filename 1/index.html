@@ -1195,7 +1195,8 @@ img.ava{object-fit:cover}
 .ladder{display:flex;align-items:flex-start;margin:2px 0}
 .ld{display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 1 96px;min-width:0;text-align:center}
 .ld b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid currentColor;opacity:.45;font-size:15px}
-.ld small{font-size:12px;line-height:1.15;opacity:.7}
+.ld small{font-size:12px;line-height:1.15;opacity:.7;display:flex;flex-direction:column;gap:1px}.ld small em{font-style:normal;font-weight:700}
+.ld-h{display:block;font-size:12.5px;font-weight:600;opacity:.75;margin:4px 0 -2px}
 .ld.ok b{opacity:1;background:#2e9e5b;border-color:#2e9e5b;color:#fff}.ld.ok small{opacity:1;font-weight:700}
 .ld.next b{opacity:1;box-shadow:0 0 0 4px rgba(255,255,255,.45)}.ld.next small{opacity:1}
 .ld-line{flex:1;height:2px;margin-top:15px;background:currentColor;opacity:.25;border-radius:1px}.ld-line.ok{background:#2e9e5b;opacity:1}
@@ -3216,8 +3217,9 @@ function nextStep(left){
 }
 function ladder(){
   const w=weekOf(S.day), real=weekDays(w), st=[[SER_MIN,serDays(w)>=SER_MIN,'счётчик спасён'],[CHEST_MIN-1,real>=CHEST_MIN-1,'+1% бонусов'],[CHEST_MIN,real>=CHEST_MIN,'🎁 сундук']];
+  // 26.10 (владелец): «3 · 4 · 5 — непонятно, что это про дни» — под кружком сначала «3 посещения», потом что они дают; сверху — о чём лестница
   const nx=st.findIndex(x=>!x[1]);
-  return `<div class="ladder" aria-label="Лестница недели">${st.map(([n,ok,t],i)=>`${i?'<i class="ld-line'+(ok?' ok':'')+'"></i>':''}<span class="ld ${ok?'ok':i===nx?'next':''}"><b>${ok?'✓':n}</b><small>${t}</small></span>`).join('')}</div>`;
+  return `<span class="ld-h">Сколько раз придёшь на этой неделе — и что за это будет</span><div class="ladder" aria-label="Лестница недели">${st.map(([n,ok,t],i)=>`${i?'<i class="ld-line'+(ok?' ok':'')+'"></i>':''}<span class="ld ${ok?'ok':i===nx?'next':''}"><b>${ok?'✓':n}</b><small><em>${n} ${plural(n,'посещение','посещения','посещений')}</em>${t}</small></span>`).join('')}</div>`;
 }
 function serState(){
   // Фраза под неделей — по таблице критика (24.10). Сначала считаем, сколько ✕ реально можно нажать (X), потом выбираем фразу:
@@ -3278,7 +3280,7 @@ function statusCard(st){
       <button class="stc-btn">Все уровни</button>
     </div>
     <div class="stc-band">
-      <div class="stc-bh"><span>Твои посещения на этой неделе</span><button onclick="openFreeze()">❄️ ${fzLeft()} ${fzWord(fzLeft())}</button></div>
+      <div class="stc-bh"><span>Твои посещения на этой неделе</span><button onclick="openFreeze()">${fzChip()}</button></div>
       ${S.ser.pend?`<button class="restore" onclick="openPend()"><span>😟</span><span class="tx"><b>${pendTxt()}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}</b><small>${S.plus?`Заморозь ${pendNeed()} ${plural(pendNeed(),'пропуск','пропуска','пропусков')} ❄️ до ${fmt(S.ser.pend.until)}`:`Верни ★ Кофейная+ до ${fmt(S.ser.pend.until)}`}</small></span><span class="go">Решить ›</span></button>`:''}
       ${serWeek(w)}
       ${S.ser.n&&!S.ser.pend&&['need','safe'].includes(st.k)?ladder():''}
@@ -3321,6 +3323,9 @@ function openVisits(){
 }
 // Заморозить пропущенный день — только вручную и только с подпиской «Кофейная+»
 const fzWord=n=>plural(n,'заморозка','заморозки','заморозок');
+// 26.10 (владелец): когда заморозки начали тратиться — «❄️ 15 из 16 заморозок», чтобы было видно, что они кончаются
+const fzAll=()=>S.plus?FZ_MONTH+tariff().vac:0;
+const fzChip=()=>{ const l=fzLeft(), a=fzAll(); return l<a?`❄️ ${l} из ${a} ${fzWord(a)}`:`❄️ ${l} ${fzWord(l)}`; };
 function freezeDay(day){ const dn=fmt(day);
   if(day<(S.regDay??-1e9)) return toast('Этого дня ещё не было в приложении — замораживать нечего');
   if(!S.ser.n && !S.ser.pend) return toast('Счётчик ещё не начался — пока нечего замораживать');
