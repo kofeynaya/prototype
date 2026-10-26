@@ -1255,6 +1255,18 @@ img.ava{object-fit:cover}
 .ser-wk{display:flex;flex-direction:column;gap:4px}
 .ser-wt{font-size:12px;color:var(--muted)}
 .ser-week .fut i{opacity:.5}
+/* 26.10 (владелец): «простецки / белое на белом». Будущие дни — тусклые, но видимые: тёмная подложка и пунктир («ещё будет»);
+   день с покупкой — горячий: оранжево-красный шар со светлой кромкой и тёплым свечением; сегодня — сплошная обводка */
+.stc .ser-week i{box-sizing:border-box;background:rgba(31,37,43,.08);border:2px dashed rgba(31,37,43,.28)}
+.stc .ser-week .fut i{opacity:1}
+.stc .ser-week .now i{background:rgba(255,255,255,.55);border:2.5px solid currentColor;box-shadow:none}
+.stc .ser-week .v i{border:0;background:radial-gradient(circle at 35% 28%,#ffe08a 0%,#ffa53a 38%,#ff6d00 68%,#e2401c 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 4px 14px rgba(255,109,0,.5)}
+.stc .ser-week .x i{border:2px solid rgba(229,57,53,.55);background:rgba(229,57,53,.14)}
+.stc .ser-week button.x.can i{border-color:rgba(41,182,246,.8);box-shadow:none}
+.stc .ser-week .fz i{border:2px solid rgba(41,182,246,.55);background:rgba(155,217,217,.45)}
+.stc .ser-week .pre i,.stc .ser-week .gap i{border-style:dotted}
+.t-plat .ser-week i{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
+.t-plat .ser-week .now i{background:rgba(255,255,255,.18)}
 .ser-msg{margin:0;font-size:14px;line-height:1.35}
 .ser.danger .ser-msg b{color:#e53935}
 .ser.danger .ser-fl path{fill:#ffb199}
