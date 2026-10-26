@@ -2011,7 +2011,9 @@ if(!S.rw) S.rw={gifts:[],miles:{30:1,50:1},chest:{week:weekOf(S.day)-1,open:fals
 const tierPlus=()=>S.plus?(TIER_PLUS[tierOf(S.ser.n).k]||0):0;
 const rateAll=()=>rate()+tierPlus();                                   // % бонусов с покупки: ритм + статус
 const rateWhy=()=>tierPlus()?`${rate()}% за ритм + ${tierPlus()}% ${tierOf(S.ser.n).n}`:`${rate()}% за ритм`;
-const giftsLive=()=>S.plus?S.rw.gifts.filter(g=>!g.used&&!g.gone&&S.day>=g.from&&S.day<=g.until):[];
+// подарок от другого гостя (26.10) — конкретное блюдо бесплатно, живёт 30 дней, подписка получателю не нужна
+const gk=g=>g.kind==='friend'?{t:`${(byId(g.item)||{n:'Блюдо'}).n} в подарок`,ic:'🎁',fit:m=>m.id===g.item,off:1}:GIFT_KIND[g.kind];
+const giftsLive=()=>S.rw.gifts.filter(g=>(S.plus||g.kind==='friend')&&!g.used&&!g.gone&&S.day>=g.from&&S.day<=g.until);
 const giftLeft=g=>g.until-S.day+1;                                     // сколько дней осталось, включая сегодня
 const giftWhen=g=>{ const n=giftLeft(g); return n<=1?'сгорит сегодня':`ещё ${n} ${plural(n,'день','дня','дней')}`; };
 function giveGift(kind,why){ const g={id:Date.now()+Math.random(),kind,why,from:S.day,until:S.day+GIFT_DAYS-1}; S.rw.gifts.push(g); return g; }
@@ -2032,7 +2034,7 @@ function giftsBlock(){
   const gs=giftsLive(), ch=chestReady(); if(!gs.length&&!ch) return '';
   return `<div class="gifts">
     ${ch?`<button class="gift-row chest" onclick="openChest()"><span class="gi">🎁</span><span class="tx"><b>Сундук за прошлую неделю</b><small>5 и больше посещений — держи приз</small></span><span class="go">Открыть ›</span></button>`:''}
-    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${GIFT_KIND[g.kind].ic}</span><span class="tx"><b>${GIFT_KIND[g.kind].t}</b><small>${g.why}<br>1 штука — на одну покупку</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
+    ${gs.map(g=>`<div class="gift-row ${giftLeft(g)<=1?'hot':''}"><span class="gi">${gk(g).ic}</span><span class="tx"><b>${gk(g).t}</b><small>${g.why}<br>1 штука — на одну покупку</small></span><span class="gw">${giftLeft(g)<=1?'🔥 ':'⏳ '}${giftWhen(g)}</span></div>`).join('')}
   </div>`;
 }
 
@@ -2118,7 +2120,7 @@ function quote(lines, opt={}){
     if(sixLeft[u.id]&&sixOne) cand(full-Math.round(m.p*sixLeft[u.id]),'6-й −'+Math.round(sixLeft[u.id]*100)+'%','six');   // скидка — от цены стандартной порции
     if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
     if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
-    let gPick=null; for(const g of gLeft){ if(g.left===0||!GIFT_KIND[g.kind].fit(m)) continue; const p=Math.round(full*(1-GIFT_KIND[g.kind].off)); if(p<best.price){ cand(p,'🎁 '+GIFT_KIND[g.kind].t.toLowerCase(),'rw'); gPick=g; } }
+    let gPick=null; for(const g of gLeft){ if(g.left===0||!gk(g).fit(m)) continue; const p=Math.round(full*(1-gk(g).off)); if(p<best.price){ cand(p,'🎁 '+gk(g).t.toLowerCase(),'rw'); gPick=g; } }
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
     if(best.k==='six'){ sixLeft[u.id]=0; sixOne=0; sixthUsed.push(u.id); }
@@ -2202,7 +2204,7 @@ function nextDay(){
     if(givePlat()) msg+=' 💎 Подарок Платинового: один напиток на выбор −50% (1 штука) — 3 дня.';
   }
   const gone=S.rw.gifts.filter(g=>!g.used&&!g.gone&&g.until<S.day); gone.forEach(g=>g.gone=true);
-  if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>GIFT_KIND[g.kind].t.toLowerCase()).join(', ')}.`;
+  if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>gk(g).t.toLowerCase()).join(', ')}.`;
   if(S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week<weekOf(S.day)-1) S.rw.chest.open='gone';
   // «Каждый 6-й»: шестое со скидкой живёт 3 дня; отметки сгорают через 30 дней без покупки этого блюда
   S.six.slots.forEach(sl=>{ if(!sl) return; const nm=byId(sl.id).n.toLowerCase();
@@ -2368,6 +2370,31 @@ function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
     <button class="plus-cta rw-go" onclick="closeSheet();go('menu')"><span>Потратить</span></button>
     <button class="btn ghost block" onclick="closeSheet();render()">Отлично</button></div>`);
   render(); setTimeout(confetti,150); }
+/* 26.10 (владелец): как выглядит, когда подарок дарят МНЕ — окно-переписка от дарителя, «Забрать подарок»;
+   блюдо попадает в «Мои подарки» и само становится бесплатным в заказе или на кассе (30 дней), бонусы — сразу на счёт */
+if(!S.gin) S.gin=[];
+function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'?byId(g.item):null, gi=GUESTS.findIndex(x=>x.n===g.from);
+  const until=g.day+GIFT_DISH_DAYS-1, nm=g.from.split(' ')[0];
+  S.notes.forEach(n=>{ if(n.k==='gin'&&n.gi===i) n.read=1; }); save();
+  sheet(`<div class="gift gin"><span class="gf-bow big">🎁</span><h2>Тебе подарок!</h2>
+    <div class="gf-chat"><div class="gc-row">${gi>=0?ava(gi,40):`<span class="gc-ava">${esc(nm[0])}</span>`}<div class="gc-col"><span class="gc-who">${esc(g.from)}</span>
+      <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):`<span class="gc-coin">${COIN}</span>`}<b>🎁 ${m?m.n:`${g.bonus.toLocaleString('ru-RU')}&nbsp;${plural(g.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b><span>${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Ими можно оплатить до 30% чека'}</span></div>
+      ${g.msg?`<div class="gc-bub gc-txt">${esc(g.msg)}</div>`:''}<span class="gc-time">${g.tm}</span></div></div></div>
+    ${g.took?`<p class="hint">${m?'Подарок уже у тебя — в «Моих подарках» в «Турбо»':'Бонусы уже на твоём счёте'} ✓</p><button class="btn block" onclick="closeSheet()">Хорошо</button>`
+      :`<button class="btn block gf-go" onclick="giftInTake(${i})">${m?'Забрать подарок':'Забрать бонусы'}</button><button class="btn ghost block" onclick="giftInThanks(${i})">Сказать спасибо ❤️</button>`}</div>`);
+  if(!g.took) confetti(); }
+function giftInTake(i){ const g=S.gin[i]; if(!g||g.took) return; g.took=S.day;
+  if(g.kind==='dish'){ const r=giveGift('friend',`От: ${g.from}`); r.item=g.item; r.until=S.day+GIFT_DISH_DAYS-1; }
+  else S.bonus+=g.bonus;
+  save(); closeSheet(); render();
+  toast(g.kind==='dish'?`Подарок у тебя ✓<br>${byId(g.item).n} станет бесплатным в заказе или на кассе по QR`:`+${g.bonus.toLocaleString('ru-RU')} ${plural(g.bonus,'бонус','бонуса','бонусов')} на твоём счёте ✓`); }
+function giftInThanks(i){ const g=S.gin[i]; if(!g) return; g.thx=1; save(); toast(`Спасибо отправлено ❤️<br>${esc(g.from.split(' ')[0])} увидит его в приложении`); }
+function labGiftIn(kind){ const gs=GUESTS.slice(0,8), who=gs[Math.floor(Math.random()*gs.length)].n, dish=KASSA[Math.floor(Math.random()*6)];
+  const g={from:who,kind,item:kind==='dish'?dish:null,bonus:kind==='bonus'?300:0,msg:GIFT_MSGS[Math.floor(Math.random()*GIFT_MSGS.length)],day:S.day,tm:supTime()};
+  S.gin.push(g); const i=S.gin.length-1;
+  S.notes.unshift({k:'gin',gi:i,t:`Тебе подарок · ${who.split(' ')[0]}`,s:kind==='dish'?`${byId(dish).n} — забери до ${fmtShort(S.day+GIFT_DISH_DAYS-1)}`:`${g.bonus} бонусов`,day:S.day,tm:g.tm,read:0});
+  save(); closeSheet(); navClear(); tab='home'; setRoot('home'); render(false); scrollTo(0,0); try{ localStorage.setItem(KEY+'-tab','home'); }catch(e){}
+  setTimeout(()=>giftInShow(i),250); }
 function refNote(f,t,s){ S.notes.unshift({k:'refp',t,s,day:S.day,tm:supTime(),read:1}); }
 function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
@@ -3390,7 +3417,7 @@ function supRes(i,r){ const x=S.sup.msgs[i]; x.res=r; if(r==='no') S.sup.msgs.pu
 // Уведомления (колокольчик) — только настоящие события
 const notesNew=()=>S.notes.filter(n=>!n.read).length;
 function openNotes(){ const ns=S.notes;
-  sheet(`<h2>Уведомления</h2>${ns.length?`<div class="list">${ns.map((n,i)=>`<button class="note${n.read?'':' new'}" onclick="${n.k==='sup'?'openSupport()':n.k&&n.k.startsWith('ref')?"closeSheet();go('invite')":''}"><span class="ni">${n.k&&n.k.startsWith('ref')?'👫':'💬'}</span><span class="tx"><b>${n.t}</b><small>${n.s}<br>${fmtShort(n.day)}, ${n.tm}</small></span>${n.read?'':'<i class="dot"></i>'}</button>`).join('')}</div>`:`<div class="learn-empty"><span>🔔</span><p class="small">Пока ничего нового</p></div>`}`); }
+  sheet(`<h2>Уведомления</h2>${ns.length?`<div class="list">${ns.map((n,i)=>`<button class="note${n.read?'':' new'}" onclick="${n.k==='sup'?'openSupport()':n.k==='gin'?`giftInShow(${n.gi})`:n.k&&n.k.startsWith('ref')?"closeSheet();go('invite')":''}"><span class="ni">${n.k==='gin'?'🎁':n.k&&n.k.startsWith('ref')?'👫':'💬'}</span><span class="tx"><b>${n.t}</b><small>${n.s}<br>${fmtShort(n.day)}, ${n.tm}</small></span>${n.read?'':'<i class="dot"></i>'}</button>`).join('')}</div>`:`<div class="learn-empty"><span>🔔</span><p class="small">Пока ничего нового</p></div>`}`); }
 function openGuest(id){ const g=GUESTS.find(x=>x.id===id), r=lbAll().findIndex(x=>x.id===id)+1;
   sheet(`<div class="gp">${ava(GUESTS.indexOf(g),96)}<h2>${g.n}</h2><span class="muted">${r}-е место · 🔥 ${g.s} ${plural(g.s,'посещение','посещения','посещений')} подряд</span></div>
     <p class="gp-bio">«${g.bio}»</p>
@@ -4485,7 +4512,7 @@ function labApplyPreset(k){
   const wk=labWk(), keep=()=>{ S.visits=S.visits.filter(d=>d!==S.day); };
   const set=(fn)=>{ const r=render; render=()=>{}; try{ fn(); } finally{ render=r; } };   // хелперы пульта без перерисовки
   set(()=>{
-    if(k==='new'||k==='late'){ Object.assign(S,{cards:[],card:'',gft:{sent:[],recent:[]},srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
+    if(k==='new'||k==='late'){ Object.assign(S,{cards:[],card:'',gft:{sent:[],recent:[]},gin:[],srch:[],plus:false,regDay:S.day,histPast:[],visits:[],orders:[],bonus:0,saved:0,past:[0,0,0,0,0,0,0],wallet:{money:0,gift:0,ops:[]},
       weekHist:[],birth:{y:null,m:null,d:null,verified:false},funnel:{shown:0,opened:0,activated:0,used:0},mechTried:{},w:{cat:{coffee:1,tea:1,pastry:1,food:1},mech:{pct:1,price:1,gift:1,combo:1}},ach:{},pastryCount:0,myOrders:[],onb:0});
       S.ser={n:0,best:0,fz:{m:-1,used:0},frozen:[],lost:0,burnt:[]}; S.rw={gifts:[],miles:{},chest:null,platWeek:null}; S.ref.friends=[]; S.six={slots:[null,null,null],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; S.offer=null;
       // «Пришёл в субботу»: зарегистрировался в сб этой недели, подписка, купил — первая неделя не сгорит, ✕ за пн–пт нет (24.10)
@@ -4549,6 +4576,7 @@ function lab(){
       ${labSixBox()}<button class="btn ghost block" onclick="labDo(()=>{S.six.ai={last:null,no:{},cur:null};S.histPast=[...(S.histPast||[]),...Array.from({length:8},(_,i)=>S.day-20-i)]},'Подсказка ИИ появится, если есть свободная ячейка')">💡 Показать подсказку ИИ (8 дней с покупками)</button>
       ${rng('День рождения через (дней)',bd.diff??40,-10,40,'labBd')}${bd.set?'':'<span class="lab-l">Дата не указана — сдвинь ползунок, чтобы указать</span>'}
       ${tg('Друг зарегистрировался (купил 1 раз из 3 — бонусов пока нет)',S.ref.friends.some(f=>!f.blocked),'labFriend')}
+      <div class="lab-row"><button class="btn ghost" onclick="labGiftIn('dish')">🎁 Мне подарили блюдо</button><button class="btn ghost" onclick="labGiftIn('bonus')">🎁 Мне подарили бонусы</button></div>
       <button class="btn ghost block" onclick="labRefBuy()">👫 Друг купил сегодня (покупка в его путь)</button>
       <button class="btn block" onclick="labRefPaid()">👫 Друг выполнил условия — получить +${REF_T} бонусов</button>
       <div class="lab-row"><button class="btn ghost" onclick="labChest()">🎁 Сундук ждёт</button><button class="btn ghost" onclick="labGift('drink50')">☕ Подарок −50%</button><button class="btn ghost" onclick="labGift('sweet50',1)">🔥 Подарок сгорает сегодня</button></div>
