@@ -1435,7 +1435,8 @@ img.ava{object-fit:cover}
 .gf-ph{gap:8px}.gf-ph input{font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
 .gf-people{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .gf-people button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--ink)}
-.gf-av{width:40px;height:40px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:20px;flex:none}.gf-av.big{width:52px;height:52px;font-size:24px}
+.gf-people button>span:last-child{max-width:100%;text-align:center;overflow-wrap:anywhere;line-height:1.15}
+.gf-av{width:40px;height:40px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:20px;font-weight:700;flex:none}.gf-av.big{width:52px;height:52px;font-size:24px}
 .gf-to{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:16px;border:1px solid var(--line);background:var(--surface);text-align:left;color:var(--ink)}
 .gf-to .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-to small{color:var(--muted);font-size:12px}
 .gf-kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -3835,7 +3836,7 @@ function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
   gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
   drawGift(); }
-function giftTo(to){ gf.to=to; gf.step=2; if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
+function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=to.ph; gf.nm=to.nm||''; } if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
 /* 26.10 (владелец): «+7» стоит всегда и не стирается — гость вводит только 10 цифр; вставили «+7…» или «8…» — лишнее убираем */
 function phTen(el,e){ const prev=el.dataset.v||''; let d=el.value.replace(/\D/g,'');
@@ -3848,14 +3849,17 @@ function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d=
   if(d.slice(1)===(S.phone||'').replace(/\D/g,'').slice(-10)) return toast('Это твой номер — себе подарить нельзя 🙂');
   if(!/^79/.test(d)) return toast('Нужен мобильный номер — он начинается с +7 9');
   const nm=((document.getElementById('gnm')||{}).value||'').trim();
-  giftTo({key:'p'+d, n:nm||`+7 ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9)}`, short:nm||'получатель', phone:`+7 ${d.slice(1,4)} •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
+  giftTo({key:'p'+d, ph:v.trim(), nm, n:nm||`+7 ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9)}`, short:nm||'получатель', phone:`+7 ${d.slice(1,4)} •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
 function giftLink(){ giftTo({key:'link'+Date.now(), n:'Тот, кому отправишь ссылку', short:'получатель', via:'link'}); }
 function giftPrice(){ if(gf.kind==='bonus') return {bonus:gf.amt||0, dep:0, card:0, total:gf.amt||0};
   const m=byId(gf.item); if(!m) return {bonus:0,dep:0,card:0,total:0};
   const total=m.p, maxB=gf.bon?Math.min(giftBonLeft(gf.to), Math.floor(total*BONUS_MAX_SHARE)):0, rest=total-maxB;
   const dep=gf.rest==='dep'?Math.min(walletTotal(),rest):0;
   return {bonus:maxB, dep, card:rest-dep, total}; }
-function giftWho(){ const t=gf.to; return t.via==='app'?ava(t.gi,40):`<span class="gf-av">${t.via==='sms'?'📱':'🔗'}</span>`; }
+// буква имени вместо безликого 📱 — так человека узнаёшь в списке «Ты уже дарил»
+const giftLetter=r=>r.via==='sms'&&r.nm?esc(r.nm[0].toUpperCase()):r.via==='sms'?'📱':'🔗';
+const giftShort=r=>r.via==='sms'&&!r.nm&&r.phone?'••'+r.phone.slice(-6):r.short;
+function giftWho(){ const t=gf.to; return t.via==='app'?ava(t.gi,40):`<span class="gf-av">${giftLetter(t)}</span>`; }
 const GSTEP=['Кому','Что','Оплата','Проверь'];
 // сообщение к подарку (владелец 23.10): готовые фразы одним нажатием или своё, до 140 знаков; в открытке видно сразу
 const GIFT_MSGS=['С днём рождения! 🎂','Спасибо! ❤️','Просто так ☕','Хорошего дня! ☀️'], GIFT_MSG_MAX=140;
@@ -3866,13 +3870,14 @@ function drawGift(){ const s=gf.step, t=gf.to;
   const head=`<div class="gf-steps">${GSTEP.map((x,i)=>`<span class="${i+1<s?'done':i+1===s?'on':''}"><i>${i+1<s?'✓':i+1}</i>${x}</span>`).join('')}</div>`;
   const toLine=t?`<button class="gf-to" onclick="gf.step=1;drawGift()">${giftWho()}<span class="tx"><small>Кому</small><b>${t.n}</b></span><span class="link small">Изменить</span></button>`:'';
   let body='';
-  if(s===1){ const rec=(S.gft.recent||[]).slice(0,4);
+  if(s===1){ const rec=S.gft.recent||[];
     body=`<h2>Кому подарить?</h2>
+      ${rec.length?`<span class="label">Ты уже дарил · ${rec.length}</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">${giftLetter(r)}</span>`}<span>${esc(giftShort(r))}</span></button>`).join('')}</div>
+      <span class="label">Новому человеку</span>`:''}
       <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" value="${gf.phone||''}" data-v="${(gf.phone||'').replace(/\D/g,'')}" oninput="phTen(this,event);gf.phone=this.value"></div>
         <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off" value="${esc(gf.nm||'')}" oninput="gf.nm=this.value"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
-      ${rec.length?`<span class="label">Недавние</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">📱</span>`}<span>${r.short}</span></button>`).join('')}</div>`:''}
       <span class="label">Гости кофейной</span><div class="gf-people">${GUESTS.slice(0,8).map(g=>`<button onclick="giftGuest('${g.id}')">${ava(GUESTS.indexOf(g),52)}<span>${g.n.split(' ')[0]}</span></button>`).join('')}</div>`; }
   if(s===2){ const left=giftBonLeft(t), why=giftWhyNot(t);
     if(gf.kind==='dish'){ const q=SRCH_N(gf.dq), list=q?srchRun(gf.dq,{dishes:true}).slice(0,20).map(x=>x.d.m):KASSA.map(byId);
@@ -3926,12 +3931,12 @@ function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.it
   if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m.n} для ${t.short}`,sum:-p.dep}); }
   const g={day:S.day, to:{key:t.key,n:t.n,short:t.short,via:t.via,gi:t.gi}, kind:gf.kind, item:m?m.id:null, price:m?m.p:0, pay:{bonus:p.bonus,dep:p.dep,card:p.card}, until:m?S.day+GIFT_DISH_DAYS:null, st:m?'wait':'done', msg:(gf.msg||'').trim()};
   S.gft.sent.push(g);
-  if(t.via!=='link'){ S.gft.recent=[t,...(S.gft.recent||[]).filter(r=>r.key!==t.key)].slice(0,6); }
+  if(t.via!=='link'){ S.gft.recent=[t,...(S.gft.recent||[]).filter(r=>r.key!==t.key)].slice(0,50); }
   save(); render();
   sheet(`<div class="gift gf-done"><span class="gf-bow big">🎁</span><h2>${t.via==='link'?'Подарок готов!':'Подарок отправлен!'}</h2>
     <p class="muted">${t.via==='sms'?`Мы отправили СМС на ${t.phone}<br>Забрать можно без подписки`:t.via==='link'?'Ссылка скопирована<br>Отправь её в мессенджер':`${t.short} увидит подарок в приложении`}</p>
     ${t.via==='link'?`<div class="gf-link money">kofeynaya.ru/g/${Math.random().toString(36).slice(2,8)}</div>`:''}
-    <button class="btn block" onclick="closeSheet()">Готово</button><button class="btn ghost block" onclick="openGift({to:${t.via==='link'?'null':JSON.stringify(t).replace(/"/g,'&quot;')}})">Подарить ещё</button></div>`);
+    <button class="btn block" onclick="closeSheet()">Готово</button><button class="btn ghost block" onclick="openGift()">Подарить ещё</button></div>`);
   confetti(); if(t.via==='link') try{ navigator.clipboard.writeText('https://kofeynaya.ru/g/demo'); }catch(e){} }
 // новый день: подарки-блюда гостям из приложения забирают на следующий день (демо), остальные ждут; просроченные — возврат дарителю
 function giftDay(){ let msg=''; for(const g of S.gft.sent){ if(g.st!=='wait') continue;
