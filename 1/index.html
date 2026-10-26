@@ -679,7 +679,8 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 /* 26.10 (владелец: «экран при переходе передёргивает, апскейлит»): въезжающий экран на миг выходил за правый край —
    страница становилась шире телефона, и iPhone на долю секунды уменьшал её. Всё, что шире экрана, обрезаем; масштаб текста не трогаем */
 html,body{overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}.app{overflow-x:clip}
-main.nav-fwd{animation:navFwd .3s cubic-bezier(.2,.8,.2,1)}main.nav-back{animation:navBack .3s cubic-bezier(.2,.8,.2,1)}
+/* 26.10 (владелец): анимаций перехода между экранами НЕТ — в браузере они дёргаются; экран просто сменяется */
+main.nav-fwd,main.nav-back{animation:none}
 @keyframes navFwd{from{transform:translateX(34%);opacity:0}to{transform:none;opacity:1}}
 @keyframes navBack{from{transform:translateX(-24%);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){main.nav-fwd,main.nav-back{animation:none}}
@@ -4102,7 +4103,7 @@ function goTo(t,sel){ go(t); setTimeout(()=>{ const el=document.querySelector(se
    и на то же место прокрутки. Переход на вкладку нижнего меню (Меню · Турбо · Профиль) начинает историю заново.
    go(t,1) — заменить текущий экран, не запоминая его (после оформления заказа корзина пустая — туда не возвращаем) */
 const TOP_TABS=['menu','home','progress','profile'];
-let navStack=[], navAnim=null;
+let navStack=[], navAnim=null;   // navAnim больше не используется: анимаций перехода нет (владелец 26.10)
 /* Раздел, из которого человек зашёл вглубь (25.10, с критиком): по нему — логотип, повторное нажатие на вкладку и подсветка вкладки
    (депозит, открытый из «Турбо», — это «Турбо»); переживает перезагрузку */
 const secOf=t=>t==='progress'?'home':t;
@@ -4118,10 +4119,9 @@ function go(t,replace){ if(t==='qr'){ openQR(); return; }
   if(TOP_TABS.includes(t)){ navClear(); setRoot(t); }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
     if(k>=0){ const d=navStack.length-k; navStack=navStack.slice(0,k); navSkip++; try{ history.go(-d); }catch(e){ navSkip--; } } else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); } }
-  if(!TOP_TABS.includes(t) && t!==tab) navAnim='fwd';
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
 function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
-  navAnim='back'; tab=p.t; if(TOP_TABS.includes(tab)) setRoot(tab); render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
+  tab=p.t; if(TOP_TABS.includes(tab)) setRoot(tab); render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
 let navSkip=0, pendPush=0;
 // пока браузер ещё отматывает историю (history.go/back — не сразу), новые записи откладываем: иначе отмотка снесёт и их
 function histPush(){ if(navSkip>0){ pendPush++; return; } try{ history.pushState({nav:navStack.length},''); }catch(e){} }   // «Назад» в приложении возвращает сразу; запись в истории браузера убираем следом, а её событие пропускаем
@@ -4129,12 +4129,12 @@ function histPush(){ if(navSkip>0){ pendPush++; return; } try{ history.pushState
    если уже в начале раздела — просто наверх страницы */
 function goHome(){ closeSheet(); const r=curSec();
   if(TOP_TABS.includes(tab)&&secOf(tab)===r){ scrollTo({top:0,behavior:'smooth'}); return; }
-  navClear(); navAnim='back'; tab=r; setRoot(r); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
+  navClear(); tab=r; setRoot(r); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 /* Повторное нажатие на вкладку нижнего меню (владелец 25.10, как в iPhone): уже в этом разделе — в его начало, наверх страницы
    (в начале раздела — плавная прокрутка; на внутреннем экране — назад, в корень раздела); другой раздел — обычный переход */
 function tabTap(id){ if(curSec()!==id){ go(id); return; } closeSheet();
   if(TOP_TABS.includes(tab)){ scrollTo({top:0,behavior:'smooth'}); return; }
-  navClear(); navAnim='back'; tab=id; setRoot(id); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
+  navClear(); tab=id; setRoot(id); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
 addEventListener('popstate',()=>{
   if(navSkip>0){ navSkip--; if(!navSkip&&pendPush){ const k=pendPush; pendPush=0; for(let i=0;i<k;i++) try{ history.pushState({nav:navStack.length-k+i+1},''); }catch(e){} } return; }
@@ -4493,7 +4493,7 @@ function render(keep=true){
   const body=(SCREENS[tab]||home)(), active=curSec();
   app.className='app'+(basketCount()&&CART_TABS.includes(tab)?' has-cart':'')+' glass'; // «жидкое стекло» (iOS 26) — на всех вкладках
   // демо-полоса (Касса · Завтра · Пульт) — не сверху, а внизу экранов «Турбо» и «Профиль» (владелец 24.10: сверху слишком много закреплено)
-  app.innerHTML = gbar() + `<main${navAnim?` class="nav-${navAnim}"`:''}>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
+  app.innerHTML = gbar() + `<main>${body}${['home','profile'].includes(active)?`<div class="demo-foot">${demoBar()}</div>`:''}</main>` + cartbarHtml() +
     `<nav class="tabs t3" aria-label="Разделы"><div class="in">${TABS.map(([id,t,ic])=> id==='home'
       ? `<button class="turbotab" onclick="tabTap('home')" ${active===id?'aria-current="page"':''}><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span>${t}</button>`
       : `<button onclick="tabTap('${id}')" ${active===id?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${t}${id==='profile'&&S.sup.unread?`<i class="tab-dot">${S.sup.unread}</i>`:''}</button>`).join('')}</div></nav>`;
