@@ -1492,6 +1492,7 @@ img.ava{object-fit:cover}
 .gf-msgs{display:flex;flex-wrap:wrap;gap:8px}
 .gf-ta{font:inherit;font-size:16px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);resize:none;width:100%}
 .gf-note{font-style:italic;font-size:15px!important;opacity:1!important;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.18);max-width:100%;overflow-wrap:anywhere}
+.gift-terms{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted);padding:0 4px}
 .gin-from{display:flex;align-items:center;gap:12px}.gin-from>span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .gin-from small{font-size:14px;color:var(--muted)}.gin-from b{font-size:22px;line-height:1.15;font-weight:800;overflow-wrap:anywhere}
 .gc-ava.big{width:56px;height:56px;font-size:24px}
@@ -2380,6 +2381,8 @@ function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
 /* 26.10 (владелец): как выглядит, когда подарок дарят МНЕ — окно-переписка от дарителя, «Забрать подарок»;
    блюдо попадает в «Мои подарки» и само становится бесплатным в заказе или на кассе (30 дней), бонусы — сразу на счёт */
 if(!S.gin) S.gin=[];
+/* 26.10 (владелец): условия подарка — техническая информация, не часть послания: под перепиской, мелко, отдельной строкой */
+const giftTerms=(m,until)=>`<div class="gift-terms">${m?`<span>⏳ Забери до ${fmtShort(until)}</span><span>В любой кофейной по QR или в заказе</span>`:`<span>🪙 Бонусы сразу на счёте</span><span>Ими можно оплатить до 30% чека</span>`}</div>`;
 function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'?byId(g.item):null, gi=GUESTS.findIndex(x=>x.n===g.from);
   const until=g.day+GIFT_DISH_DAYS-1, nm=g.from.split(' ')[0];
   S.notes.forEach(n=>{ if(n.k==='gin'&&n.gi===i) n.read=1; }); save();
@@ -2387,8 +2390,9 @@ function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'
   sheet(`<div class="gift gin"><span class="gf-bow big">🎁</span><h2>Тебе подарок!</h2>
     <div class="gin-from">${gi>=0?ava(gi,56):`<span class="gc-ava big">${esc(nm[0])}</span>`}<span><small>Дарит тебе</small><b>${esc(g.from)}</b></span></div>
     <div class="gf-chat"><div class="gc-row">${gi>=0?ava(gi,40):`<span class="gc-ava">${esc(nm[0])}</span>`}<div class="gc-col">
-      <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):`<span class="gc-coin">${COIN}</span>`}<b>🎁 ${m?m.n:`${g.bonus.toLocaleString('ru-RU')}&nbsp;${plural(g.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b><span>${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Ими можно оплатить до 30% чека'}</span></div>
+      <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):`<span class="gc-coin">${COIN}</span>`}<b>🎁 ${m?m.n:`${g.bonus.toLocaleString('ru-RU')}&nbsp;${plural(g.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
       ${g.msg?`<div class="gc-bub gc-txt">${esc(g.msg)}</div>`:''}<span class="gc-time">${g.tm}</span></div></div></div>
+    ${giftTerms(m,until)}
     ${g.took?`<p class="hint">${m?'Подарок уже у тебя — в «Моих подарках» в «Турбо»':'Бонусы уже на твоём счёте'} ✓</p><button class="btn block" onclick="closeSheet()">Хорошо</button>`
       :`<button class="btn block gf-go" onclick="giftInTake(${i})">${m?'Забрать подарок':'Забрать бонусы'}</button><button class="btn ghost block" onclick="giftInThanks(${i})">Сказать спасибо ❤️</button>`}</div>`);
   if(!g.took) confetti(); }
@@ -3994,8 +3998,9 @@ function drawGift(){ const s=gf.step, t=gf.to;
       <textarea id="gmsg" class="gf-ta" maxlength="${GIFT_MSG_MAX}" rows="2" placeholder="Например: С праздником! Выпей кофе за моё здоровье ☕" oninput="giftMsg(this.value,1)">${esc(gf.msg)}</textarea>
       <span class="label">Так увидит ${t.via==='app'?t.short:'получатель'}</span>
       <div class="gf-chat"><div class="gc-row"><span class="gc-ava">${esc((S.name||'?')[0])}</span><div class="gc-col"><span class="gc-who">${esc(S.name)}</span>
-        <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):`<span class="gc-coin">${COIN}</span>`}<b>🎁 ${m?m.n:`${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b><span>${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Уже на твоём счёте<br>Ими можно оплатить до 30% чека'}</span><span class="gc-btn">${m?'Забрать подарок':'Посмотреть бонусы'}</span></div>
+        <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):`<span class="gc-coin">${COIN}</span>`}<b>🎁 ${m?m.n:`${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
         <div class="gc-bub gc-txt" id="gnote"${gf.msg.trim()?'':' hidden'}>${esc(gf.msg)}</div><span class="gc-time">${new Date().toTimeString().slice(0,5)}</span></div></div></div>
+      ${giftTerms(m,until)}
       ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
       <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=${m?3:2};drawGift()">← Назад</button>`; }
   sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
