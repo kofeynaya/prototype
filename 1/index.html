@@ -342,6 +342,17 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .fsteps span.bad{background:var(--warn)}
 .copyrow{display:flex;gap:8px;align-items:center}
 .copyrow code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:14px}
+.bon-card{display:flex;align-items:center;gap:12px;padding:12px;margin:2px 0 6px;border-radius:16px;background:linear-gradient(135deg,rgba(242,194,48,.14),rgba(255,145,0,.08));border:1px solid rgba(242,194,48,.35);cursor:pointer}
+.bon-card.on{background:linear-gradient(135deg,rgba(242,194,48,.28),rgba(255,145,0,.16));border-color:#f2c230}
+.bon-card.off{opacity:.65;cursor:default}
+.bc-coin{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#f2c230 55%,#c98a00);color:#5a3a00;font-weight:800;font-size:18px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 6px rgba(201,138,0,.35)}
+.bc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.bc-top{font-size:14px}.bc-top b{font-size:20px;font-weight:800}
+.bc-sub{font-size:13px;color:var(--muted)}.bc-sub b{color:var(--ink)}
+.bc-bar{display:block;height:5px;border-radius:3px;background:rgba(242,194,48,.18);overflow:hidden}.bc-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f2c230,#ff9100)}
+.sw{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.sw:checked{background:#2e9e5b}.sw:checked::after{transform:translateX(18px)}.sw:disabled{opacity:.5}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;font-size:15px}
 .opt input{width:22px;height:22px;accent-color:var(--green);flex:none}
 .cmp{display:grid;grid-template-columns:1fr auto auto;gap:8px 12px;font-size:14px;align-items:center}
@@ -2893,7 +2904,7 @@ function cart(){
     ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
-      ${S.bonus>0?`<label class="opt" for="c-bonus"><span>Списать бонусы <span class="small muted">(до 30%, есть ${S.bonus})</span></span><input type="checkbox" id="c-bonus" ${co.bonus?'checked':''} onchange="co.bonus=this.checked;render()"></label>`:''}
+      ${S.bonus>0?bonusCard('c-bonus',co.bonus,'co.bonus=this.checked;render()',qt.paid):''}
       ${walletTotal()>0?`<label class="opt" for="c-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="c-wallet" ${co.wallet?'checked':''} onchange="co.wallet=this.checked;render()"></label>`:''}
       <div class="opt"><span>Оплата</span><span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
     </div>
@@ -4237,6 +4248,12 @@ function openQR(){
   tick(); qrTimer=setInterval(tick,1000);
 }
 let kc={}, ko={};
+/* Бонусы при оплате (владелец 26.10: «это то, что человек копил — показать заметно, не раздувая»): монетка и крупно «2 048 бонусов»,
+   под ними — сколько спишется в этом заказе и сколько останется; полоска — какая часть чека оплачивается бонусами (до 30%); переключатель справа */
+function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(paid*BONUS_MAX_SHARE)):0, pct=paid?Math.round(can/paid*100):0;
+  return `<label class="bon-card${on&&can?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top"><b class="money">${S.bonus.toLocaleString('ru-RU')}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')}</span>
+    <span class="bc-sub">${!S.plus?'Списать — только с ★ Кофейная+':!can?'В этом заказе списать нечего':on?`<b>−${rub(can)}</b> в этом заказе<br>Останется ${(S.bonus-can).toLocaleString('ru-RU')}`:`Можно списать <b>${rub(can)}</b><br>Это до 30% чека`}</span>
+    ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></label>`; }
 function openKassa(){
   kc={}; ko={wallet:false,bonus:false,doc:false}; const o=S.offer;
   if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>kc[i]=(kc[i]||0)+1); else if(o.mech==='gift'){ kc[ID.cap]=1; kc[ID.cookie]=1 } else kc[o.item]=1; }
@@ -4247,7 +4264,7 @@ function drawKassa(){
   const ids=[...new Set([...KASSA, ...Object.keys(kc)])];
   const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
   if(qt.bdNeedsDoc) opts.push(`<label class="opt" for="o-doc"><span><strong>День рождения −${bdInfo().pct}%</strong><br><span class="small muted">Бариста: проверьте паспорт или права — дату рождения</span></span><input type="checkbox" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></label>`);
-  if(S.bonus>0) opts.push(`<label class="opt" for="o-bonus"><span>Списать бонусы <span class="small muted">(до 30%, есть ${S.bonus})</span></span><input type="checkbox" id="o-bonus" ${ko.bonus?'checked':''} onchange="ko.bonus=this.checked;drawKassa()"></label>`);
+  if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt.paid));
   if(walletTotal()>0) opts.push(`<label class="opt" for="o-wallet"><span>Оплатить с баланса <span class="small muted">(${rub(walletTotal())})</span></span><input type="checkbox" id="o-wallet" ${ko.wallet?'checked':''} onchange="ko.wallet=this.checked;drawKassa()"></label>`);
   const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса в кофейне</span><h2>Гость показал QR</h2>
     <p class="small muted">${o.status==='activated'?`Активно: «${o.title}».`:o.status==='used'?'Предложение дня уже использовано.':'Предложение дня не активировано.'}</p></div>
