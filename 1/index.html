@@ -349,6 +349,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .bc-top{font-size:14px}.bc-top b{font-size:20px;font-weight:800}
 .bc-sub{font-size:13px;color:var(--muted)}.bc-sub b{color:var(--ink)}
 .bc-bar{display:block;height:5px;border-radius:3px;background:rgba(242,194,48,.18);overflow:hidden}.bc-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f2c230,#ff9100)}
+.bc-sw{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}.bc-swl{font-size:12px;font-weight:700;color:var(--ink)}.bon-card.on .bc-swl{color:#2e9e5b}
 .sw{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
 .sw:checked{background:#2e9e5b}.sw:checked::after{transform:translateX(18px)}.sw:disabled{opacity:.5}
@@ -4252,7 +4253,7 @@ let kc={}, ko={};
 function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(paid*BONUS_MAX_SHARE)):0, pct=paid?Math.round(can/paid*100):0;
   return `<label class="bon-card${on&&can?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top"><b class="money">${S.bonus.toLocaleString('ru-RU')}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')}</span>
     <span class="bc-sub">${!S.plus?'Списать — только с ★ Кофейная+':!can?'В этом заказе списать нечего':on?`<b>−${rub(can)}</b> в этом заказе<br>Останется ${(S.bonus-can).toLocaleString('ru-RU')}`:`Можно списать <b>${rub(can)}</b><br>Это до 30% чека`}</span>
-    ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></label>`; }
+    ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }   // 26.10 (владелец): над переключателем подпись — сразу ясно, что нажать
 function openKassa(){
   kc={}; ko={wallet:false,bonus:false,doc:false}; const o=S.offer;
   if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>kc[i]=(kc[i]||0)+1); else if(o.mech==='gift'){ kc[ID.cap]=1; kc[ID.cookie]=1 } else kc[o.item]=1; }
