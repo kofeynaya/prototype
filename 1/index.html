@@ -333,6 +333,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .topup .g{text-align:right}
 .topup .eq{grid-column:1/-1;justify-self:end;margin-top:-2px;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
 .topup .eq:empty{display:none}
+.inv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.inv-stats>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:center}.inv-stats b{font-size:26px;line-height:1;font-variant-numeric:tabular-nums}.inv-stats span{font-size:12px;color:var(--muted);line-height:1.2}.inv-stats .ok b{color:var(--ok)}
 .friend{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
 .fsteps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .fsteps span{height:6px;border-radius:3px;background:var(--line)}
@@ -1600,7 +1601,7 @@ span.lb-gift{background:none}
 .demo-foot .demo{position:static;height:auto;border-radius:16px;flex-wrap:wrap;padding:10px 14px}
 .stories{margin-bottom:14px}
 .ref-cnt .sty-in{background:radial-gradient(circle at 35% 30%,#f9f9f9 0%,#cfd2cf 45%,#5b5e5b 100%)}
-.ref-cnt .rc-n{font-family:var(--f-num);font-size:26px;line-height:1;color:#212221;display:inline-block;transition:transform .2s}
+.ref-cnt .rc-n{font-family:var(--f-body);font-weight:700;font-size:30px;line-height:1;color:#212221;display:grid;place-items:center;width:100%;height:100%;transition:transform .2s;font-variant-numeric:tabular-nums}   /* 25.10: обычный шрифт, ровно по центру (Dela сидел низко и читался как «о»)*/
 .ref-cnt .rc-n.bump{transform:scale(1.3)}
 .ref-cnt.zero .sty-in{background:radial-gradient(circle at 35% 30%,#4a4c4a 0%,#2c2e2c 60%,#1c1d1c 100%)}.ref-cnt.zero .rc-n{color:#cfd2cf}
 .ref-cnt .sty-t{white-space:nowrap}
@@ -1842,7 +1843,7 @@ function seed(){
     stamps:{[ID.cap]:4,[ID.caesar]:1,[ID.croissant]:2,[ID.muffin]:5}, stampDay:{},
     birth:(()=>{ const b=dateOf(TODAY0+3); return {y:1993,m:b.getMonth(),d:b.getDate(),verified:false} })(), bdUsed:{},
     ref:{code:'ANYA-7K2Q', friends:[
-      {name:'Миша', phone:'+7 9•• •••-41-08', days:[TODAY0>7?7:5], hold:null, paid:false},
+      {name:'Миша Хвостов', phone:'+7 9•• •••-41-08', days:[TODAY0>7?7:5], hold:null, paid:false},
       {name:'+7 900 •••-00-01', phone:'', blocked:'Номер виртуальный — не мобильный оператор. Приглашение не засчитано.'},
     ]},
     // заказ
@@ -1869,6 +1870,7 @@ if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // дем
 if(!S.chats) S.chats={};
 if(!S.sup) S.sup={msgs:[],unread:0,state:'idle',topic:null,nightDemo:false,pend:null};   // поддержка (24.10)
 if(!S.notes) S.notes=[];
+if(S.ref&&S.ref.friends) S.ref.friends.forEach(f=>{ if(f.name==='Миша') f.name='Миша Хвостов'; });   // 25.10: друзья с фамилией — чтобы было понятно, кто это
 if(!S.cards) S.cards=S.card?[{id:'c1',f:'4',last4:(S.card.match(/\d{4}/)||['4242'])[0],exp:'08/28',main:true},{id:'c2',f:'2',last4:'1111',exp:'03/29',main:false}]:[];   // банковские карты (владелец 25.10)   // уведомления — только настоящие события
 if(!S.six) S.six={slots:[{id:ID.cap,n:4,isNew:false,last:S.day-1},{id:ID.croissant,n:2,isNew:true,last:S.day-2},{id:ID.muffin,n:5,isNew:false,last:S.day-1,ready:S.day}],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; // демо
 if(!S.benDemo){ S.benDemo=1; let sd=11; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647, ids=[ID.cap,ID.croissant,ID.muffin,ID.caesar,ID.cookie].filter(Boolean), K=['offer','pp','six','offer','bd'];
@@ -2293,7 +2295,7 @@ function tpDone(){ const sum=tp.sum, g=giftFor(sum), card=cardLbl(cardById(tp.ca
 /* «Пригласи друга» — бонусы пришли сами, пока гостя не было (владелец 25.10, с критиком): при входе праздничное окно с конфетти
    (одно на все события сразу, показываем один раз), запись в колокольчике (уже прочитана, раз окно видел), у друга в списке «+1 000 у тебя ✓».
    Промежуточные покупки друга — только тихие записи в колокольчике, без красного числа */
-const nameAcc=n=>n.replace(/а$/,'у').replace(/я$/,'ю');
+const nameAcc=n=>n.split(' ').map((w,i)=>i===0?w.replace(/а$/,'у').replace(/я$/,'ю'):w.replace(/(ов|ев|ёв|ин)а$/,'$1у').replace(/(ов|ев|ёв|ин)$/,'$1а').replace(/(ая)$/,'ую')).join(' ');   // «Аню Белову», «Петю Соколова»
 function refPay(f){ f.paid=true; f.paidDay=S.day; S.bonus+=REF_REWARD; (S.refNew=S.refNew||[]).push(f.name);
   S.notes.unshift({k:'ref',t:`+${REF_T} бонусов за ${nameAcc(f.name)}`,s:'Подарок за друга пришёл',day:S.day,tm:supTime(),read:0}); }
 function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
@@ -2312,9 +2314,9 @@ function friendBuy(i){
   const f=S.ref.friends[i]; if(f.blocked||f.paid||f.hold!=null) return;
   if(f.days.includes(S.day)){ toast(`Сегодня покупка ${f.name} уже засчитана. Нужны разные дни — нажмите «День →».`); return; }
   f.days.push(S.day);
-  if(f.days.length>=REF_DAYS) refNote(f,`${f.name}: 3 покупки из 3 ✓`,`Проверим до ${fmtShort(f.hold=S.day+REF_HOLD)} — потом +${REF_T} тебе`);
+  if(f.days.length>=REF_DAYS) refNote(f,`${f.name}: 3 покупки из 3 ✓`,`+${REF_T} бонусов придут тебе ${fmtShort(f.hold=S.day+REF_HOLD)}`);
   else refNote(f,`${f.name}: покупка ${f.days.length} из ${REF_DAYS}`,f.days.length===REF_DAYS-1?`Ещё одна — и +${REF_T} тебе`:'Друг начал ходить в кофейную');
-  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name} купил в ${REF_DAYS} разных дня. Проверка до ${fmt(f.hold)}, затем начислим ${REF_T} бонусов.`,4500); }
+  if(f.days.length>=REF_DAYS){ f.hold=S.day+REF_HOLD; toast(`${f.name}: ${REF_DAYS} покупки в разные дни ✓<br>+${REF_T} бонусов придут тебе ${fmtShort(f.hold)}`,4500); }
   else toast(`${f.name}: покупка засчитана, ${f.days.length} из ${REF_DAYS} дней.`);
   save(); render();
 }
@@ -2628,7 +2630,7 @@ function home(){
 function storyRow(perks){ return `<div class="stories">${perks.filter(k=>!k.power&&k.n!==13).map(k=>`<button class="sty" onclick="${k.go}"><span class="sty-ring"><span class="sty-in" style="background:${k.bg}">${k.big}</span></span><span class="sty-t">${k.st||k.t}</span></button>`).join('')}${refCounter()}</div>`; }
 /* Счётчик приглашённых друзей (владелец 25.10) — кружок как сторис: та же градиентная обводка, внутри ч/б композиция и крупная цифра;
    0 — серо-белое и тихое, есть друзья — цифра яркая; новое число набегает от прошлого показанного (S.refShown) */
-function refCounter(){ const fr=S.ref.friends.filter(f=>!f.blocked), done=fr.filter(f=>f.paid).length, from=Math.min(S.refShown??done,done);
+function refCounter(){ const done=S.ref.friends.filter(f=>!f.blocked).length, from=Math.min(S.refShown??done,done);   // приглашённые = все засчитанные друзья (и уже с бонусом, и в пути)
   if(from!==done) setTimeout(()=>{ const el=document.querySelector('.ref-cnt .rc-n'); if(!el) return; let v=from; const st=()=>{ v++; el.textContent=v; el.classList.add('bump'); setTimeout(()=>el.classList.remove('bump'),250); if(v<done) setTimeout(st,350); else { S.refShown=done; save(); } }; setTimeout(st,500); },0);
   return `<button class="sty ref-cnt${done?'':' zero'}" onclick="go('invite')" aria-label="Приглашённые друзья: ${done}"><span class="sty-ring"><span class="sty-in"><span class="rc-n">${from}</span></span></span><span class="sty-t">Приглашённые<br>друзья</span></button>`; }
 const INV_POP=()=>`<div class="inv-pop"><button class="ti-x" onclick="S.invNext=S.day+14;save();render()" aria-label="Скрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="pi">👫</span><span class="tx"><b>Пригласи друга — +${REF_T} бонусов тебе и другу</b><small>Твои придут, когда друг сходит ${REF_DAYS} раза в разные дни</small></span><button class="btn" onclick="go('invite')">Пригласить</button></div>`;
@@ -4006,21 +4008,25 @@ function ownCalc(inp){ const box=inp.closest('.ownsum'), v=Math.min(300000,Math.
   const big=res.querySelector('.own-big'), t0=performance.now(); (function tick(t){ const k=Math.min(1,(t-t0)/450); big.textContent='+'+rub(Math.round(g*(1-Math.pow(1-k,3)))); if(k<1) requestAnimationFrame(tick); })(t0);
   up.hidden=!near; if(near){ up.innerHTML=`<span class="up-a">Пополни на ${rub(next)}</span><span>Кэшбэк ${rub(giftFor(next))} вместо ${rub(g)}</span>`; up.onclick=()=>{ inp.value=next; ownCalc(inp); }; }
   b.disabled=false; b.textContent=`Пополнить на ${rub(v)}`; b.onclick=()=>topUpSum(v); }
+/* Экран «Пригласить друга» (владелец 25.10): счётчик друзей сверху, без слова «проверка» — простыми словами «ждём 7 дней на случай возврата»,
+   друзья с фамилией, кнопка-инструмент без слова «Демо» */
 function invite(){
-  const fr=S.ref.friends;
+  const fr=S.ref.friends, ok=fr.filter(f=>!f.blocked), done=ok.filter(f=>f.paid).length, way=ok.length-done;
   return `<section class="screen">${back()}
-    <div class="stack"${F(15)}><span class="label">Пригласить друга</span><h1>+${REF_T} ₽ вам и другу</h1>
-      <p class="muted small">Друг получает ${REF_T} ₽ бонусами на первую покупку. Вы — ${REF_T} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня и пройдёт проверка.</p></div>
-    <div class="stack" style="gap:6px"><span class="label">Ваша ссылка</span>
+    <div class="stack"${F(15)}><span class="label">Пригласить друга</span><h1>+${REF_T} ₽ тебе и другу</h1>
+      <p class="muted small">Друг получает ${REF_T} ₽ бонусами на первую покупку<br>Тебе — ${REF_T} ₽ бонусами, когда друг купит в ${REF_DAYS} разных дня<br>Придут через ${REF_HOLD} дней после третьей покупки — на случай, если друг вернёт заказ</p></div>
+    <div class="inv-stats"><div><b>${ok.length}</b><span>${plural(ok.length,'друг','друга','друзей')}<br>${ok.length%10===1&&ok.length%100!==11?'приглашён':'приглашено'}</span></div><div><b>${way}</b><span>ещё<br>в пути</span></div><div class="ok"><b>+${(done*REF_REWARD).toLocaleString('ru-RU')}</b><span>бонусов<br>тебе</span></div></div>
+    <div class="stack" style="gap:6px"><span class="label">Твоя ссылка</span>
       <div class="copyrow"><code id="reflink">${refLink()}</code><button class="btn" style="padding:10px 14px" onclick="copyText(refLink())">Копировать</button></div></div>
-    <div class="stack"><h3>Ваши друзья</h3>
-      ${fr.map((f,i)=>{ if(f.blocked) return `<div class="friend"><div class="row between"><strong>${f.name}</strong><span class="chip" style="color:var(--warn)">отклонён</span></div><div class="fsteps">${'<span class="bad"></span>'.repeat(5)}</div><span class="small muted">${f.blocked}</span></div>`;
+    <div class="stack"><h3>Твои друзья</h3>
+      ${fr.length?'':'<p class="small muted" style="margin:0">Пока никого — отправь ссылку другу</p>'}
+      ${fr.map((f,i)=>{ if(f.blocked) return `<div class="friend"><div class="row between"><strong>${f.name}</strong><span class="chip" style="color:var(--warn)">не засчитан</span></div><div class="fsteps">${'<span class="bad"></span>'.repeat(5)}</div><span class="small muted">${f.blocked}</span></div>`;
         const steps=[true, f.days.length>=1, f.days.length>=2, f.days.length>=3, f.paid];
-        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} у тебя ✓${f.paidDay!=null?' '+fmtShort(f.paidDay):''}</span>`: f.hold!=null?`<span class="chip">проверка до ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} дней</span>`;
+        const st = f.paid?`<span class="chip" style="color:var(--ok)">+${REF_T} у тебя ✓${f.paidDay!=null?' '+fmtShort(f.paidDay):''}</span>`: f.hold!=null?`<span class="chip">+${REF_T} придут ${fmtShort(f.hold)}</span>`:`<span class="chip">${f.days.length} из ${REF_DAYS} покупок</span>`;
         return `<div class="friend"><div class="row between"><strong>${f.name}</strong>${st}</div><div class="fsteps">${steps.map(s=>`<span class="${s?'on':''}"></span>`).join('')}</div>
-          <span class="small muted">Регистрация по СМС → покупка в 3 разных дня → 7 дней проверки → бонусы вам</span>
-          ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">Демо: ${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
-    <div class="panel small"><strong>Чтобы всё было честно</strong><ul class="rules"><li>Друг — новый гость: его номера ещё нет в базе.</li><li>Только мобильные номера, не виртуальные.</li><li>Покупки друга — в 3 разных дня, с его телефона. Карта пригласившего не засчитывается.</li><li>Бонусы — после проверки; при возврате шаг откатится.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
+          <span class="small muted">Зарегистрировался → купил в 3 разных дня → ждём 7 дней → бонусы тебе</span>
+          ${!f.paid&&f.hold==null?`<button class="btn ghost" style="padding:9px 14px;align-self:flex-start" onclick="friendBuy(${i})">${f.name} купил сегодня</button>`:''}</div>` }).join('')}</div>
+    <div class="panel small"><strong>Чтобы всё было честно</strong><ul class="rules"><li>Друг — новый гость: его номера ещё нет у нас.</li><li>Только мобильные номера, не виртуальные.</li><li>Покупки друга — в 3 разных дня, с его телефона. Твоя карта не засчитывается.</li><li>Бонусы приходят через 7 дней после третьей покупки. Если друг вернёт заказ, покупка не засчитается.</li><li>Не больше 5 друзей в месяц.</li></ul></div>
   </section>`;
 }
 function birthday(){
@@ -4331,12 +4337,12 @@ function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=la
 function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
 function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.birth.y||1993,m:t.getMonth(),d:t.getDate(),verified:false}; }); }
 // пульт: друг купил 3 раза, проверка прошла, пока тебя не было → перезагрузка, как будто открыл приложение
-function labRefPaid(){ const names=['Аня','Петя','Оля','Дима','Катя'], used=new Set(S.ref.friends.map(f=>f.name));
+function labRefPaid(){ const names=['Аня Белова','Петя Соколов','Оля Морозова','Дима Ковалёв','Катя Лебедева'], used=new Set(S.ref.friends.map(f=>f.name));
   let f=S.ref.friends.find(x=>!x.paid&&!x.blocked); if(!f){ f={name:names.find(n=>!used.has(n))||'Друг',phone:'+7 9•• •••-'+(10+S.ref.friends.length)+'-27',days:[],hold:null,paid:false}; S.ref.friends.push(f); }
-  f.days=[S.day-6,S.day-4,S.day-2]; f.hold=S.day; refNote(f,`${f.name}: 3 покупки из 3 ✓`,`Проверим до ${fmtShort(S.day)} — потом +${REF_T} тебе`); refPay(f);
+  f.days=[S.day-6,S.day-4,S.day-2]; f.hold=S.day; refNote(f,`${f.name}: 3 покупки из 3 ✓`,`+${REF_T} бонусов придут тебе ${fmtShort(S.day)}`); refPay(f);
   save(); closeSheet(); navClear(); tab='home'; setRoot('home'); render(false); scrollTo(0,0); try{ localStorage.setItem(KEY+'-tab','home'); }catch(e){}
   setTimeout(refCheck,500); }   // 25.10: без перезагрузки (на телефоне она подводила) — сразу «Турбо» и праздничное окно
-function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }, on?'Миша приглашён, купил 1 раз из 3<br>Бонусы придут после 3 покупок и проверки<br>Сразу увидеть — кнопка «👫 Друг выполнил условия»':''); }
+function labFriend(on){ labDo(()=>{ S.ref.friends=on?[{name:'Миша Хвостов',phone:'+7 9•• •••-41-08',days:[S.day],hold:null,paid:false}]:[]; }, on?'Миша Хвостов приглашён, купил 1 раз из 3<br>Бонусы придут после 3 покупок и проверки<br>Сразу увидеть — кнопка «👫 Друг выполнил условия»':''); }
 function labOffer(st){ labDo(()=>{ ensureDaily(); S.offer.status=st; if(st==='used'){ S.funnel.used++; } }); }
 function labChest(){ labDo(()=>{ S.rw.chest={week:labWk()-1,open:false}; },'Сундук ждёт в «Турбо»'); }
 function labGift(kind,today){ labDo(()=>{ const g=giveGift(kind,today?'Проверка: сгорает сегодня':'Выдан в пульте'); if(today){ g.from=S.day-GIFT_DAYS+1; g.until=S.day; } },'Подарок выдан'); }
