@@ -342,8 +342,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .fsteps span.bad{background:var(--warn)}
 .copyrow{display:flex;gap:8px;align-items:center}
 .copyrow code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:14px}
-.bon-card{display:flex;align-items:center;gap:12px;padding:12px;margin:2px 0 6px;border-radius:16px;background:linear-gradient(135deg,rgba(242,194,48,.14),rgba(255,145,0,.08));border:1px solid rgba(242,194,48,.35);cursor:pointer}
-.bon-card.on{background:linear-gradient(135deg,rgba(242,194,48,.28),rgba(255,145,0,.16));border-color:#f2c230}
+.bon-card{display:flex;align-items:center;gap:12px;padding:8px 0;margin:2px 0 6px;background:none;border:0;cursor:pointer}   /* 26.10 (владелец): без жёлтой рамки и подложки — монетка, сумма и переключатель */
 .bon-card.off{opacity:.65;cursor:default}
 .bc-coin{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#f2c230 55%,#c98a00);color:#5a3a00;font-weight:800;font-size:18px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 6px rgba(201,138,0,.35)}
 .bc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
