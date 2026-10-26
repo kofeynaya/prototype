@@ -3838,7 +3838,10 @@ function openGift(pre={}){
 function giftTo(to){ gf.to=to; gf.step=2; if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
 /* 26.10 (владелец): «+7» стоит всегда и не стирается — гость вводит только 10 цифр; вставили «+7…» или «8…» — лишнее убираем */
-function phTen(el){ let d=el.value.replace(/\D/g,''); if(d.length>10&&/^[78]/.test(d)) d=d.slice(1); d=d.slice(0,10);
+function phTen(el,e){ const prev=el.dataset.v||''; let d=el.value.replace(/\D/g,'');
+  // больше 10 цифр ввести нельзя: лишняя набранная цифра просто не встаёт; «+7…/8…» срезаем только у вставленного номера целиком
+  if(d.length>10){ const paste=!e||/insertFromPaste|insertReplacementText|insertFromDrop/.test(e.inputType||'')||!prev; d=paste&&d.length===11&&/^[78]/.test(d)?d.slice(1):(paste?d.slice(-10):prev); }
+  el.dataset.v=d;
   el.value=[d.slice(0,3),d.slice(3,6),d.slice(6,8),d.slice(8,10)].reduce((a,x,i)=>x?a+(i===0?'':i===1?' ':'-')+x:a,''); }
 function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d='7'+v.replace(/\D/g,'').slice(-10);
   if(d.length!==11) return toast('Проверь номер: после +7 нужно 10 цифр');
@@ -3865,7 +3868,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
   let body='';
   if(s===1){ const rec=(S.gft.recent||[]).slice(0,4);
     body=`<h2>Кому подарить?</h2>
-      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" oninput="phTen(this)"></div>
+      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" oninput="phTen(this,event)"></div>
         <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
