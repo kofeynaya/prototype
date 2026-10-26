@@ -1268,14 +1268,20 @@ img.ava{object-fit:cover}
    день с покупкой — горячий: оранжево-красный шар со светлой кромкой и тёплым свечением; сегодня — сплошная обводка */
 .stc .ser-week i{box-sizing:border-box;background:rgba(31,37,43,.08);border:2px dashed rgba(31,37,43,.28)}
 .stc .ser-week .fut i{opacity:1}
-.stc .ser-week .now i{background:rgba(255,255,255,.55);border:2.5px solid currentColor;box-shadow:none}
+/* 26.10 (владелец): «сегодня» — не просто белый круг: зовущий — тусклый огонь внутри, оранжевая обводка мягко дышит, подпись «сегодня» */
+.stc .ser-week .now i{background:rgba(255,145,0,.12);border:2.5px solid #ff6d00;box-shadow:0 0 0 0 rgba(255,109,0,.5);animation:todayPulse 2.2s ease-in-out infinite}
+.ser-week .gh{font-weight:400;filter:grayscale(1);opacity:.4}
+.stc .ser-week .today{color:#e65100;opacity:1;font-weight:800}
+@keyframes todayPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,109,0,.45)}50%{box-shadow:0 0 0 7px rgba(255,109,0,0)}}
+@media (prefers-reduced-motion: reduce){.stc .ser-week .now i{animation:none}}
+@media (max-width:360px){.ser-week .today{font-size:11px;letter-spacing:-.2px}}
 .stc .ser-week .v i{border:0;background:radial-gradient(circle at 35% 28%,#ffe08a 0%,#ffa53a 38%,#ff6d00 68%,#e2401c 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 4px 14px rgba(255,109,0,.5)}
 .stc .ser-week .x i{border:2px solid rgba(229,57,53,.55);background:rgba(229,57,53,.14)}
 .stc .ser-week button.x.can i{border-color:rgba(41,182,246,.8);box-shadow:none}
 .stc .ser-week .fz i{border:2px solid rgba(41,182,246,.55);background:rgba(155,217,217,.45)}
 .stc .ser-week .pre i,.stc .ser-week .gap i{border-style:dotted}
 .t-plat .ser-week i{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
-.t-plat .ser-week .now i{background:rgba(255,255,255,.18)}
+.t-plat .ser-week .now i{background:rgba(255,145,0,.18)}.t-plat .ser-week .today{color:#ffb74d}
 .ser-msg{margin:0;font-size:14px;line-height:1.35}
 .ser.danger .ser-msg b{color:#e53935}
 .ser.danger .ser-fl path{fill:#ffb199}
@@ -3234,7 +3240,7 @@ function serWeek(w){
   const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend && S.ser.n>0;   // счётчик ещё не начался — замораживать нечего
   return `<div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
     const k=day<reg?'pre':v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':'fut';
-    return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':''}</i>${d}</span>`; }).join('')}</div>
+    return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='now'?'<b class="gh">🔥</b>':''}</i>${day===S.day?'сегодня':d}</span>`; }).join('')}</div>
     ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на ✕</b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
 /* Статус гостя — по счётчику «посещений подряд». Сгорел счётчик — статус возвращается к Серебряному (лучший результат остаётся). */
