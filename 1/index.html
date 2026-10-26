@@ -2484,7 +2484,8 @@ function refreshBasket(id){
 /* ===================== UI-утилиты ===================== */
 const $=s=>document.querySelector(s);
 let tab='home', tTimer, qrTimer;
-function toast(html,ms=2900,cls=''){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'+(cls?' '+cls:''); t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms*2); toastSwipe(t); }
+// 26.10 (владелец): в уведомлениях галочка — зелёная эмодзи ✅, а не белый «✓»
+function toast(html,ms=2900,cls=''){ html=String(html).replace(/\s*✓/g,' ✅'); document.querySelectorAll('.toast').forEach(t=>t.remove()); const t=document.createElement('div'); t.className='toast'+(cls?' '+cls:''); t.setAttribute('role','status'); t.innerHTML=html; document.body.appendChild(t); clearTimeout(tTimer); tTimer=setTimeout(()=>t.remove(),ms*2); toastSwipe(t); }
 /* 25.10 (владелец, правило для всех уведомлений): смахнуть вверх — как в iPhone/Android: тянешь пальцем вверх, отпустил — улетает */
 function toastSwipe(t){ let y0=null,dy=0,drag=false,id=null;
   t.addEventListener('pointerdown',e=>{ y0=e.clientY; dy=0; drag=false; id=e.pointerId; });
