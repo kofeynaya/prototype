@@ -334,6 +334,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .topup .eq{grid-column:1/-1;justify-self:end;margin-top:-2px;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
 .topup .eq:empty{display:none}
 .inv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.inv-stats>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:center}.inv-stats b{font-size:26px;line-height:1;font-variant-numeric:tabular-nums}.inv-stats span{font-size:12px;color:var(--muted);line-height:1.2}.inv-stats .ok b{color:var(--ok)}
+.ok-tick{color:#2e9e5b;font-weight:800}   /* 25.10: галочка «засчитано» — зелёная */
 .friend{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
 .fsteps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .fsteps span{height:6px;border-radius:3px;background:var(--line)}
@@ -3039,7 +3040,7 @@ function serState(){
   else if(!N){ k='zero'; msg=S.ser.lost&&(S.ser.lostWeek??-9)>=w0-2?`<b>Счётчик сгорел.</b> Лучший результат 👑 ${S.ser.best} остался<br>Приходи — начнём заново`:`Приходи сегодня — и счётчик начнёт считать твои посещения`; }
   else if(isStartWeek(w0)){ k='start'; msg=today?`<b>Первая неделя — она не сгорит 🔥</b><br>Приходи от ${SER_MIN} раз в неделю — и счётчик будет расти`:`<b>Первая неделя — она не сгорит</b><br>Приходи сегодня — будет ${N+1} 🔥`; }
   else if(!need){ k='safe'; msg=nextStep(left); }
-  else if(!M){ if(need<left){ k='need'; msg=`${today?'Сегодня засчитано ✓ ':''}${cur?`На этой неделе ты был <b>${timesTxt(cur)}</b>`:'На этой неделе ты ещё <b>не был</b>'}<br>Ещё ${P(need)} — и счётчик спасён`; }
+  else if(!M){ if(need<left){ k='need'; msg=`${today?'Сегодня засчитано <b class="ok-tick">✓</b> ':''}${cur?`На этой неделе ты был <b>${timesTxt(cur)}</b>`:'На этой неделе ты ещё <b>не был</b>'}<br>Ещё ${P(need)} — и счётчик спасён`; }
     else { k='danger'; msg=dow===6||left===1?`<b>Сегодня последний день</b> — приходи, или ${P(N)} сгорят`:`<b>Успеешь, только если приходить каждый день до ${sun}</b> — или ${P(N)} сгорят`; } }
   else if(X>=M && fz>=M){ k='freeze'; msg=`<b>Уже не успеть.</b> Нажми на красный ✕ и заморозь ${PR(M)} ❄️${left?` и приходи ещё ${timesTxt(left)}`:''} — спасёшь ${P(N)}`; }
   else if(X>=M){ k='doomed'; msg=`<b>Уже не успеть:</b> не хватает ${P(M)}, а ${fz?`заморозок ${fz}`:'заморозок нет'}<br>${P(N)} сгорят, лучший результат 👑 останется`; }
