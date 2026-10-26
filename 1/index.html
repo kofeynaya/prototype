@@ -2397,7 +2397,7 @@ function giftInTake(i){ const g=S.gin[i]; if(!g||g.took) return; g.took=S.day;
   else S.bonus+=g.bonus;
   save(); closeSheet(); render();
   toast(g.kind==='dish'?`Подарок у тебя ✓<br>${byId(g.item).n} станет бесплатным в заказе или на кассе по QR`:`+${g.bonus.toLocaleString('ru-RU')} ${plural(g.bonus,'бонус','бонуса','бонусов')} на твоём счёте ✓`); }
-function giftInThanks(i){ const g=S.gin[i]; if(!g) return; g.thx=1; save(); toast(`Спасибо отправлено ❤️<br>${esc(g.from.split(' ')[0])} увидит его в приложении`); }
+function giftInThanks(i){ const g=S.gin[i]; if(!g) return; g.thx=1; save(); toast(`Спасибо отправлено ❤️<br>${esc(g.from.split(' ')[0])} увидит\u00a0его в\u00a0приложении`); }
 function labGiftIn(kind){ const gs=GUESTS.slice(0,8), who=gs[Math.floor(Math.random()*gs.length)].n, dish=KASSA[Math.floor(Math.random()*6)];
   const g={from:who,kind,item:kind==='dish'?dish:null,bonus:kind==='bonus'?300:0,msg:GIFT_MSGS[Math.floor(Math.random()*GIFT_MSGS.length)],day:S.day,tm:supTime()};
   S.gin.push(g); const i=S.gin.length-1;
