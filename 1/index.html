@@ -185,6 +185,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto �
 /* низ шторки (кол-во и цена) прилипает к самому краю экрана — без щели, сквозь которую видно содержимое */
 .sheet-foot{position:sticky;z-index:4;--pb:calc(20px + env(safe-area-inset-bottom,0px));bottom:calc(-1 * var(--pb));margin:0 -16px calc(-1 * var(--pb));padding:10px 16px var(--pb);background:var(--bg);border-top:1px solid var(--line)}
 .sheet{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.sheet.still{animation:none!important}
 .sheet{width:100%;max-width:440px;max-height:88%;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
@@ -2774,7 +2775,7 @@ function drawProduct(){
     ${sizes}${groups}
     <div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
       ${(()=>{ const off=readyOk?Math.round(m.p*SOFF):0; return `<button class="btn${off?' btn-party':''}" style="flex:1" onclick="addFromPd()">${off?`<s style="opacity:.6;font-weight:400">${rub(unit*pd.qty)}</s> `:''}${rub(unit*pd.qty-off)} +</button>` })()}</div></div>`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.pd')){ const s=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=s; } else { sheet(html); if(readyOk) confetti(); }
+  const was=!!document.querySelector('.sheet .pd'); sheet(html); if(!was&&readyOk) confetti();   // 26.10: перерисовка — через sheet(), без прыжков
 }
 function pickOpt(gi,i){
   const g=byId(pd.id).vars[pd.opts.v].g[gi], a=pd.opts.s[gi]||[];
@@ -2821,7 +2822,7 @@ function drawMode(){
       <div class="stack" style="gap:2px"><h3>или выберите кофейню</h3><span class="muted small">Номер столика укажете после выбора.</span></div>${shopList('pickShop')}`;
   }
   const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" onclick="modeTab='${k}';addrInput=null;drawMode()">${v}</button>`).join('')}</div>${mapHtml()}${body}`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.seg')){ ex.innerHTML=SHX+html; } else sheet(html);
+  sheet(html);
 }
 function shopList(fn){ const need=modeTab==='table'?'table':'pickup';
   return `<div class="list"${F(need==='table'?22:21)}>${SHOPS.map((s,i)=>s.t.includes(need)?`<button class="li" onclick="${fn}(${i})"><img class="th" src="${s.img}" alt=""><span class="tx"><strong>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</strong><small>${s.d}</small><small>Будни ${s.wd} · сб–вс ${s.we}</small>${s.closed?`<small style="color:var(--warn)">${s.closed}</small>`:''}</span><span class="chev">›</span></button>`:'').join('')}</div>`; }
@@ -3269,9 +3270,9 @@ function giftGuestOpen(id){ if(!S.plus) return openGift(); const g=GUESTS.find(x
 function lbLead(){ const all=lbAll(), r=all.findIndex(g=>g.me), above=r>0?all[r-1]:null, gap=above?above.s-S.ser.n+1:0;
   return r<0?`Ты скрыт из рейтинга`:r===0?`<b>Ты на 1-м месте! 👑</b> Не сбавляй`:`До <b>${r}-го места</b> — ${gap} ${plural(gap,'посещение','посещения','посещений')} подряд<br>Впереди — ${above.n}, 🔥 ${above.s}`; }
 function openLb(){ sheet(`<h2>🏆 Твой рейтинг</h2><p class="small muted" style="margin:0">Чтобы познакомиться и написать — нажми на гостя 👋</p>
-    <div class="lb">${lbAll().map(lbRow).join('')}</div>
     <label class="toggle" for="lbshow">Показывать меня в рейтинге<input type="checkbox" id="lbshow" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save();openLb();render()"></label>
-`); }
+    <div class="lb">${lbAll().map(lbRow).join('')}</div>
+`); }   // 26.10: переключатель над списком — список под ним меняется, а сам он не прыгает
 /* ===================== Поддержка (владелец 24.10, экраны — с критиком) =====================
    Входы: «через поддержку» на экране ДР, строка «Поддержка» в профиле, поиск, уведомление. Чат на весь экран.
    Пусто → «С чем помочь?» и 6 тем; ответ «Анны» имитируется; закрыл до ответа — всплывашка + кружки на «Профиле» и строке.
@@ -3886,6 +3887,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
       ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
       <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=${m?3:2};drawGift()">← Назад</button>`; }
   sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
+  if(drawGift.last!==s){ const sh=document.querySelector('.sheet'); if(sh) sh.scrollTop=0; drawGift.last=s; }   // новый шаг — с начала; переключатели на том же шаге — без прыжка
   if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
 function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
   if(!(p.bonus>=0)||p.bonus>S.bonus||(gf.kind==='bonus'&&!(p.bonus>0))) return toast(`Столько бонусов нет<br>У тебя ${S.bonus.toLocaleString('ru-RU')}`);   // нельзя больше, чем в кошельке
@@ -4228,7 +4230,19 @@ function openLegend(){
 
 /* ===================== Шторки: QR и касса ===================== */
 const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
-function sheet(html,full){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'+(full?' full':''); bg.onclick=e=>{ if(e.target===bg) closeSheet() };
+/* 26.10 (владелец: «включаю-выключаю — страницу передёргивает»): если окно уже открыто, новое содержимое ставим В ТО ЖЕ окно —
+   без повторного выезда снизу и на том же месте прокрутки. Так любой перерисовщик (drawGift, drawKassa, tpCheck…) не дёргает экран */
+function sheet(html,full){ const old=document.querySelector('.sheet-bg');
+  if(old){ supOpenNow=html.includes('id="suplist"'); clearInterval(qrTimer); const sh=old.querySelector('.sheet'), y=sh?sh.scrollTop:0, h=sh?sh.getBoundingClientRect().height:0, sh0=sh?sh.scrollHeight:0, t0=sh?(sh.querySelector('h2')||{}).textContent:'', norm=x=>(x||'').replace(/[\s\u00a0\u2060]+/g,' ').trim();
+    old.className='sheet-bg'+(full?' full':'');
+    old.innerHTML=`<div class="sheet${full?' full':''} still" role="dialog" aria-modal="true">${SHX}${html}</div>`; const n=old.querySelector('.sheet');
+    // тот же экран окна (тот же заголовок) — высоту не меняем: окно прижато к низу, и рост/сжатие двигали бы всё содержимое; лишнее прокручивается внутри
+    const same=!!t0&&norm((n.querySelector('h2')||{}).textContent)===norm(t0);   // типографика ставит неразрывные пробелы — сравниваем без них
+    if(same&&h&&!full) n.style.height=h+'px';
+    // содержимое стало короче (пропала строка внизу) — добавляем пустое место, иначе прокрутка «съезжает» и всё прыгает вниз
+    if(same&&n.scrollHeight<sh0){ const pad=document.createElement('div'); pad.style.cssText='flex:none;height:'+(sh0-n.scrollHeight)+'px'; n.appendChild(pad); }
+    n.scrollTop=y; return; }
+  closeSheet(); supOpenNow=html.includes('id="suplist"'); const bg=document.createElement('div'); bg.className='sheet-bg'+(full?' full':''); bg.onclick=e=>{ if(e.target===bg) closeSheet() };
   bg.innerHTML=`<div class="sheet${full?' full':''}" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); lockScroll(); document.addEventListener('keydown',escClose); }
 /* Пока открыта шторка — страница под ней замирает на месте, а после закрытия остаётся там же, где была */
 let sheetY=0;
@@ -4263,7 +4277,7 @@ function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(
    Тот же вид, что у бонусов: значок, крупно сумма на депозите, сколько спишем и сколько останется, «Списать/Списываю» над переключателем */
 function depoCard(id,on,ch,qt){ const tot=walletTotal(), can=S.plus, use=on&&can?qt.walletSpend:0, rest=qt.card;
   return `<label class="bon-card depo${use?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin dp">₽</span><span class="bc-tx"><span class="bc-top">Депозит <b class="money">${rub(tot)}</b></span>
-    <span class="bc-sub">${!can?'Оплата депозитом — только с ★ Кофейная+':use?`<b>−${rub(use)}</b> с депозита${rest>0?`<br>Остальное ${rub(rest)} — картой`:`<br>Останется ${rub(tot-use)}`}`:'Не списываем — платишь картой'}</span></span>
+    <span class="bc-sub">${!can?'Оплата депозитом — только с ★ Кофейная+':use?`<b>−${rub(use)}</b> с депозита${rest>0?`<br>Остальное ${rub(rest)} — картой`:`<br>Останется ${rub(tot-use)}`}`:'Не списываем<br>Платишь картой'}</span></span>
     <span class="bc-sw"><span class="bc-swl">${use?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${use?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }
 function openKassa(){
   kc={}; ko={wallet:true,bonus:false,doc:false}; const o=S.offer;
@@ -4291,7 +4305,7 @@ function drawKassa(){
       <div class="r"><span>Бонусы за покупку (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
       <div class="r tot"><span>К оплате картой</span><span class="money">${rub(qt.card)}</span></div></div>
     <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
-  const ex=document.querySelector('.sheet'); if(ex&&ex.querySelector('.menu')){ const st=ex.scrollTop; ex.innerHTML=SHX+html; ex.scrollTop=st; } else sheet(html);
+  sheet(html);   // 26.10: перерисовка — в том же окне, той же высоты (sheet() сам)
 }
 /* Напоминание «не дай посещениям сгореть» (24.10, с критиком) — единственный пуш, который работает на цель 3→4→5.
    Спрашиваем один раз: сразу после первой покупки, которая запустила счётчик (0 → 1), только с Кофейная+. «Не надо» — больше не спрашиваем */
