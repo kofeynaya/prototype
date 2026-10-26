@@ -819,7 +819,9 @@ img.ava{object-fit:cover}
 .notice.warn{background:rgba(229,57,53,.14);border:1px solid rgba(229,57,53,.5);color:var(--ink)}
 /* 25.10: логотип-маска пропускал нажатия между буквами (зона нажатия = только буквы высотой 12 px) — теперь кнопка-подложка 44 px, маска внутри */
 .gb-home{display:flex;align-items:center;min-height:44px;margin-left:-8px;padding:0 8px;border:0;border-radius:12px;background:transparent!important;box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.gb-home .logo{pointer-events:none}.gb-home:active{opacity:.6}
+.gb-home .logo{pointer-events:none;width:100%}
+/* 26.10 (владелец: «при всех разрешениях всё помещается»): на узком экране логотип сжимается, кнопки не уезжают за край */
+.gb-home{flex:0 1 120px;min-width:72px}.gbar>*:not(.gb-home){flex:none}.gb-home:active{opacity:.6}
 .bc-dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #ff4f9a;flex:none}
 .bc{display:flex;flex-direction:column;gap:10px}.bc h2{margin:0 0 12px;min-height:44px;display:flex;align-items:center;padding-right:56px}   /* не под крестиком: стрелка › не наезжает на ✕ */
 .bc-nav{display:flex;align-items:center;justify-content:space-between}.bc-nav b{font-size:18px}
@@ -877,9 +879,11 @@ img.ava{object-fit:cover}
 @keyframes pwglow{50%{box-shadow:-4px 0 18px -6px rgba(46,158,91,.8),10px 0 28px -4px rgba(255,145,0,.95)}}
 .pw-link .batt .bb,.pw-link .batt .bt{border-color:var(--ink)}.pw-link .batt .bt{background:var(--ink)}
 .pw-hero{display:flex;flex-direction:column;gap:8px}
-.pw-big{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.pw-big b{font-family:var(--f-num);font-weight:400;font-size:56px;line-height:1}
-@media (max-width:360px){.pw-big b{font-size:44px}.pw-big .batt.big{transform:scale(.8);transform-origin:right center}}
+.pw-big{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+/* 26.10 (владелец: «зарядка не влезает»): цифра и батарейка делят ширину — батарейка сжимается (96–150 px), цифра уменьшается кодом (fitRows) */
+.pw-big b{font-family:var(--f-num);font-weight:400;font-size:56px;line-height:1;flex:none;white-space:nowrap}
+.pw-big .batt.big{flex:0 1 auto;justify-content:flex-end}
+.pw-big .batt.big .bb{width:auto;flex:0 1 150px;min-width:110px}
 .pw-msg{margin:0;font-size:16px;line-height:1.35}
 .pw-tip{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:linear-gradient(135deg,#ff6d00,#d500f9);color:#fff;text-align:left;width:100%}
 .pw-tip .pi{font-size:30px;flex:none}
@@ -1646,6 +1650,8 @@ span.lb-gift{background:none}
 
 /* Эксперимент 24.10: скругления у верхней полосы и у полосы «рекорд · посещения · место»; когда они состыкованы — стык прямой */
 .gbar{border-radius:0 0 22px 22px;margin:0 -0px}
+/* 26.10: узкий экран — кнопки верхней полосы плотнее, чтобы всё влезало (стоит после основных правил .gbar, иначе перебивается) */
+@media (max-width:360px){.gbar{gap:5px;padding:0 10px}.gb-ic{width:34px;height:34px}.gb-bat{padding:0 8px;gap:4px}}
 .ser-pin,.catbar{border-radius:22px;transition:border-radius .15s}   /* 25.10: полоса категорий в «Меню» — так же, как в «Турбо» */
 .app.pin-stuck .gbar{border-radius:0;border-bottom-color:transparent}
 .app.pin-stuck :is(.ser-pin,.catbar){border-radius:0 0 22px 22px}
@@ -2496,7 +2502,7 @@ const modeChip = () => `<button class="modechip"${F(S.mode==='delivery'?20:S.mod
 /* ===================== Экраны ===================== */
 // Верхняя полоса (эксперимент): логотип · батарейка «Заряд выгоды» как на телефоне · 🔍 · QR — на всех экранах
 function gbar(){ const pct=powerPct(), lv=LV(pct);
-  return `<div class="gbar"><button class="gb-home" onclick="goHome()" aria-label="кофейная — в начало раздела"><span class="logo" style="width:104px;color:var(--ink)" aria-hidden="true"></span></button><span style="flex:1"></span>
+  return `<div class="gbar"><button class="gb-home" onclick="goHome()" aria-label="кофейная — в начало раздела"><span class="logo" style="color:var(--ink)" aria-hidden="true"></span></button><span style="flex:1"></span>
     <button class="gb-ic gb-bell" onclick="openNotes()" aria-label="Уведомления">${IC.bell}${notesNew()?`<span class="n">${notesNew()}</span>`:''}</button>
     <button class="gb-bat lv-${lv.k}" style="--lv:${lv.c}" onclick="go('${S.plus?'power':'plus'}')" aria-label="Заряд выгоды ${pct}%"><b class="money pcg-${lv.k}">${pct}%</b><span class="ibat"><i style="width:${Math.max(pct,4)}%"></i></span></button>
     <button class="gb-ic" onclick="openSearch()" aria-label="Поиск">${IC.search}</button>
@@ -3458,7 +3464,7 @@ function power(){
   return `<section class="screen">${back('home')}
     <div class="pw-hero">
       <span class="label">Заряд выгоды</span>
-      <div class="pw-big"><b class="money pcg-${LV(pct).k}">${pct}%</b>${battery(pct,true)}</div>
+      <div class="pw-big fit-row"><b class="money pcg-${LV(pct).k}" data-fit>${pct}%</b>${battery(pct,true)}</div>
       <p class="pw-msg">${face} ${pct===100?`<b>Идеально!</b> Ты берёшь от приложения всё ✨`:pct>=75?`<b>Почти идеально</b>, но не всё гладко: включено ${on} из ${it.length}. Ещё ${it.length-on} — и будет 100%.`:`Ты пользуешься <b>${on} из ${it.length}</b> выгод. Чем больше пользуешься — тем больше экономишь`}</p>
     </div>
     ${(()=>{ /* 24.10: на тестах люди принимали зелёную галочку слева за чекбокс. Теперь две отдельные группы без кружков:
@@ -4558,7 +4564,11 @@ function labSixApply(){ const ids=labSixD.map(d=>d.id).filter(Boolean); if(new S
 function labStamp(v){ labDo(()=>{ const sl=S.six.slots[0]||(S.six.slots[0]={id:ID.cap,n:0,isNew:false,last:S.day}); sl.n=v; sl.last=S.day; sl.ready=v>=5?S.day:null; }); }
 
 /* ===================== Рендер ===================== */
-function fitPrivi(){ document.querySelectorAll('.privi-head').forEach(h=>{ const nm=h.querySelector('.privi-name'), b=h.querySelector('.plus-on'); if(!nm||!b) return;
+/* 26.10: строка «крупная цифра + картинка» (.fit-row) — если не влезает, уменьшаем цифру ([data-fit]) до влезания; так при любой ширине экрана */
+function fitRows(){ document.querySelectorAll('.fit-row').forEach(r=>{ const n=r.querySelector('[data-fit]'); if(!n) return; n.style.fontSize='';
+  const out=()=>{ const ks=[...r.children], rr=r.getBoundingClientRect(); return r.scrollWidth>r.clientWidth+0.5||ks.some((k,i)=>{ const b=k.getBoundingClientRect(); return b.right>rr.right+0.5||(i&&b.left<ks[i-1].getBoundingClientRect().right+6); }); };
+  let f=parseFloat(getComputedStyle(n).fontSize); while(out()&&f>24){ f-=2; n.style.fontSize=f+'px'; } }); }
+function fitPrivi(){ fitRows(); document.querySelectorAll('.privi-head').forEach(h=>{ const nm=h.querySelector('.privi-name'), b=h.querySelector('.plus-on'); if(!nm||!b) return;
   h.classList.remove('wrap'); nm.style.fontSize=''; const out=()=>b.getBoundingClientRect().right>h.getBoundingClientRect().right+0.5||nm.scrollWidth>nm.clientWidth+1||b.scrollWidth>b.clientWidth+1;
   nm.classList.remove('brk'); let f=parseFloat(getComputedStyle(nm).fontSize); const f0=f; while(out()&&f>20){ f-=1; nm.style.fontSize=f+'px'; }
   if(out()){ h.classList.add('wrap'); f=f0; nm.style.fontSize=''; while(out()&&f>16){ f-=1; nm.style.fontSize=f+'px'; } if(out()) nm.classList.add('brk'); } });
