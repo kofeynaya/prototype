@@ -1778,6 +1778,11 @@ span.lb-gift{background:none}
 .rc2 b{font-size:clamp(17px,6vw,26px)}.rc2.nx b{font-size:10px}
 .rc2 .dl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;letter-spacing:-.2px}.rc2.f .dl{color:var(--ink)}
 .rc2 em::before{content:'→ ';font-weight:400;opacity:.6}
+.burn-card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.3);margin-bottom:10px;font-size:14px}.burn-card>b{font-size:17px}.burn-card .btn{align-self:flex-start;padding:8px 16px}
+.ser-week.mini{margin:0;gap:3px}.stc .ser-week.mini i{max-width:30px;font-size:14px;border-width:1.5px}
+@media (prefers-reduced-motion:no-preference){.ser-week.urge button.can i{animation:fzPulse 1.6s ease-in-out infinite}}
+@keyframes fzPulse{0%,100%{box-shadow:0 0 0 0 rgba(41,182,246,.55)}50%{box-shadow:0 0 0 6px rgba(41,182,246,0)}}
+.stc .ser-week button.now.can i{border-color:#29b6f6}
 .x-mini{display:inline-grid;place-items:center;width:1.45em;height:1.45em;border-radius:50%;border:2px solid rgba(41,182,246,.8);background:rgba(229,57,53,.14);color:#e53935;font-style:normal;font-weight:900;font-size:.85em;line-height:1;vertical-align:middle;position:relative;top:-.12em;box-sizing:border-box;padding-bottom:.05em}   /* 29.10: «✕» в подсказке — как кружок-пропуск в неделе */
 .rh-h2{display:block;font-size:12.5px;font-weight:600;opacity:.8;margin:2px 0 -2px;text-wrap:balance}
 .rc2 em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}.rc2.f em{color:var(--ink)}.rc2.lock b{opacity:.5}
@@ -2008,6 +2013,7 @@ function genHist(){
 function histOk(){ if(!S.ser.best&&!S.ser.n) return true; const all=[...new Set([...(S.histPast||[]),...S.visits])].filter(d=>d<=S.day), reg=S.regDay??-1e9;
   const need=S.ser.n+(S.ser.best>S.ser.n?S.ser.best:0), have=all.length+(S.ser.fzDays||[]).length;
   return !all.some(d=>d<reg) && have>=need-1 && have<=need+12; }   // и не слишком много: «всего» не должно расходиться со счётчиком и рекордом
+if(S.ser&&S.ser.pend) setTimeout(()=>{ pendToBurn(); save(); try{render();}catch(e){} },0);   // 29.10: отсрочки больше нет
 if(!S.histPast||!S.hist29){ S.hist29=1; if(S.ser.n||S.ser.best) genHist(); else S.histPast=S.histPast||[]; }
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
@@ -2046,6 +2052,14 @@ const timesTxt=n=>n?`${n} ${plural(n,'раз','раза','раз')}`:'ни ра�
 // «На прошлой неделе ты был 2 раза, а нужно хотя бы 3» — без загадочного «2 из 3»
 function pendTxt(){ const p=S.ser.pend; if(!p) return ''; return p.weeks.length>1?`${p.weeks.length} ${plural(p.weeks.length,'неделю','недели','недель')} подряд ты заходил реже ${SER_MIN} раз в неделю`:(serDays(p.weeks[0])?`На прошлой неделе ты был ${timesTxt(serDays(p.weeks[0]))}`:'На прошлой неделе ты не был ни разу')+`, а нужно хотя бы ${SER_MIN}`; }
 function pendNeed(){ const p=S.ser.pend; return p?p.weeks.reduce((a,w)=>a+Math.max(0,SER_MIN-serDays(w)),0):0; }
+/* Понедельник после недели меньше 3 (владелец + критик 29.10): честно «сгорел» и ряд прошлой недели — видно, сколько было; один раз, «Понятно» */
+function burnCard(){ const b=S.ser.burnShow; if(!b||weekOf(S.day)!==b.w+1||!S.plus) return ''; const reg=S.regDay??-1e9;
+  const row=WD.map((d,i)=>{ const day=b.w*7+i, v=(S.visits.includes(day)||(S.histPast||[]).includes(day)), f=(S.ser.fzDays||[]).includes(day); return `<span class="${day<reg?'pre':v?'v':f?'fz':'x'}"><i>${v?'🔥':f?'❄️':day<reg?'':'✕'}</i>${d}</span>`; }).join('');
+  return `<div class="burn-card"><b>💔 Счётчик сгорел</b><span>На прошлой неделе ${b.d} ${plural(b.d,'посещение','посещения','посещений')}, а нужно ${SER_MIN}</span>
+    <div class="ser-week mini">${row}</div>
+    <span>👑 ${S.ser.best} — лучший результат остался<br>Начни заново — приходи сегодня</span>
+    <button class="btn ghost" onclick="S.ser.burnShow=null;save();render()">Понятно</button></div>`; }
+function pendToBurn(){ const p=S.ser.pend; if(!p) return; const n0=p.n, w=p.weeks[p.weeks.length-1]; burnPend(); S.ser.burnShow={w,n:n0,d:serDays(w)}; }
 function burnPend(){ const p=S.ser.pend; if(!p) return; S.ser.lost=p.n; S.ser.lostWeek=p.weeks[0]; S.ser.burnt=[...(S.ser.burnt||[]),...p.weeks]; S.ser.n=Math.max(0,S.ser.n-p.n); S.ser.pend=null; }
 const lastWeekDays = () => { const w=weekOf(S.day)-1; return w>=0 ? weekDays(w) : ((S.past||[]).slice(-1)[0]||0); };
 const rawRate = () => Math.min(7,lastWeekDays());            // % по ритму без учёта подписки
@@ -2228,6 +2242,7 @@ function applyPurchase(q, channel, doc){
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   let mile=null;
+  if(first&&(S.ser.fzDays||[]).includes(S.day)){ S.ser.fzDays=S.ser.fzDays.filter(d=>d!==S.day); unFz(); }   // пришёл в день, который заморозил, — заморозка возвращается
   if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n){ S.ser.start=S.day; if(S.remind==null) S.remindAsk=1; } S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: один напиток на выбор −50% (1 штука) — 3 дня',4500),mile?6000:3400); } }
   (q.giftsUsed||[]).forEach(id=>{ const g=S.rw.gifts.find(x=>x.id===id); if(g) g.used=S.day; });
   if(mile) setTimeout(()=>celebrateMile(mile),2600);
@@ -2275,13 +2290,10 @@ function nextDay(){
     const d=weekDays(w), met=serDays(w)>=SER_MIN, was=Math.min(rawRate(),rateCap());  S.weekHist.push({week:w,days:d,met});
     msg=`Неделя закрыта: ${d} ${plural(d,'день','дня','дней')} с покупкой → на этой неделе ${rateAll()}% бонусов с каждой покупки${rate()<was?` (было ${was}%)`:''}.`;
     // неделя старта счётчика не сгорает; предложение «заморозь» — только если спасти реально можно (хватает пропусков ✕ и заморозок), иначе честно сгорает сразу
-    if(!met && S.ser.n && !isStartWeek(w)){
-      const short=SER_MIN-serDays(w), slots=serMiss(w).length, needAll=pendNeed()+short;
-      if(slots>=short && (!S.plus || fzLeft()>=needAll)){
-        if(S.ser.pend){ S.ser.pend.weeks.push(w); S.ser.pend.until=S.day+PEND_DAYS-1; } else S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1};
-        const k=pendNeed(); msg+=` 😟 ${pendTxt()}. ${S.plus?`Заморозь ${k} ${plural(k,'пропуск','пропуска','пропусков')} ❄️ до ${fmt(S.ser.pend.until)} — и ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')} не сгорят.`:`Верни ★ Кофейная+ до ${fmt(S.ser.pend.until)} — и сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}.`}`; }
-      else { const n0=S.ser.pend?S.ser.pend.n:S.ser.n; S.ser.pend=S.ser.pend||{weeks:[],n:S.ser.n}; S.ser.pend.weeks.push(w); burnPend();
-        msg+=` 💔 На прошлой неделе было меньше ${SER_MIN} посещений, а заморозок не хватило — счётчик ${n0} сгорел. 👑 Лучший результат (${S.ser.best}) остался.`; } }
+    /* 29.10 (владелец + критик): неделя закрыта — к ней не возвращаемся. Не набрал 3 (с заморозками) — счётчик сгорает сразу,
+       в понедельник карточка «Счётчик сгорел» с рядом прошлой недели — видно, почему. Неделя старта счётчика не сгорает */
+    if(!met && S.ser.n && !isStartWeek(w)){ const n0=S.ser.n; S.ser.pend={weeks:[w],n:n0}; burnPend(); S.ser.burnShow={w,n:n0,d:serDays(w)};
+      msg+=` 💔 На прошлой неделе было меньше ${SER_MIN} посещений — счётчик ${n0} сгорел. 👑 Лучший результат (${S.ser.best}) остался.`; }
     if(S.plus&&d>=CHEST_MIN){ S.rw.chest={week:w,open:false}; msg+=` 🎁 За ${d} ${plural(d,'посещение','посещения','посещений')} — сундук с призом! Открой в «Турбо».`; }
     if(givePlat()) msg+=' 💎 Подарок Платинового: один напиток на выбор −50% (1 штука) — 3 дня.';
   }
@@ -3248,14 +3260,12 @@ function serState(){
   const need=Math.max(0,SER_MIN-cur), fz=fzLeft(), X=serMiss(w0).length, M=Math.max(0,need-left), N=S.ser.n;
   const P=n=>`${n} ${plural(n,'посещение','посещения','посещений')}`, PR=n=>`${n} ${plural(n,'пропуск','пропуска','пропусков')}`, sun=fmt(w0*7+6);
   let k, msg;
-  if(S.ser.pend){ const p=S.ser.pend, K=pendNeed(); k='danger';
-    msg=''; void K; }   // всё сказано на кнопке «Решить ›» над неделей — не дублируем
-  else if(!S.plus){ k='zero'; msg=N?`<b>Твои ${P(N)} подряд ждут</b><br>Верни ★ Кофейная+`:`Посещения подряд 🔥 — с ★ Кофейная+`; }
+  if(!S.plus){ k='zero'; msg=N?`<b>Твои ${P(N)} подряд ждут</b><br>Верни ★ Кофейная+`:`Посещения подряд 🔥 — с ★ Кофейная+`; }
   else if(!N){ k='zero'; msg=S.ser.lost&&(S.ser.lostWeek??-9)>=w0-2?`<b>Счётчик сгорел.</b> Лучший результат 👑 ${S.ser.best} остался<br>Приходи — начнём заново`:`Приходи сегодня — и счётчик начнёт считать твои посещения`; }
   else if(isStartWeek(w0)){ k='start'; msg=today?`<b>Первая неделя — она не сгорит 🔥</b><br>Приходи от ${SER_MIN} раз в неделю — и счётчик будет расти`:`<b>Первая неделя — она не сгорит</b><br>Приходи сегодня — будет ${N+1} 🔥`; }
   else if(!need){ k='safe'; msg=nextStep(left); }
   else if(!M){ if(need<left){ k='need'; msg=`${today?'Сегодня засчитано <b class="ok-tick">✓</b> ':''}${cur?`На этой неделе ты был <b>${timesTxt(cur)}</b>`:'На этой неделе ты ещё <b>не был</b>'}<br>Ещё ${P(need)} — и счётчик спасён`; }
-    else { k='danger'; msg=dow===6||left===1?`<b>Сегодня последний день</b> — приходи, или ${P(N)} сгорят`:`<b>Успеешь, только если приходить каждый день до ${sun}</b> — или ${P(N)} сгорят`; } }
+    else { k='danger'; msg=dow===6||left===1?`<b>Сегодня последний день недели</b><br>${canFzToday()&&fz?`Приходи — или нажми на «сегодня» и заморозь его ❄️`:`Приходи — иначе ${P(N)} сгорят`}`:`<b>Успеешь, только если приходить каждый день до ${sun}</b> — или ${P(N)} сгорят`; } }
   else if(X>=M && fz>=M){ k='freeze'; msg=`<b>Уже не успеть.</b> Нажми на <i class="x-mini">✕</i> и заморозь ${PR(M)} ❄️${left?` и приходи ещё ${timesTxt(left)}`:''} — спасёшь ${P(N)}`; }
   else if(X>=M){ k='doomed'; msg=`<b>Уже не успеть:</b> не хватает ${P(M)}, а ${fz?`заморозок ${fz}`:'заморозок нет'}<br>${P(N)} сгорят, лучший результат 👑 останется`; }
   else { k='doomed'; msg=`<b>На этой неделе ${SER_MIN} посещения уже не набрать</b><br>Счётчик сгорит, но лучший результат 👑 ${S.ser.best} останется`; }
@@ -3268,7 +3278,9 @@ function serWeek(w){
   const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d>=reg && d<S.day && !S.visits.includes(d); });
   const fzDay=(S.ser.frozen||[]).includes(w)?miss[miss.length-1]:-1, man=fzDaysIn(w).map(d=>d%7);
   const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend && S.ser.n>0;   // счётчик ещё не начался — замораживать нечего
-  return `<div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
+  const fzT=w===weekOf(S.day)&&canFzToday(), urge=w===weekOf(S.day)&&S.plus&&['freeze','danger'].includes(serState().k);   // 29.10: в конце недели ✕ мягко пульсируют — «вот где спасать»
+  return `<div class="ser-week${urge?' urge':''}">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
+    if(fzT&&day===S.day) return `<button class="now today can" onclick="freezeDay(${day})" aria-label="Сегодня — заморозить"><i><b class="gh">🔥</b></i>сегодня</button>`;
     const k=day<reg?'pre':v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':'fut';
     return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='now'?'<b class="gh">🔥</b>':''}</i>${day===S.day?'сегодня':d}</span>`; }).join('')}</div>
     ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на <i class="x-mini">✕</i></b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
@@ -3301,10 +3313,10 @@ function statusCard(st){
     </div>
     <div class="stc-band">
       <div class="stc-bh"><span>Твои посещения на этой неделе</span><button onclick="openFreeze()">${fzChip()}</button></div>
-      ${S.ser.pend?`<button class="restore" onclick="openPend()"><span>😟</span><span class="tx"><b>${pendTxt()}. Сохрани ${S.ser.pend.n} ${plural(S.ser.pend.n,'посещение','посещения','посещений')}</b><small>${S.plus?`Заморозь ${pendNeed()} ${plural(pendNeed(),'пропуск','пропуска','пропусков')} ❄️ до ${fmt(S.ser.pend.until)}`:`Верни ★ Кофейная+ до ${fmt(S.ser.pend.until)}`}</small></span><span class="go">Решить ›</span></button>`:''}
+      ${burnCard()}
       ${serWeek(w)}
       ${S.ser.n&&!S.ser.pend&&['need','safe'].includes(st.k)?ladder():''}
-      ${st.msg?`<p class="ser-msg">${st.msg}</p>`:''}
+      ${st.msg&&!burnCard()?`<p class="ser-msg">${st.msg}</p>`:''}
     </div>
   </div>`;
 }
@@ -3346,14 +3358,16 @@ const fzWord=n=>plural(n,'заморозка','заморозки','заморо
 // 26.10 (владелец): когда заморозки начали тратиться — «❄️ 15 из 16 заморозок», чтобы было видно, что они кончаются
 const fzAll=()=>S.plus?FZ_MONTH+tariff().vac:0;
 const fzChip=()=>{ const l=fzLeft(), a=fzAll(); return l<a?`❄️ ${l} из ${a} ${fzWord(a)}`:`❄️ ${l} ${fzWord(l)}`; };
-function freezeDay(day){ const dn=fmt(day);
+const canFzToday=()=>S.plus&&S.ser.n>0&&S.day%7===6&&!S.visits.includes(S.day)&&!(S.ser.fzDays||[]).includes(S.day)&&serDays(weekOf(S.day))<SER_MIN&&!isStartWeek(weekOf(S.day));
+function unFz(){ if(S.ser.fzm&&S.ser.fzm.used>0) S.ser.fzm.used--; else if(S.ser.vacUsed) S.ser.vacUsed--; }
+function freezeDay(day){ const dn=day===S.day?'сегодня':fmt(day);
   if(day<(S.regDay??-1e9)) return toast('Этого дня ещё не было в приложении — замораживать нечего');
   if(!S.ser.n && !S.ser.pend) return toast('Счётчик ещё не начался — пока нечего замораживать');
   if(day<serWin()) return toast('В этот день счётчик ещё не считал — пропуска нет');
   if(!S.plus) return sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>Пропущенный день можно заморозить — он засчитается в счётчик, и посещения не сгорят.</p><p class="small muted">Это можно только с подпиской <b>★ Кофейная+</b>: ${FZ_MONTH} заморозки каждый месяц.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
   if(fzLeft()<=0) return toast('Заморозки на этот месяц закончились. Новые — 1-го числа.');
   const left=fzLeft()-1;
-  sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>День засчитается в счётчик, как будто ты зашёл. Посещения не сгорят.</p><p class="small muted">Останется ${left} ${fzWord(left)}.</p>
+  sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>${day===S.day?'Сегодня не успеваешь — день засчитается в счётчик, как будто ты зашёл<br>Если всё-таки придёшь, заморозка вернётся':'День засчитается в счётчик, как будто ты зашёл. Посещения не сгорят.'}</p><p class="small muted">Останется ${left} ${fzWord(left)}.</p>
     <button class="btn block" onclick="doFreeze(${day})">Заморозить ❄️</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
 function doFreeze(day){ useFz(day); (S.ser.fzDays=S.ser.fzDays||[]).push(day);
   save(); closeSheet(); render(); toast(`❄️ ${fmt(day)} заморожен — счётчик не сгорит.`); }
@@ -4618,7 +4632,10 @@ function labFzMonth(m){ labDo(()=>{ S.ser.fzm={m:monthKey(S.day),used:FZ_MONTH-m
 function labFzVac(v){ labDo(()=>{ S.ser.vacUsed=Math.max(0,tariff().vac-v); }); }
 function labPend(on){ labDo(()=>{ if(!on){ S.ser.pend=null; return; } const w=labWk()-1; if(w<0) return toast('Нужна прошлая неделя — нажми «+1 неделя»');
   if(serDays(w)>=SER_MIN){ S.visits=S.visits.filter(d=>weekOf(d)!==w); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==w); S.visits.push(w*7+1); }
-  if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n,until:S.day+PEND_DAYS-1}; }); }
+  if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.pend={weeks:[w],n:S.ser.n}; pendToBurn();
+  S.day=(w+1)*7; S.visits=S.visits.filter(d=>weekOf(d)!==w+1); ensureDaily(); }); }   // понедельник — день, когда видно «сгорел»   // 29.10: отсрочки нет — сразу «сгорел» с рядом прошлой недели
+// 29.10: воскресенье, на этой неделе 2 посещения — видно, как спасти неделю внутри неё (✕ пульсируют, «сегодня» можно заморозить)
+function labSunday(){ labDo(()=>{ const w=labWk(); S.day=w*7+6; S.visits=S.visits.filter(d=>weekOf(d)!==w); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==w); S.visits.push(w*7,w*7+2); if(!S.ser.n) S.ser.n=40; S.ser.best=Math.max(S.ser.best,S.ser.n); S.ser.burnShow=null; ensureDaily(); },'Воскресенье: не хватает 1 посещения'); }
 function labBurn(){ labDo(()=>{ const w=Math.max(0,labWk()-1); S.ser.lost=S.ser.n||87; S.ser.best=Math.max(S.ser.best,S.ser.lost); S.ser.lostWeek=w; (S.ser.burnt=S.ser.burnt||[]).push(w); S.ser.n=0; S.ser.pend=null; },'Счётчик сгорел'); }
 function labBd(n){ labDo(()=>{ const t=dateOf(S.day+n); S.birth={y:S.birth&&S.birth.y||1993,m:t.getMonth(),d:t.getDate(),verified:false}; }); }
 // пульт: друг купил 3 раза, пока тебя не было → сразу «Турбо» и праздничное окно
@@ -4644,8 +4661,8 @@ const LAB_PRESETS=[
   {k:'p99',  t:'Почти Платиновый — 99',    c:'Купи → праздник 100, напиток в подарок и −50% Платинового', go:'progress'},
   {k:'plat', t:'Платиновый — 150',         c:'Подарок недели, +2%, тёмная карточка', go:'progress'},
   {k:'late', t:'Пришёл в субботу',         c:'Зарегистрировался в конце недели и купил: первая неделя не сгорит, крестиков за пн–пт нет', go:'progress'},
-  {k:'pend', t:'Пропустил неделю',         c:'Плашка «Сохрани счётчик», заморозок хватает / нет', go:'progress'},
-  {k:'short',t:'Пропустил, заморозок мало', c:'Нужно 2 дня, осталась 1 заморозка — что предложит приложение', go:'progress'},
+  {k:'pend', t:'Сгорел в понедельник',     c:'Прошлая неделя — 2 посещения: «Счётчик сгорел» и ряд прошлой недели', go:'progress'},
+  {k:'short',t:'Воскресенье, не хватает',  c:'Последний день недели: ✕ пульсируют, «сегодня» можно заморозить', go:'progress'},
   {k:'burn', t:'Счётчик сгорел',           c:'Серебряный снова, лучший результат остался, грусть', go:'progress'},
   {k:'free', t:'Без подписки',             c:'Всё под замком, заряд 0%, окно QR', go:'home'},
   {k:'full', t:'Всё включено — 100%',      c:'Голубая батарейка, «Идеально!»', go:'power'},
@@ -4666,7 +4683,8 @@ function labApplyPreset(k){
     if(k==='g29'){ keep(); S.ser.n=29; S.ser.best=Math.max(29,S.ser.best); S.rw.miles={}; }
     if(k==='p99'){ keep(); S.ser.n=99; S.ser.best=112; S.rw.miles={30:1,50:1}; S.rw.platWeek=null; }
     if(k==='plat'){ S.ser.n=150; S.ser.best=150; S.rw.miles={30:1,50:1,100:1}; givePlat(); }
-    if(k==='pend'||k==='short'){ labPend(true); if(k==='short'){ S.visits=S.visits.filter(d=>weekOf(d)!==wk-1); S.ser.fzDays=(S.ser.fzDays||[]).filter(d=>weekOf(d)!==wk-1); S.visits.push((wk-1)*7+2); S.tariff='m'; labFzMonth(1); } }
+    if(k==='pend'){ labPend(true); }
+    if(k==='short'){ labSunday(); }
     if(k==='burn'){ labBurn(); }
     if(k==='free'){ S.plus=false; }
     if(k==='full'){ S.funnel.used=Math.max(1,S.funnel.used); labLastWeek(4); S.wallet.money=Math.max(S.wallet.money,1000); labFriend(true);
@@ -4710,7 +4728,8 @@ function lab(){
       ${rng('Посещений на прошлой неделе',lw,0,7,'labLastWeek',` → ${Math.min(lw,PLUS_CAP)}%`)}
       ${rng('Заморозок осталось в этом месяце',fzMonthLeft(),0,FZ_MONTH,'labFzMonth')}
       ${t.vac?rng('Дней на отпуск осталось',fzVacLeft(),0,t.vac,'labFzVac'):''}
-      ${tg('Счётчик ждёт решения (пропустил неделю)',!!S.ser.pend,'labPend')}
+      ${tg('Счётчик сгорел в понедельник (прошлая неделя — 2 посещения)',!!S.ser.burnShow,'labPend')}
+      <button class="btn ghost block" onclick="labSunday()">🕕 Воскресенье, не хватает 1 посещения</button>
       <button class="btn ghost block" onclick="labBurn()">💔 Сжечь счётчик</button>
       <div class="lab-grid">${num('Бонусы',S.bonus,'S.bonus')}${num('Депозит, ₽',S.wallet.money,'S.wallet.money')}${num('Кэшбэк, ₽',S.wallet.gift,'S.wallet.gift')}</div></div>
 
