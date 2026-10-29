@@ -1532,8 +1532,8 @@ img.ava{object-fit:cover}
 .gf-share{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:20px;background:linear-gradient(160deg,rgba(214,38,79,.14),rgba(255,109,0,.08));border:1px solid rgba(214,38,79,.35)}
 .gf-share>b{font-size:18px}.gf-share>span{font-size:14px;color:var(--muted)}
 .gh-ava{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;font-weight:800;font-size:17px}.gf-h .tx b{font-size:16px}.gh-what{font-size:14px}.gh-st{flex:none;text-align:right;max-width:34%}
-.ph-field{display:flex;align-items:center;gap:6px;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);cursor:text}.ph-field:focus-within{border-color:#2e9e5b;box-shadow:0 0 0 3px rgba(46,158,91,.25)}
-.ph-pre{font-size:18px;font-weight:700;color:var(--ink);flex:none}.ph-field input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:18px;padding:14px 0;color:var(--ink)}
+.ph-field{display:flex;align-items:center;gap:0;padding:0 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);cursor:text}.ph-field:focus-within{border-color:#2e9e5b;box-shadow:0 0 0 3px rgba(46,158,91,.25)}
+.ph-pre{font-size:18px;font-weight:400;color:var(--ink);flex:none;white-space:pre}   /* 29.10: «+7 (9» и набранные цифры читаются одним номером — без зазора, тем же шрифтом */.ph-field input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:18px;padding:14px 0;color:var(--ink)}
 .gf-h{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.gf-h .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-h small{font-size:12.5px;color:var(--muted)}
 .bon-big{display:flex;align-items:center;gap:12px;font-size:20px}.bon-big .coin{width:44px;height:44px}.bon-big b{font-size:34px;font-family:var(--f-num)}
 .lb-gift{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none;background:rgba(214,38,79,.1)}
@@ -1974,6 +1974,7 @@ if(!S.ser){ S.ser={n:87,best:112,fz:{m:-1,used:0},frozen:[],lost:0}; } // дем
 if(!S.chats) S.chats={};
 if(!S.sup) S.sup={msgs:[],unread:0,state:'idle',topic:null,nightDemo:false,pend:null};   // поддержка (24.10)
 if(!S.notes) S.notes=[];
+if(S.phone&&!/\(/.test(S.phone)&&ph9(S.phone).length===9) S.phone=phFull(ph9(S.phone));   // 29.10: «+7 (911) 177-07-77»
 if(S.ref&&S.ref.friends) S.ref.friends.forEach(f=>{ if(f.name==='Миша') f.name='Миша Хвостов'; });   // 25.10: друзья с фамилией — чтобы было понятно, кто это
 if(!S.cards) S.cards=S.card?[{id:'c1',f:'4',last4:(S.card.match(/\d{4}/)||['4242'])[0],exp:'08/28',main:true},{id:'c2',f:'2',last4:'1111',exp:'03/29',main:false}]:[];   // банковские карты (владелец 25.10)   // уведомления — только настоящие события
 if(!S.six) S.six={slots:[{id:ID.cap,n:4,isNew:false,last:S.day-1},{id:ID.croissant,n:2,isNew:true,last:S.day-2},{id:ID.muffin,n:5,isNew:false,last:S.day-1,ready:S.day}],swap:{},ai:{last:null,no:{},cur:null},usedDay:null}; // демо
@@ -3407,7 +3408,7 @@ function me(){ const bd=bdInfo(), b=S.birth;
       <div class="me-sex"><button class="optbtn ${S.sex==='m'?'on':''}" onclick="setSex('m',this)">Мужской</button><button class="optbtn ${S.sex==='f'?'on':''}" onclick="setSex('f',this)">Женский</button></div>
       <span class="small muted">Чтобы приложение обращалось к тебе правильно — в мужском или женском роде</span></div>
     <div class="list">
-      ${r('phone','Телефон',S.phone||'+7 900 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
+      ${r('phone','Телефон',S.phone||'+7 (900) 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
       ${r('card','Банковские карты',S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить',"go('cards')")}
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
@@ -4013,20 +4014,23 @@ function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
   gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
   drawGift(); }
-function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=to.ph; gf.nm=to.nm||''; } if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
+function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=ph9(to.ph); gf.nm=to.nm||''; } if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
-/* 26.10 (владелец): «+7» стоит всегда и не стирается — гость вводит только 10 цифр; вставили «+7…» или «8…» — лишнее убираем */
-function phTen(el,e){ const prev=el.dataset.v||''; let d=el.value.replace(/\D/g,'');
-  // больше 10 цифр ввести нельзя: лишняя набранная цифра просто не встаёт; «+7…/8…» срезаем только у вставленного номера целиком
-  if(d.length>10){ const paste=!e||/insertFromPaste|insertReplacementText|insertFromDrop/.test(e.inputType||'')||!prev; d=paste&&d.length===11&&/^[78]/.test(d)?d.slice(1):(paste?d.slice(-10):prev); }
-  el.dataset.v=d;
-  el.value=[d.slice(0,3),d.slice(3,6),d.slice(6,8),d.slice(8,10)].reduce((a,x,i)=>x?a+(i===0?'':i===1?' ':'-')+x:a,''); }
-function giftPhone(){ const v=(document.getElementById('gph')||{}).value||'', d='7'+v.replace(/\D/g,'').slice(-10);
-  if(d.length!==11) return toast('Проверь номер: после +7 нужно 10 цифр');
+/* 29.10 (владелец): номер пишем как принято — «+7 (911) 177-07-77». «+7 (9» стоит всегда и не стирается (номера только мобильные),
+   гость вводит 9 цифр; больше набрать нельзя; вставили «+7 911…», «8911…» или «911…» — лишнее убираем сами */
+const PH_PRE='+7 (9';
+function ph9(v){ let d=String(v||'').replace(/\D/g,''); if(d.length>9){ const t=d.slice(-10); d=t[0]==='9'?t.slice(1):t.slice(-9); } return d.slice(0,9); }
+function phIn(d){ return d.length<=2?d:d.slice(0,2)+') '+[d.slice(2,5),d.slice(5,7),d.slice(7,9)].filter(Boolean).join('-'); }   // то, что в поле после «+7 (9»
+function phFull(d){ return `+7 (9${d.slice(0,2)}) ${d.slice(2,5)}-${d.slice(5,7)}-${d.slice(7,9)}`; }
+function phNine(el,e){ const prev=el.dataset.v||''; let d=el.value.replace(/\D/g,'');
+  if(d.length>9){ const paste=!e||/insertFromPaste|insertReplacementText|insertFromDrop/.test(e.inputType||'')||!prev; d=paste?ph9(d):prev; }
+  el.dataset.v=d; el.value=phIn(d); }
+const phField=(id,d,extra='')=>`<div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">${PH_PRE}</span><input id="${id}" type="tel" inputmode="numeric" placeholder="00) 000-00-00" autocomplete="off" value="${phIn(d||'')}" data-v="${d||''}" oninput="phNine(this,event);${extra}"></div>`;
+function giftPhone(){ const el=document.getElementById('gph'), d9=el?el.dataset.v||ph9(el.value):'', d='79'+d9;
+  if(d9.length!==9) return toast('Проверь номер — не хватает цифр');
   if(d.slice(1)===(S.phone||'').replace(/\D/g,'').slice(-10)) return toast('Это твой номер — себе подарить нельзя 🙂');
-  if(!/^79/.test(d)) return toast('Нужен мобильный номер — он начинается с +7 9');
   const nm=((document.getElementById('gnm')||{}).value||'').trim();
-  giftTo({key:'p'+d, ph:v.trim(), nm, n:nm||`+7 ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9)}`, short:nm||'получатель', phone:`+7 ${d.slice(1,4)} •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
+  giftTo({key:'p'+d, ph:d9, nm, n:nm||phFull(d9), short:nm||'получатель', phone:`+7 (${d.slice(1,4)}) •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
 function giftLink(){ giftTo({key:'link'+Date.now(), n:'Тот, кому отправишь ссылку', short:'получатель', via:'link'}); }
 function giftPrice(){ if(gf.kind==='bonus') return {bonus:gf.amt||0, dep:0, card:0, total:gf.amt||0};
   const m=byId(gf.item); if(!m) return {bonus:0,dep:0,card:0,total:0};
@@ -4051,7 +4055,7 @@ function drawGift(){ const s=gf.step, t=gf.to;
     body=`<h2>Кому подарить?</h2>
       ${rec.length?`<span class="label">Ты уже дарил · ${rec.length}</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">${giftLetter(r)}</span>`}<span>${esc(giftShort(r))}</span></button>`).join('')}</div>
       <span class="label">Новому человеку</span>`:''}
-      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label><div class="ph-field" onclick="this.querySelector('input').focus()"><span class="ph-pre">+7</span><input id="gph" type="tel" inputmode="numeric" placeholder="900 000-00-00" autocomplete="off" value="${gf.phone||''}" data-v="${(gf.phone||'').replace(/\D/g,'')}" oninput="phTen(this,event);gf.phone=this.value"></div>
+      <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label>${phField('gph',ph9(gf.phone),'gf.phone=this.dataset.v')}
         <input id="gnm" placeholder="Как зовут (необязательно)" autocomplete="off" value="${esc(gf.nm||'')}" oninput="gf.nm=this.value"><button class="btn block" onclick="giftPhone()">Дальше</button>
         <small class="muted">Придёт СМС со ссылкой<br>Приложение и подписка ему не нужны</small></div>
       <button class="btn ghost block" onclick="giftLink()">🔗 Отправить ссылкой в мессенджер</button>
@@ -4145,7 +4149,7 @@ function profile(){
   const bd=bdInfo();
   const row=(ic,t,act,extra='',f=0,cls='')=>`<button class="li${cls?' '+cls:''}"${f?F(f):''} onclick="${act}">${IC[ic].replace('<svg','<svg class="ic"')}<span class="tx">${t}</span>${extra}<span class="chev">›</span></button>`;
   return `<section class="screen">
-    <div class="row between" style="gap:10px"><div class="row" style="gap:10px;min-width:0;flex:1">${myPhoto()}<button class="me-hit" onclick="go('me')" aria-label="Мой профиль"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 900 000-00-00'} ›</span></button></div>
+    <div class="row between" style="gap:10px"><div class="row" style="gap:10px;min-width:0;flex:1">${myPhoto()}<button class="me-hit" onclick="go('me')" aria-label="Мой профиль"><h1 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal">${S.name}</h1><span class="muted small money ph-num">${S.phone||'+7 (900) 000-00-00'} ›</span></button></div>
       ${S.plus?subChip():''}</div>
     ${bd.diff===0?`<div class="notice">${IC.cake}<span><b>С днём рождения!</b> Желаем побольше улыбок${bd.active&&S.plus?`. Твоя скидка −${bd.pct}% уже работает`:''}</span></div>`:''}
     ${dashboard()}
@@ -4380,7 +4384,7 @@ function auth(){
   return `<div class="auth">
     <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>
     ${authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
-        <div class="field"><label class="label" for="phone">Номер телефона</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 123-45-67" value="${S.phone||'+7 '}" oninput="maskPhone(this)"></div>
+        <div class="field"><label class="label" for="phone">Номер телефона</label>${phField('phone',S.phone?ph9(S.phone):'')}</div>
         <button class="btn block" type="submit">Получить код по СМС</button></form>`
     : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
         <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
@@ -4388,9 +4392,7 @@ function auth(){
         <button class="btn block" type="submit">Войти</button></form>`}
   </div>`;
 }
-function maskPhone(el){ let d=el.value.replace(/\D/g,''); if(d.startsWith('8')) d='7'+d.slice(1); if(!d.startsWith('7')) d='7'+d; d=d.slice(0,11);
-  const p=[d.slice(1,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)]; let s='+7'; if(p[0]) s+=' '+p[0]; if(p[1]) s+=' '+p[1]; if(p[2]) s+='-'+p[2]; if(p[3]) s+='-'+p[3]; el.value=s; }
-function sendCode(){ const v=$('#phone').value; if(v.replace(/\D/g,'').length<11){ toast('Введите номер полностью: 10 цифр после +7.'); return; } S.phone=v; authStep='code'; save(); render(); $('#code')?.focus(); }
+function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.length<9){ toast('Проверь номер — не хватает цифр'); return; } S.phone=phFull(d); authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
 function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
 
