@@ -3281,7 +3281,7 @@ function serWeek(w){
   const fzT=w===weekOf(S.day)&&canFzToday(), urge=w===weekOf(S.day)&&S.plus&&['freeze','danger'].includes(serState().k);   // 29.10: в конце недели ✕ мягко пульсируют — «вот где спасать»
   return `<div class="ser-week${urge?' urge':''}">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
     if(fzT&&day===S.day) return `<button class="now today can" onclick="freezeDay(${day})" aria-label="Сегодня — заморозить"><i><b class="gh">🔥</b></i>сегодня</button>`;
-    const k=day<reg?'pre':v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':'fut';
+    const k=v?'v':day<(S.regDay??-1e9)?'pre':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':day<S.day?'gap':'fut';   // 29.10: тусклые — только дни до регистрации; «сегодня» всегда зовущий кружок, даже когда счётчик 0
     return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='now'?'<b class="gh">🔥</b>':''}</i>${day===S.day?'сегодня':d}</span>`; }).join('')}</div>
     ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на <i class="x-mini">✕</i></b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
