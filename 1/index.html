@@ -1769,11 +1769,16 @@ span.lb-gift{background:none}
 .r3.nxt{background:transparent;border:2px dashed rgba(23,47,40,.45)}
 .rh-row2{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .rc2{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
-.rc2 b{width:100%;height:30px;border-radius:9px;background:rgba(23,47,40,.12);display:grid;place-items:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden}
+.rc2 b{width:100%;max-width:52px;aspect-ratio:1;height:auto;border-radius:12px;background:rgba(23,47,40,.12);display:grid;place-items:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden}
 .rc2.nx b{font-size:9px;letter-spacing:-.2px;white-space:nowrap;color:#d6264f;border:2px solid #d6264f;background:rgba(255,255,255,.5)}
 @media (prefers-reduced-motion:no-preference){.rc2.nx b{animation:rcPulse 1.4s ease-in-out infinite}}
 @keyframes rcPulse{50%{transform:scale(1.08)}}
 .rc2.f b{background:rgba(255,255,255,.75)}
+/* 29.10 (владелец): «мелкие и непонятно, что 1% — это дни»: клетки крупнее (как кружки недели), над каждой «1 день · 2 дня…», под ней «→ 1%», сверху строка-объяснение */
+.rc2 b{font-size:clamp(17px,6vw,26px)}.rc2.nx b{font-size:10px}
+.rc2 .dl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;letter-spacing:-.2px}.rc2.f .dl{color:var(--ink)}
+.rc2 em::before{content:'→ ';font-weight:400;opacity:.6}
+.rh-h2{display:block;font-size:12.5px;font-weight:600;opacity:.8;margin:2px 0 -2px;text-wrap:balance}
 .rc2 em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}.rc2.f em{color:var(--ink)}.rc2.lock b{opacity:.5}
 .rh-hint{display:flex;gap:10px;align-items:center;margin:0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.55);font-size:14px;line-height:1.3}
 .rh-hint .fc{font-size:24px}
@@ -3200,7 +3205,7 @@ function rhythm(){
   else { const k=Math.min(praise.length-1,cur-now-1); face=cur-now>=2?'🤩':'😊'; l1=`${praise[k]} Уже ${next}% бонусов — больше, чем сейчас`;
     l2=next+1>=cap?`Сделай свой максимум: приди ещё раз — будет ${cap}% бонусов на следующей неделе`:`Продолжай: приди ещё раз — на следующей неделе будет ${next+1}% бонусов`; }
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
-    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
+    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
@@ -3208,6 +3213,7 @@ function rhythm(){
       <div class="r3 nxt"><span>С понедельника</span><b class="money">${next}%</b><small>${next<cap?'растёт':'максимум'}</small></div>
     </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
+    <span class="rh-h2">Сколько дней придёшь на этой неделе — столько % бонусов будет со следующей</span>
     <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     <p class="rh-hint"><span class="fc">${face}</span><span><b>${l1}</b>${l2?`<br>${l2}`:''}</span></p>
     <p class="rh-cond">День засчитывается от ${MIN_DAY} ₽ покупок <button class="rh-q" onclick="openRhRules()" aria-label="Подробнее">?</button></p>
