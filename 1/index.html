@@ -1128,7 +1128,10 @@ img.ava{object-fit:cover}
 .vm-grid .d.fz{background:rgba(155,217,217,.45);color:var(--ink)}
 .vm-grid .d.burn{background:rgba(229,57,53,.16);color:#e53935;font-weight:700}
 .vm-grid .d.today{box-shadow:0 0 0 2px var(--ink)}
-.vm-grid .d.reg{box-shadow:0 0 0 2px #2b2b93}
+/* 29.10 (владелец + критик): первый день с нами — розовый кружок (как в календаре выгоды), до него — серо и тускло */
+.vm-grid .d.reg{background:#ff4f9a;color:#fff;font-weight:700;box-shadow:0 0 0 3px rgba(255,79,154,.35)}.vm-grid .d.reg.v{background:#ff8a3d;box-shadow:0 0 0 3px #ff4f9a}
+.vm-grid .d.pre{opacity:.28}
+.vm-regdot,.vm-predot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:5px}.vm-regdot{background:#ff4f9a}.vm-predot{background:var(--muted);opacity:.35}
 .vm-grid .d.fut{opacity:.35}
 .ser-side{display:flex;gap:6px;min-width:0;margin:0 auto}
 .ser-side button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px;border-radius:12px;background:var(--line);width:58px}
@@ -1983,14 +1986,22 @@ if(!S.benDemo){ S.benDemo=1; let sd=11; const rnd=()=>(sd=(sd*16807)%2147483647)
     const k=K[i%5], dsc=k==='bd'?Math.round(reg*.3):Math.round(reg*(.08+rnd()*.2)), bs=0, gs=i%6===0?30:0;
     old.push({day,items:its,sum:reg-dsc-bs,goods:reg-dsc,saved:dsc,src:{[k]:dsc},giftSpend:gs,bonus:Math.round((reg-dsc)*.03),bonusSpend:bs,walletSpend:gs,ch:'Касса'}); S.saved+=dsc; }
   S.orders=[...old.reverse(),...S.orders]; }
-if(!S.histPast){ // демо: посещения до начала календаря прототипа, сходятся с «87 подряд» и «лучший 112»
+/* 29.10 (владелец + критик): числа не задаём руками — история посещений до календаря прототипа строится так, чтобы из неё
+   получались и «🔥 подряд», и «👑 рекорд», и «всего»: текущий счётчик → неделя, где он сгорел → прошлый счётчик (рекорд) → день регистрации */
+function genHist(){
   let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647, pick=(w,k)=>{ const ds=[0,1,2,3,4,5,6].sort(()=>rnd()-.5).slice(0,k); return ds.map(d=>w*7+d); };
   const out=[], burnt=[]; let w=-1, left=Math.max(0,S.ser.n-S.visits.filter(d=>d<S.day).length);
   while(left>0){ let k=Math.min(left,3+Math.floor(rnd()*3)); if(left-k>0&&left-k<3) k=left-3; out.push(...pick(w,k)); left-=k; w--; }
-  burnt.push(w); out.push(...pick(w,1)); w--;
-  left=S.ser.best; while(left>0){ let k=Math.min(left,3+Math.floor(rnd()*3)); if(left-k>0&&left-k<3) k=left-3; out.push(...pick(w,k)); left-=k; w--; }
-  out.push(...pick(w,2)); S.regDay=w*7+2; out.push(S.regDay); S.histPast=[...new Set(out)].sort((a,b)=>a-b); S.ser.burnt=[...(S.ser.burnt||[]),...burnt];
+  if(S.ser.best>S.ser.n){ burnt.push(w); out.push(...pick(w,1)); w--; }   // рекорд выше текущего — значит, был прошлый счётчик и он сгорел
+  left=S.ser.best>S.ser.n?S.ser.best:0; while(left>0){ let k=Math.min(left,3+Math.floor(rnd()*3)); if(left-k>0&&left-k<3) k=left-3; out.push(...pick(w,k)); left-=k; w--; }
+  out.push(...pick(w,2)); S.regDay=w*7+2; out.push(S.regDay); S.histPast=[...new Set(out)].filter(d=>d>=S.regDay).sort((a,b)=>a-b); S.ser.burnt=[...(S.ser.burnt||[]).filter(x=>x>=0),...burnt];
+  S.ser.start=null;
 }
+// проверка: нет посещений раньше регистрации, и в журнале хватает посещений и на текущий счётчик, и на рекорд
+function histOk(){ if(!S.ser.best&&!S.ser.n) return true; const all=[...new Set([...(S.histPast||[]),...S.visits])].filter(d=>d<=S.day), reg=S.regDay??-1e9;
+  const need=S.ser.n+(S.ser.best>S.ser.n?S.ser.best:0), have=all.length+(S.ser.fzDays||[]).length;
+  return !all.some(d=>d<reg) && have>=need-1 && have<=need+12; }   // и не слишком много: «всего» не должно расходиться со счётчиком и рекордом
+if(!S.histPast||!S.hist29){ S.hist29=1; if(S.ser.n||S.ser.best) genHist(); else S.histPast=S.histPast||[]; }
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
 
 const weekOf = d => Math.floor(d/7);
@@ -2009,7 +2020,7 @@ const serDays = w => weekDays(w) + fzDaysIn(w).length;
    а красный ✕ (и заморозка) — только у дней начиная с дня старта счётчика и не раньше регистрации.
    Одно правило закрывает регистрацию в середине недели, подписку в середине недели и перезапуск после сгорания.
    Повторная подписка при счётчике > 0 защиты не даёт (старт остаётся прежним) — иначе отписка/подписка = бесплатные заморозки */
-if(!S.reg19){ S.reg19=1; const r=Math.round((new Date(2026,9,19)-DAY0)/864e5); if(r<S.day){ S.regDay=r; S.histPast=(S.histPast||[]).filter(d=>d>=r); } }   // владелец 25.10: в демо гость с нами с 19 октября 2026 (готовые ситуации пульта задают своё)
+// (25.10 в демо была регистрация 19 октября — 29.10 убрано: при 25 посещениях подряд это невозможно арифметически, регистрацию даёт genHist())   // владелец 25.10: в демо гость с нами с 19 октября 2026 (готовые ситуации пульта задают своё)
 function serStart(){ if(S.ser.start!=null) return S.ser.start; if(S.regDay==null) return -1e9;
   const v=S.visits.filter(d=>d>=S.regDay).sort((a,b)=>a-b); return v.length && S.ser.n<=v.length ? v[v.length-S.ser.n] : -1e9; }
 const serWin = () => Math.max(S.regDay??-1e9, S.ser.n>0 ? serStart() : 1e9);
@@ -3312,14 +3323,14 @@ function openVisits(){
   const off=x=>Math.round((x-new Date(DAY0))/864e5);
   const mon=m=>{ const first=off(m), dim=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(), lead=((m.getDay()+6)%7);
     let cnt=0, cells=WD.map(x=>`<span class="h">${x}</span>`).join('')+'<span></span>'.repeat(lead);
-    for(let i=0;i<dim;i++){ const day=first+i, v=all.has(day)&&day<=S.day; if(v) cnt++;
-      const k=day<reg?'':v?'v':burnt.has(day)?'burn':fz.has(day)?'fz':day>S.day?'fut':'';
+    for(let i=0;i<dim;i++){ const day=first+i, v=all.has(day)&&day<=S.day&&day>=reg; if(v) cnt++;
+      const k=day<reg?'pre':v?'v':burnt.has(day)?'burn':fz.has(day)?'fz':day>S.day?'fut':'';
       cells+=`<span class="d ${k} ${day===S.day?'today':''} ${day===reg?'reg':''}">${v?'🔥':k==='burn'?'💔':k==='fz'?'❄️':i+1}</span>`; }
     return `<div class="vm-mon"><h3>${MON_N[m.getMonth()]} ${m.getFullYear()} <small>· ${cnt} ${plural(cnt,'посещение','посещения','посещений')}</small></h3><div class="vm-grid">${cells}</div></div>`; };
   sheet(`<h2>Все мои посещения</h2>
-    <div class="vm-sum"><div><b>${S.ser.n}</b><span>подряд сейчас</span></div><div><b>👑 ${S.ser.best}</b><span>лучший результат</span></div><div><b>${total}</b><span>всего посещений</span></div></div>
-    <p class="small muted" style="margin:0">С нами с ${r.getDate()} ${MON[r.getMonth()]} ${r.getFullYear()} — обведено синим.</p>
-    <div class="vm-leg"><span>🔥 был</span><span>❄️ заморозка</span><span>💔 счётчик сгорел</span></div>
+    <div class="vm-sum"><div><b>👑 ${S.ser.best}</b><span>мой рекорд<br>подряд</span></div><div><b>🔥 ${S.ser.n}</b><span>${plural(S.ser.n,'посещение','посещения','посещений')}<br>подряд</span></div><div><b>📅 ${total}</b><span>всего<br>посещений</span></div></div>
+    <p class="small muted" style="margin:0">С нами с ${r.getDate()} ${MON[r.getMonth()]} ${r.getFullYear()}</p>
+    <div class="vm-leg"><span>🔥 был в кофейной</span><span>❄️ заморозка</span><span>💔 счётчик сгорел</span><span><i class="vm-regdot"></i>первый день с нами</span><span><i class="vm-predot"></i>тебя ещё не было с нами</span></div>
     ${months.map(mon).join('')}`);
 }
 // Заморозить пропущенный день — только вручную и только с подпиской «Кофейная+»
@@ -4654,6 +4665,7 @@ function labApplyPreset(k){
       S.orders.push({day:S.day-1,items:[ID.cap],sum:150,goods:190,saved:0,src:{},giftSpend:0,bonus:4,bonusSpend:40,walletSpend:0,ch:'Касса'}); }
     if(k==='bday'){ labBd(0); S.six.slots[0]={id:ID.cap,n:5,isNew:false,last:S.day-1,ready:S.day}; S.ser.n=150; S.ser.best=150; S.rw.miles={30:1,50:1,100:1}; givePlat(); S.bonus=800; }
   });
+  if(S.ser.n||S.ser.best) genHist();   // 29.10: цифры сценария всегда сходятся с календарём посещений
   tab=p.go; setRoot(TAB_OF[tab]||tab); try{ localStorage.setItem(KEY+'-tab',tab); }catch(e){}
   save(); setTimeout(()=>{ toast(`Сценарий «${p.t}»: ${p.c}`,5000); if(!S.onb) openOnb(); },400);
 }
