@@ -1778,6 +1778,7 @@ span.lb-gift{background:none}
 .rc2 b{font-size:clamp(17px,6vw,26px)}.rc2.nx b{font-size:10px}
 .rc2 .dl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;letter-spacing:-.2px}.rc2.f .dl{color:var(--ink)}
 .rc2 em::before{content:'→ ';font-weight:400;opacity:.6}
+.x-mini{display:inline-grid;place-items:center;width:1.45em;height:1.45em;border-radius:50%;border:2px solid rgba(41,182,246,.8);background:rgba(229,57,53,.14);color:#e53935;font-style:normal;font-weight:900;font-size:.95em;line-height:1;vertical-align:-.25em}   /* 29.10: «✕» в подсказке — как кружок-пропуск в неделе */
 .rh-h2{display:block;font-size:12.5px;font-weight:600;opacity:.8;margin:2px 0 -2px;text-wrap:balance}
 .rc2 em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}.rc2.f em{color:var(--ink)}.rc2.lock b{opacity:.5}
 .rh-hint{display:flex;gap:10px;align-items:center;margin:0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.55);font-size:14px;line-height:1.3}
@@ -3207,13 +3208,13 @@ function rhythm(){
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
+    <span class="rh-h2">Сколько дней придёшь на этой неделе — столько % бонусов будет со следующей</span>
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
       <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
       <div class="r3 nxt"><span>С понедельника</span><b class="money">${next}%</b><small>${next<cap?'растёт':'максимум'}</small></div>
     </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
-    <span class="rh-h2">Сколько дней придёшь на этой неделе — столько % бонусов будет со следующей</span>
     <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     <p class="rh-hint"><span class="fc">${face}</span><span><b>${l1}</b>${l2?`<br>${l2}`:''}</span></p>
     <p class="rh-cond">День засчитывается от ${MIN_DAY} ₽ покупок <button class="rh-q" onclick="openRhRules()" aria-label="Подробнее">?</button></p>
@@ -3255,7 +3256,7 @@ function serState(){
   else if(!need){ k='safe'; msg=nextStep(left); }
   else if(!M){ if(need<left){ k='need'; msg=`${today?'Сегодня засчитано <b class="ok-tick">✓</b> ':''}${cur?`На этой неделе ты был <b>${timesTxt(cur)}</b>`:'На этой неделе ты ещё <b>не был</b>'}<br>Ещё ${P(need)} — и счётчик спасён`; }
     else { k='danger'; msg=dow===6||left===1?`<b>Сегодня последний день</b> — приходи, или ${P(N)} сгорят`:`<b>Успеешь, только если приходить каждый день до ${sun}</b> — или ${P(N)} сгорят`; } }
-  else if(X>=M && fz>=M){ k='freeze'; msg=`<b>Уже не успеть.</b> Нажми на красный ✕ и заморозь ${PR(M)} ❄️${left?` и приходи ещё ${timesTxt(left)}`:''} — спасёшь ${P(N)}`; }
+  else if(X>=M && fz>=M){ k='freeze'; msg=`<b>Уже не успеть.</b> Нажми на <i class="x-mini">✕</i> и заморозь ${PR(M)} ❄️${left?` и приходи ещё ${timesTxt(left)}`:''} — спасёшь ${P(N)}`; }
   else if(X>=M){ k='doomed'; msg=`<b>Уже не успеть:</b> не хватает ${P(M)}, а ${fz?`заморозок ${fz}`:'заморозок нет'}<br>${P(N)} сгорят, лучший результат 👑 останется`; }
   else { k='doomed'; msg=`<b>На этой неделе ${SER_MIN} посещения уже не набрать</b><br>Счётчик сгорит, но лучший результат 👑 ${S.ser.best} останется`; }
   return {k,msg,cur,left,X,M,need};
@@ -3270,7 +3271,7 @@ function serWeek(w){
   return `<div class="ser-week">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
     const k=day<reg?'pre':v?'v':(i===fzDay||man.includes(i))?'fz':miss.includes(i)?(S.ser.n>0?'x':'gap'):day===S.day?'now':'fut';
     return k==='x'?`<button class="x ${canFz?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск — заморозить"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='now'?'<b class="gh">🔥</b>':''}</i>${day===S.day?'сегодня':d}</span>`; }).join('')}</div>
-    ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на ✕</b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
+    ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на <i class="x-mini">✕</i></b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
 /* Статус гостя — по счётчику «посещений подряд». Сгорел счётчик — статус возвращается к Серебряному (лучший результат остаётся). */
 const TIERS=[{k:'silver',n:'Серебряный',to:'Серебряного',from:0},{k:'gold',n:'Золотой',to:'Золотого',from:30},{k:'plat',n:'Платиновый',to:'Платинового',from:100}];
@@ -3374,7 +3375,7 @@ function openFreeze(){ const ml=fzMonthLeft(), vl=fzVacLeft(), t=tariff();
     <p>Посещения подряд сгорают, если за неделю ты был меньше ${SER_MIN} раз. <b>Заморозка — это пропуск без потерь:</b> день засчитается, как будто ты зашёл.</p>
     ${S.plus?`<div class="vac"><b class="money">${ml}</b><span>${plural(ml,'день','дня','дней')} можно пропустить в этом месяце (из ${FZ_MONTH}). 1-го числа снова будет ${FZ_MONTH}</span><i style="width:${Math.round(ml/FZ_MONTH*100)}%"></i></div>
       ${t.vac?`<div class="vac"><b class="money">${vl}</b><span>${plural(vl,'день','дня','дней')} на отпуск 🏖️ (из ${t.vac}) — на весь тариф «${t.n}»</span><i style="width:${Math.round(vl/t.vac*100)}%"></i></div>`:''}
-      <p class="small muted">Сами заморозки не включаются — решаешь ты. Пропустил день — нажми на красный ✕. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить, на решение ${PEND_DAYS} дней</p>`
+      <p class="small muted">Сами заморозки не включаются — решаешь ты. Пропустил день — нажми на <i class="x-mini">✕</i>. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить, на решение ${PEND_DAYS} дней</p>`
     :`<p class="small muted">Заморозки — только с ★ Кофейная+</p>`}
     <div class="panel">${TARIFFS.map(x=>`<div class="row between"><span>${x.n} — ${rub(x.p)}</span><b>${FZ_MONTH} дня в месяц${x.vac?` + ${x.vac} на отпуск`:''}</b></div>`).join('')}</div>
     ${S.plus?'':`<button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`}`);
@@ -3826,7 +3827,7 @@ const RULES=[
       <li><b>Бонусы не сгорают.</b> 1 бонус = 1 ₽, ими можно оплатить до 30% чека.</li>
     </ul>
     <button class="link" onclick="closeSheet();go('progress')">Смотреть мой ритм в «Турбо» ›</button>`],
-  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — 1 заморозка = 1 пропущенный день, <b>только вручную</b>: нажми на красный ✕. На любом тарифе — ${FZ_MONTH} в месяц (не копятся), на тарифе на полгода — ещё 6 дней на отпуск, на год — 12. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить пропуски; на решение ${PEND_DAYS} дней, потом счётчик сгорит. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
+  ['Посещения подряд 🔥',`<p class="small muted">Каждое посещение с покупкой — +1 на счётчик (одно в день, от ${MIN_DAY} ₽). <b>Счётчик сгорает</b>, если за неделю было меньше ${SER_MIN} посещений. <b>Заморозка ❄️</b> (с Кофейная+) — 1 заморозка = 1 пропущенный день, <b>только вручную</b>: нажми на <i class="x-mini">✕</i>. На любом тарифе — ${FZ_MONTH} в месяц (не копятся), на тарифе на полгода — ещё 6 дней на отпуск, на год — 12. Не набрал ${SER_MIN} за неделю — в понедельник предложим заморозить пропуски; на решение ${PEND_DAYS} дней, потом счётчик сгорит. 👑 Лучший результат не сгорает никогда. В «Турбо» видно, у кого больше посещений, — можно открыть профиль гостя и написать ему.</p>`],
   ['Награды за посещения 🎁',`<p class="rl-main">Чем больше посещений подряд — тем выше уровень и больше выгода.</p>
     <ul class="rl-list">
       <li><b>🥈 Серебряный</b> (0–29) — бонусы за ритм.</li>
