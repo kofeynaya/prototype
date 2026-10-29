@@ -3080,7 +3080,7 @@ function cart(){
     <div class="panel" style="gap:0">
       ${S.bonus>0?bonusCard('c-bonus',co.bonus,'co.bonus=this.checked;render()',qt.paid):''}
       ${walletTotal()>0?depoCard('c-wallet',co.wallet,'co.wallet=this.checked;render()',qt):''}
-      ${qt.card>0?`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span>`:'<div class="opt" hidden><span>'}<span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
+      ${qt.card>0?`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span>`:'<div class="opt" hidden><span>'}<span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay'],['cash',S.mode==='delivery'?'Наличными курьеру':'Наличными на кассе']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
     </div>
     <div class="field"><label class="label" for="cmt">Комментарий</label><input id="cmt" style="font-size:16px" placeholder="${S.mode==='delivery'?'Например: позвонить за 10 минут':'Например: без сахара'}" value="${co.comment}" oninput="co.comment=this.value"></div>
     <div class="sum panel">
@@ -3090,7 +3090,7 @@ function cart(){
       ${del?`<div class="r"><span>Доставка</span><span class="money">${qt.fee?rub(qt.fee):'бесплатно'}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
       <div class="r"><span>Начислим бонусов (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
-      <div class="r tot"><span>К оплате</span><span class="money">${rub(qt.card)}</span></div>
+      <div class="r tot"><span>К оплате${qt.card>0&&S.pay==='cash'?' наличными':''}</span><span class="money">${rub(qt.card)}</span></div>
     </div>
     <div class="row between" style="position:sticky;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0;border-top:1px solid var(--line)"><div class="stack" style="gap:0"><span class="small muted">К оплате</span><strong style="font-size:22px" class="money">${rub(qt.card)}</strong></div><button class="btn" ${minLeft||(S.mode==='table'&&!S.table)?'disabled':''} onclick="checkout()">${minLeft?`Минимум ${rub(DELIVERY.min)}`:co.when==='asap'?'Оформить заказ':'Оформить предзаказ'}</button></div>
   </section>`;
@@ -3101,7 +3101,7 @@ function checkout(){
   if(co.when==='at'&&!atOk(co.at)){ toast('Это время уже слишком близко<br>Выбери другое — не раньше чем через час'); openWhen(); return; }
   const msg=applyPurchase(qt, ch, false);
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
-  S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, status:0, when:co.when==='at'?atLbl(co.at):'asap', code:String(10+Math.floor(Math.random()*89))});
+  S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, dep:qt.walletSpend, rest:qt.card, pay:S.pay, status:0, when:co.when==='at'?atLbl(co.at):'asap', code:String(10+Math.floor(Math.random()*89))});
   S.basket=[]; co={bonus:false,wallet:true,when:'asap',at:null,comment:''}; save();
   curOrder=0; go('order',1); toast(msg,4500); askRemind();
 }
@@ -3120,7 +3120,7 @@ function order(){
     ${o.mode==='table'?`<div class="panel" style="align-items:center;text-align:center"><span class="label">Столик</span><span class="bigcode">${S.table?.n||7}</span></div>`:''}
     <div class="panel"${F(23)}><div class="statusline">${steps.map((s,i)=>`<div class="st ${i<o.status?'done':i===o.status?'cur':''}"><span class="b"></span><span class="tx"><strong>${s[0]}</strong><small>${s[1]}</small></span></div>`).join('')}</div></div>
     ${o.status<3?`<button class="btn ghost block" onclick="S.myOrders[curOrder].status++;save();render()">Демо: следующий этап</button>`:''}
-    <div class="panel"><h3>Состав</h3>${o.lines.map(l=>`<div class="row between small"><span>${byId(l.id).n} × ${l.qty}</span><span class="money">${rub(l.unit*l.qty)}</span></div>`).join('')}<div class="row between"><strong>Оплачено</strong><strong class="money">${rub(o.total)}</strong></div></div>
+    <div class="panel"><h3>Состав</h3>${o.lines.map(l=>`<div class="row between small"><span>${byId(l.id).n} × ${l.qty}</span><span class="money">${rub(l.unit*l.qty)}</span></div>`).join('')}${o.pay==='cash'&&o.rest>0?`${o.dep?`<div class="row between small"><span>С депозита</span><span class="money">${rub(o.dep)}</span></div>`:''}<div class="row between"><strong>${o.mode==='delivery'?'Наличными курьеру':'Наличными на кассе'}</strong><strong class="money">${rub(o.rest)}</strong></div>`:`<div class="row between"><strong>Оплачено</strong><strong class="money">${rub(o.total)}</strong></div>`}</div>
     <div class="notice">${IC.star}<span>Заказ в приложении засчитан в цель недели — так же, как покупка на кассе.</span></div>
   </section>`;
 }
@@ -4492,10 +4492,13 @@ function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(
     ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }   // 26.10 (владелец): над переключателем подпись — сразу ясно, что нажать
 /* Депозит при оплате (владелец 26.10): списывается ПО УМОЛЧАНИЮ — зачем иначе класть деньги; выключить можно переключателем.
    Тот же вид, что у бонусов: значок, крупно сумма на депозите, сколько спишем и сколько останется, «Списать/Списываю» над переключателем */
-function depoCard(id,on,ch,qt){ const tot=walletTotal(), can=S.plus, use=on&&can?qt.walletSpend:0, rest=qt.card;
+/* 29.10 (владелец): депозит меньше чека — списываем сколько есть, остальное картой или наличными; переключатель показывает выбор гостя,
+   а не «сколько списали» (иначе при бесплатном заказе он сам выключался и казалось, что не работает) */
+const PAY_W={card:'картой',sberpay:'через SberPay',cash:'наличными'};
+function depoCard(id,on,ch,qt,pay){ const tot=walletTotal(), can=S.plus, use=on&&can?qt.walletSpend:0, rest=qt.card, free=on&&can&&!use&&!rest, how=PAY_W[pay||S.pay]||'картой';
   return `<label class="bon-card depo${use?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin dp">₽</span><span class="bc-tx"><span class="bc-top">Депозит <b class="money">${rub(tot)}</b></span>
-    <span class="bc-sub">${!can?'Оплата депозитом — только с ★ Кофейная+':use?`<b>−${rub(use)}</b> с депозита${rest>0?`<br>Остальное ${rub(rest)} — картой`:`<br>Останется ${rub(tot-use)}`}`:'Не списываем<br>Платишь картой'}</span></span>
-    <span class="bc-sw"><span class="bc-swl">${use?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${use?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }
+    <span class="bc-sub">${!can?'Оплата депозитом — только с ★ Кофейная+':free?'Заказ и так бесплатный<br>Депозит не тратим':use?`<b>−${rub(use)}</b> с депозита${rest>0?`<br>Остальное ${rub(rest)} — ${how}`:`<br>Останется ${rub(tot-use)}`}`:`Не списываем<br>Платишь ${how}`}</span></span>
+    <span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }
 function openKassa(){
   kc={}; ko={wallet:true,bonus:false,doc:false}; const o=S.offer;
   if(o.status==='activated'){ if(o.mech==='combo') o.combo.forEach(i=>kc[i]=(kc[i]||0)+1); else if(o.mech==='gift'){ kc[ID.cap]=1; kc[ID.cookie]=1 } else kc[o.item]=1; }
@@ -4507,7 +4510,8 @@ function drawKassa(){
   const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
   if(qt.bdNeedsDoc) opts.push(`<label class="opt" for="o-doc"><span><strong>День рождения −${bdInfo().pct}%</strong><br><span class="small muted">Бариста: проверьте паспорт или права — дату рождения</span></span><input type="checkbox" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></label>`);
   if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt.paid));
-  if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt));
+  if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt,ko.pay||'card'));
+  if(qt.card>0) opts.push(`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span><span class="optrow">${[['card','Картой'],['cash','Наличными']].map(([k,t])=>`<button class="optbtn ${(ko.pay||'card')===k?'on':''}" style="padding:6px 10px" onclick="ko.pay='${k}';drawKassa()">${t}</button>`).join('')}</span></div>`);
   const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса в кофейне</span><h2>Гость показал QR</h2>
     <p class="small muted">${o.status==='activated'?`Активно: «${o.title}».`:o.status==='used'?'Предложение дня уже использовано.':'Предложение дня не активировано.'}</p></div>
     <div class="menu">${ids.map(id=>{ const m=byId(id), pp=myPrice(id), six=sixReady(id);
@@ -4520,7 +4524,7 @@ function drawKassa(){
       ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
       <div class="r"><span>Бонусы за покупку (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
-      <div class="r tot"><span>К оплате картой</span><span class="money">${rub(qt.card)}</span></div></div>
+      <div class="r tot"><span>К оплате ${(ko.pay||'card')==='cash'?'наличными':'картой'}</span><span class="money">${rub(qt.card)}</span></div></div>
     <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
   sheet(html);   // 26.10: перерисовка — в том же окне, той же высоты (sheet() сам)
 }
