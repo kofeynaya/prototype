@@ -360,6 +360,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .bon-card{display:flex;align-items:center;gap:12px;padding:8px 0;margin:2px 0 6px;background:none;border:0;cursor:pointer}   /* 26.10 (владелец): без жёлтой рамки и подложки — монетка, сумма и переключатель */
 .bon-card.off{opacity:.65;cursor:default}
 .bc-coin{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#f2c230 55%,#c98a00);color:#5a3a00;font-weight:800;font-size:18px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 6px rgba(201,138,0,.35)}
+.bc-coin.bd{background:radial-gradient(circle at 35% 30%,#ffd1e6,#ff4f9a 60%,#c2185b);font-size:20px}
 .bc-coin.dp{background:radial-gradient(circle at 35% 30%,#7cc9a2,#2e9e5b 55%,#0d553f);color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 6px rgba(13,85,63,.35)}
 .bc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .bc-top{font-size:14px}.bc-top b{font-size:20px;font-weight:800}
@@ -4519,12 +4520,12 @@ function openKassa(){
 function drawKassa(){
   const ids=[...new Set([...KASSA, ...Object.keys(kc)])];
   const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
-  if(qt.bdNeedsDoc) opts.push(`<label class="opt" for="o-doc"><span><strong>День рождения −${bdInfo().pct}%</strong><br><span class="small muted">Бариста: проверьте паспорт или права — дату рождения</span></span><input type="checkbox" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></label>`);
+  if(qt.bdNeedsDoc) opts.push(`<label class="bon-card${ko.doc?' on':''}" for="o-doc"><span class="bc-coin bd">🎂</span><span class="bc-tx"><span class="bc-top">Скидка в день рождения <b>−${bdInfo().pct}%</b></span><span class="bc-sub">В первый раз покажи бариста<br>паспорт или права</span></span><span class="bc-sw"><span class="bc-swl">${ko.doc?'Показал':'Показать'}</span><input type="checkbox" class="sw" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></span></label>`);   // 29.10 (владелец): окно кассы — глазами гостя, без «Бариста: проверьте…»
   if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt.paid));
   if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(qt.card>0) opts.push(`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span><span class="optrow">${[['card','Картой'],['cash','Наличными']].map(([k,t])=>`<button class="optbtn ${(ko.pay||'card')===k?'on':''}" style="padding:6px 10px" onclick="ko.pay='${k}';drawKassa()">${t}</button>`).join('')}</span></div>`);
-  const html=`<div class="stack" style="gap:4px"><span class="label">Демо · касса в кофейне</span><h2>Гость показал QR</h2>
-    <p class="small muted">${o.status==='activated'?`Активно: «${o.title}».`:o.status==='used'?'Предложение дня уже использовано.':'Предложение дня не активировано.'}</p></div>
+  const html=`<div class="stack" style="gap:4px"><span class="label">Покупка в кофейне</span><h2>Ты показал QR на кассе</h2>
+    <p class="small muted">${o.status==='activated'?`Предложение дня включено: «${o.title}»`:o.status==='used'?'Предложение дня уже использовано':'Предложение дня не включено'}</p></div>
     <div class="menu">${ids.map(id=>{ const m=byId(id), pp=myPrice(id), six=sixReady(id);
       return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.n}</span><span class="pr">${pp!=null?`<s>${rub(m.p)}</s> <span class="pp">${rub(pp)}</span>`:rub(m.p)}${six?` · <span class="pp">6-й −${Math.round(sixOff(six)*100)}%</span>`:''}</span></div>
       <div class="qty"><button aria-label="Убрать" onclick="kc['${id}']=Math.max(0,(kc['${id}']||0)-1);if(!kc['${id}'])delete kc['${id}'];drawKassa()">−</button><span>${kc[id]||0}</span><button aria-label="Добавить" onclick="kc['${id}']=(kc['${id}']||0)+1;drawKassa()">+</button></div></div>` }).join('')}</div>
@@ -4536,7 +4537,7 @@ function drawKassa(){
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
       <div class="r"><span>Бонусы за покупку (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
       <div class="r tot"><span>К оплате ${(ko.pay||'card')==='cash'?'наличными':'картой'}</span><span class="money">${rub(qt.card)}</span></div></div>
-    <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить (имитация)</button>`;
+    <button class="btn block" ${qt.lines.length?'':'disabled'} onclick="payKassa()">Оплатить</button>`;
   sheet(html);   // 26.10: перерисовка — в том же окне, той же высоты (sheet() сам)
 }
 /* Напоминание «не дай посещениям сгореть» (24.10, с критиком) — единственный пуш, который работает на цель 3→4→5.
