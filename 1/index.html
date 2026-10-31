@@ -1788,10 +1788,6 @@ span.lb-gift{background:none}
 #pr-ritm{gap:10px}#pr-ritm .rhythm{padding-top:0}
 .rh-qtop{position:absolute;right:18px;top:45px;width:26px;height:26px;font-size:14px;background:rgba(255,255,255,.45);border-color:rgba(23,47,40,.35)}
 .rc2 b{max-width:48px}
-.rh-sum>span{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;line-height:1.1;flex:1;min-width:0;text-align:center}
-.rh-sum{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.45);font-size:15px;color:inherit;-webkit-tap-highlight-color:transparent}
-.rh-sum b{font-family:var(--f-num);font-weight:400;font-size:22px;line-height:1;background:linear-gradient(135deg,#ff6d00,#d6264f 55%,#8e24aa);-webkit-background-clip:text;background-clip:text;color:transparent}
-.rh-sum i{font-style:normal;font-weight:800;font-size:18px;opacity:.55}.rh-sum.up i{color:#1f7a55;opacity:1}.rh-sum.down i{color:#d6264f;opacity:1}
 .rh3{display:flex;align-items:stretch;gap:4px}
 .rh3>i{align-self:center;font-style:normal;font-weight:700;opacity:.6}
 .r3{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:8px 8px 7px;border-radius:14px;background:rgba(255,255,255,.4);text-align:center;align-items:center}
@@ -3295,15 +3291,19 @@ function rhTap(n){ const w=weekOf(S.day), cur=weekDays(w), now=rate(), dow=S.day
   return T(h, k===left?(today?'Получится, только если приходить каждый день до воскресенья':'Получится, только если приходить каждый день, начиная с сегодня'):(today?`До воскресенья ещё ${D(left)} — успеешь`:`До воскресенья ${D(left)}, считая сегодня — успеешь`)); }
 function rhythm(){
   /* 31.10 (владелец + критик): карточка ниже, как у уровня (≈340 px): «?» у метки, заголовок 3 строки, ряд 7 клеток (1 день → 1%),
-     одна плашка «Сейчас N% → со следующей недели M%». Подсказки и смайлик убраны — объяснения в всплывашках клеток и по «?» */
+     три плашки «прошлая неделя → сейчас → со следующей» (владелец вернул). Подсказки и смайлик убраны — объяснения в всплывашках клеток и по «?» */
   const cur=weekDays(weekOf(S.day)), last=lastWeekDays(), cap=rateCap(), now=rate(), dow=S.day%7, today=S.visits.includes(S.day);
-  const left=7-dow-(today?1:0), next=Math.min(cur,cap), up=next>now?'up':next<now?'down':'';
+  const left=7-dow-(today?1:0), next=Math.min(cur,cap);
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
     <button class="rh-q rh-qtop" onclick="openRhRules()" aria-label="Как это работает">?</button>
     <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
-    <button class="rh-sum ${up}" onclick="toast(\`Сейчас ${now}% бонусов с каждой покупки<br>Столько, потому что на прошлой неделе было ${last} ${plural(last,'день','дня','дней')} с покупкой\`,4000)"><span>Сейчас<b class="money">${now}%</b></span><i>→</i><span>Со следующей недели<b class="money">${next}%</b></span></button>
+    <div class="rh3">
+      <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${plural(last,'день','дня','дней')}</small></div><i>→</i>
+      <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
+      <div class="r3 nxt"><span>Со следующей недели</span><b class="money">${next}%</b><small>${next>=cap?'максимум':left>0?'можно больше':'итог недели'}</small></div>
+    </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
   </div>`;
 }
