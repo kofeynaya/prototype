@@ -1160,6 +1160,7 @@ img.ava{object-fit:cover}
 .ser-week button i{transition:transform .12s ease}.ser-week button:active i{transform:scale(.92)}
 .ser-week button:focus-visible i{outline:2px solid var(--teal);outline-offset:2px}
 .fz-hint{margin:0;font-size:12px;opacity:.85}
+.more-h{margin:-6px 0 -10px;font-size:22px;font-weight:800}.more-list{display:flex;flex-direction:column;gap:8px}.more-list .gift-row{margin:0}   /* 31.10: «А ещё:» — крупнее, карточки плотнее */
 .restore{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;text-align:left;background:rgba(41,182,246,.18);border:1px solid rgba(41,182,246,.6);color:inherit}
 .restore>span:first-child{font-size:24px}
 .restore .tx{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -3418,11 +3419,13 @@ function openTiers(){
   const cur=tierOf(S.ser.n);
   sheet(`<h2>Уровни</h2><p class="small muted">Уровень зависит от того, сколько посещений подряд. Сгорит счётчик — уровень вернётся к Серебряному. 👑 Лучший результат останется.</p>
     ${TIERS.map((t,i)=>{ const to=TIERS[i+1]; return `<div class="stc t-${t.k} mini"><div class="stc-top"><span class="stc-chip">${t===cur?'Твой уровень':S.ser.n>=t.from?'Пройден':'Впереди'}</span><b class="stc-name">${t.n}</b><div class="stc-prog"><span>${to?`${t.from}–${to.from-1} посещений подряд`:`от ${t.from} посещений подряд`}</span></div><span class="stc-perk big">${TIER_FULL[t.k]}</span></div></div>`; }).join('')}
-    <h3 style="margin:18px 0 6px">А ещё</h3>
-    <div class="gift-row"><span class="gi">🎁</span><span class="tx"><b>Сундук с призом</b><small>Неделя, где ${CHEST_MIN} и больше посещений, — приз в понедельник</small></span></div>
-    <div class="gift-row"><span class="gi">🎉</span><span class="tx"><b>Праздник на 30, 50, 100, 200, 300…</b><small>30, 50, 100, а дальше каждые 100 посещений подряд</small></span></div>
-    <div class="gift-row hot"><span class="gi">⏳</span><span class="tx"><b>Подарок живёт ${GIFT_DAYS} дня</b><small>Не успел — сгорел. Копить подарки нельзя</small></span></div>
-    <p class="small muted">Заморозка ❄️ спасает счётчик, но подарки — только за настоящие посещения</p>
+    <h3 class="more-h">А ещё:</h3>
+    <div class="more-list">
+    <div class="gift-row"><span class="gi">🎁</span><span class="tx"><b>Сундук с призом</b><small>${CHEST_MIN} посещений за неделю — в понедельник приз:<br>напиток или десерт до −50%</small></span></div>
+    <div class="gift-row"><span class="gi">🎉</span><span class="tx"><b>Подарки за посещения подряд</b><small>30 — напиток −30%, 50 — напиток −50%<br>100 — напиток в подарок<br>Дальше каждые 100 — напиток и десерт в подарок</small></span></div>
+    <div class="gift-row hot"><span class="gi">⏳</span><span class="tx"><b>Приз живёт ${GIFT_DAYS} дня</b><small>Приз из сундука или за посещения — забери за ${GIFT_DAYS} дня, потом сгорит<br>Подарок от друга ждёт 30 дней</small></span></div>
+    <div class="gift-row"><span class="gi">❄️</span><span class="tx"><b>Заморозка</b><small>Спасает счётчик посещений<br>А призы — только за настоящие посещения</small></span></div>
+    </div>
     ${cur.k!=='plat'&&S.plus?`<button class="btn ghost block" onclick="demoPlat()">Демо: стать Платиновым</button>`:''}`);
 }
 const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
