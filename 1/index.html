@@ -1154,6 +1154,7 @@ img.ava{object-fit:cover}
 .ser-week button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;width:100%;color:var(--muted);padding:0;background:none}
 .stc .ser-week button{color:inherit;opacity:.8}
 .ser-week button.can i{box-shadow:0 0 0 2px rgba(41,182,246,.7)}
+.rc2.tap{cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}.rc2.tap b{transition:transform .12s ease}.rc2.tap:active b{transform:scale(.92)}
 .ser-week .tap{cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}.ser-week .tap i{transition:transform .12s ease}.ser-week .tap:active i{transform:scale(.92)}
 .ser-week button{-webkit-tap-highlight-color:transparent;outline:none;background:none!important;box-shadow:none!important}   /* 31.10: без серого прямоугольника при нажатии */
 .ser-week button i{transition:transform .12s ease}.ser-week button:active i{transform:scale(.92)}
@@ -3227,6 +3228,30 @@ const MOOD_FACE={
 const moodFace=k=>`<svg class="mface" viewBox="0 0 40 40" role="img" aria-label="${k}"><circle cx="20" cy="20" r="18" fill="${MOOD_FACE[k].bg}" stroke="#212221" stroke-width="2"/><g fill="#212221" stroke="#212221" stroke-width="2.2" stroke-linecap="round" fill-opacity="1">${MOOD_FACE[k].e}</g><g fill="none" stroke="#212221" stroke-width="2.4" stroke-linecap="round">${MOOD_FACE[k].m}</g></svg>`;
 // заливка дней: одна тёплая гамма, с каждым днём ярче и горячее
 const RH_HEAT=['#fde3cf','#fcc9a2','#fbac74','#f98d4b','#f56a32','#ea4a3c','#d6264f'];
+/* 31.10 (владелец + критик): каждая ячейка «Твоего ритма» нажимается — всплывашка под ситуацию. Сравниваем только с «сейчас» (now),
+   говорим «со следующей недели», «N дня» (количество, не день недели), называем порог 150 ₽, без мужских форм */
+function rhTap(n){ const w=weekOf(S.day), cur=weekDays(w), now=rate(), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0), k=n-cur;
+  const D=x=>`${x} ${plural(x,'день','дня','дней')}`, Rz=x=>x===1?'ещё раз':`ещё ${x} ${plural(x,'раз','раза','раз')} в разные дни`, T=(a,b)=>toast(`${a}<br>${b}`,4000);
+  const spent=S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0), fzW=fzDaysIn(w).length;
+  if(!S.plus) return T('★ Бонусы за дни — только с Кофейная+',`Бесплатно до ${FREE_UNTIL}`);
+  if(n===cur&&cur>0){
+    if(n===7) return T('🏆 Все 7 дней — это максимум','Со следующей недели 7% бонусов с каждой покупки');
+    if(cur>now) return T(`🔥 ${D(cur)} — больше, чем на прошлой неделе`,`Со следующей недели ${cur}% бонусов вместо ${now}%`);
+    if(cur===now) return T(`🔥 ${D(cur)} — как на прошлой неделе`,`Бонусы не упадут: со следующей недели снова ${cur}%`);
+    return left>=now-cur?T(`🔥 Пока ${D(cur)} на этой неделе`,`Приди ${Rz(now-cur)} — и останется ${now}% бонусов`):T(`🔥 На этой неделе ${D(cur)}`,`Со следующей недели ${cur}% бонусов — приходи чаще, и снова вырастут`); }
+  if(n<cur) return left>0?T(`✅ ${D(n)} — уже есть`,`У тебя ${D(cur)} — приди ещё раз, и будет ${cur+1}% бонусов`):T(`✅ ${D(n)} — уже есть`,`Итог недели — ${D(cur)}: со следующей недели ${cur}% бонусов`);
+  if(k===1&&!today&&spent>0&&spent<MIN_DAY) return T(`🧾 Сегодня пока ${rub(spent)} из ${rub(MIN_DAY)}`,`Купи ещё на ${rub(MIN_DAY-spent)} — и день засчитается`);
+  if(left===0) return T('🏁 На этой неделе больше не успеть',`Итог — ${D(cur)}: со следующей недели ${cur}% бонусов`);
+  if(k>left) return T(`⏳ ${D(n)} на этой неделе уже не успеть`, fzW?'Заморозка бережёт посещения подряд, а бонусы — нет':left===1&&!today?`Если придёшь сегодня — будет ${cur+1}% бонусов`:`Если придёшь каждый день до воскресенья — будет ${cur+left}% бонусов`);
+  if(k===1&&!today){
+    if(dow===6) return T('☕ Сегодня последний день недели',`Купи от ${rub(MIN_DAY)} — и со следующей недели будет ${n}%, а не ${cur}%`);
+    if(dow===0&&cur===0) return T('☕ Новая неделя — приходи сегодня',`Каждый день с покупкой от ${rub(MIN_DAY)} — это +1% бонусов`);
+    if(n===now) return T('☕ Приходи сегодня — бонусы не упадут',`Купи от ${rub(MIN_DAY)} — и со следующей недели снова ${now}%`);
+    if(n>now) return T(`☕ Приходи сегодня — будет ${D(n)}`,`Купи от ${rub(MIN_DAY)} — и со следующей недели ${n}% бонусов`);
+    return T(`☕ Приходи сегодня — будет ${D(n)}`,`Потом ещё ${D(now-n)} — и останется ${now}% бонусов, как сейчас`); }
+  if(k===1) return T('✅ Сегодня уже засчитан',`Приди завтра — и со следующей недели ${n}% бонусов`);
+  const h=n===now?`🎯 Ещё ${D(k)} — и бонусы не упадут`:`🎯 Ещё ${D(k)} с покупкой — и будет ${n}%`;
+  return T(h, k===left?(today?'Получится, только если приходить каждый день до воскресенья':'Получится, только если приходить каждый день, начиная с сегодня'):(today?`До воскресенья ещё ${D(left)} — успеешь`:`До воскресенья ${D(left)}, считая сегодня — успеешь`)); }
 function rhythm(){
   /* Эксперимент 24.10 (с критиком): карточка вдвое ниже без потери правил — «тройная система» прошлая неделя → сейчас → с понедельника,
      ряд 1%…7% (каждый визит закрашивает ячейку, третья ячейка растёт вместе с рядом), одна строка-подсказка со смайликом, условия — мелко и по «?» */
@@ -3247,7 +3272,7 @@ function rhythm(){
   else { const k=Math.min(praise.length-1,cur-now-1); face=cur-now>=2?'🤩':'😊'; l1=`${praise[k]} Уже ${next}% бонусов — больше, чем сейчас`;
     l2=next+1>=cap?`Сделай свой максимум: приди ещё раз — будет ${cap}% бонусов на следующей неделе`:`Продолжай: приди ещё раз — на следующей неделе будет ${next+1}% бонусов`; }
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
-    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''}"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
+    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
     <p class="rh-h2"><span class="rh-k">💡</span><span>Сколько <b>дней</b> придёшь на этой неделе —<br>столько <b>%&nbsp;бонусов</b> будет со следующей</span></p>
     <div class="rh3">
