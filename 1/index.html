@@ -2534,7 +2534,10 @@ function cartMinus(i){ const l=S.basket[i]; if(!l) return;
   sheet(`<h2>Удалить из корзины?</h2><p class="muted">«${byId(l.id).n}» полностью уберём из заказа.</p>
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" onclick="closeSheet()">Оставить</button><button class="btn" style="flex:1;background:#e53935;border-color:#e53935;color:#fff" onclick="S.basket.splice(${i},1);save();closeSheet();render()">Удалить</button></div>`); }
 function qtyOf(id){ return S.basket.filter(l=>l.id===id).reduce((a,l)=>a+l.qty,0); }
-function tapAdd(id){ const m=byId(id); if(hasOpts(m)) openProduct(id); else addLine(id); }
+// 31.10 (владелец): кнопка с ценой сразу кладёт блюдо в корзину — обычная порция, без добавок; выбрать размер и добавки — нажать на саму карточку
+function tapAdd(id){ const m=byId(id), o=hasOpts(m);
+  const v=Math.max(0,m.vars.findIndex((x,i)=>unitPrice(m,defOpts(m,i))===m.p));   // порция ровно за ту цену, что на кнопке (у капучино — «Маленький» за 190 ₽)
+  addLine(id,defOpts(m,v)); if(o&&qtyOf(id)===1) toast(`✓ ${m.n}${m.vars.length>1&&m.vars[v].l?` (${m.vars[v].l.toLowerCase()})`:''} в корзине<br>Другой размер или добавки — нажми на карточку`); }
 function tapMinus(id){ const ls=S.basket.filter(l=>l.id===id); if(!ls.length) return; changeLine(ls[ls.length-1].k,-1); refreshBasket(id); }
 function basketCount(){ return S.basket.reduce((a,l)=>a+l.qty,0); }
 function basketQuote(extra={}){
@@ -2634,7 +2637,7 @@ function pillHtml(m){
   const q=qtyOf(m.id), pp=myPrice(m.id), o=hasOpts(m);
   m.o = o; // «от N ₽ →» — у блюд с выбором (как на сайте), «N ₽ +» — сразу в корзину
   if(q>0 && !o) return `<span class="pill in" data-pill="${m.id}"><button aria-label="Убрать ${m.n}" onclick="event.stopPropagation();tapMinus('${m.id}')">−</button><span>${q}</span><button aria-label="Добавить ${m.n}" onclick="event.stopPropagation();tapAdd('${m.id}')">+</button></span>`;
-  const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : `${m.o?'от ':''}${rub(m.p)}`;
+  const price = pp!=null ? `<s>${rub(m.p)}</s> ${rub(pp)}` : rub(m.p);   // 31.10: без «от» — нажатие кладёт обычную порцию ровно за эту цену
   // сколько уже в корзине — маленький кружок на углу кнопки, а не текстом (кнопка не растёт и не вылезает из карточки)
   return `<button class="pill${q>0?' has':''}${pp!=null?' pp':''}" data-pill="${m.id}" onclick="event.stopPropagation();tapAdd('${m.id}')" aria-label="${m.n}: ${rub(pp??m.p)}${q>0?`, в корзине ${q}`:''}">${price} <b class="plus">+</b>${q>0?`<i class="qb">${q}</i>`:''}</button>`;
 }
