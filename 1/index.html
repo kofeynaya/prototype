@@ -1757,6 +1757,7 @@ span.lb-gift{background:none}
 .tk-h2{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .tk-lbl{padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .tk-h2 h2{margin:0;font-size:28px;line-height:1.1;font-weight:800}
+@media (max-width:360px){#pr-ritm .tk-h2 h2{font-size:22px}}   /* 31.10: длинный заголовок «Сколько дней придёшь…» — 4 строки и на 320 px */
 
 /* «Твой ритм»: «сейчас → с понедельника» табличкой, подсказка-напоминалка, условия списком (владелец 24.10) */
 .rh-tab{display:flex;align-items:stretch;gap:8px}
@@ -2879,7 +2880,7 @@ function turboBody(){ return `
     ${serHead(true)}
     <div class="tstack">
       ${(()=>{ const st=serState(), k=tierOf(S.ser.n).k; return `<div class="tk tk-stc">${statusCard(st)}</div>`; })()}
-      ${tcard('pr-ritm','📈 Твой ритм','Чаще ходишь —<br>больше бонусов',rhythm(),'tk-mint')}
+      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь<br>на этой неделе —<br>столько % бонусов<br>будет со следующей',rhythm(),'tk-mint')}
       ${tcard('pr-six','6️⃣ Каждый 6-й','Шестое блюдо —<br>дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
     ${PL_CLOSE()}`; }
@@ -3274,7 +3275,7 @@ function rhythm(){
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
-    <p class="rh-h2"><span class="rh-k">💡</span><span>Сколько <b>дней</b> придёшь на этой неделе —<br>столько <b>%&nbsp;бонусов</b> будет со следующей</span></p>
+    <p class="rh-h2"><span class="rh-k">💡</span><span>Чаще ходишь — больше бонусов</span></p>
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
       <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
@@ -3693,7 +3694,7 @@ function progress(){
     <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
     
     <div class="tstack">
-      ${tcard('pr-ritm','📈 Твой ритм','Чаще ходишь —<br>больше бонусов',rhythm(),'tk-mint')}
+      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь<br>на этой неделе —<br>столько % бонусов<br>будет со следующей',rhythm(),'tk-mint')}
       ${tcard('pr-six','6️⃣ Каждый 6-й','Шестое блюдо —<br>дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
     ${PL_CLOSE()}
