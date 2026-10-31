@@ -3279,7 +3279,7 @@ function rhythm(){
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
       <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
-      <div class="r3 nxt"><span>С понедельника</span><b class="money">${next}%</b><small>${next<cap?'растёт':'максимум'}</small></div>
+      <div class="r3 nxt"><span>Со следующей недели</span><b class="money">${next}%</b><small>${next>=cap?'максимум':left>0?'можно больше':'итог недели'}</small></div>
     </div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
     <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
