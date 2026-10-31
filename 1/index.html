@@ -87,6 +87,8 @@ p{margin:0}
 .offer .title{font-size:26px;line-height:1.05;font-weight:700;max-width:75%;text-wrap:balance}
 .offer .val{font-family:var(--f-num);font-size:40px;line-height:1}
 .offer .meta{font-size:14px;max-width:70%}
+/* 31.10 (владелец выбрал вариант D): выгода в заголовке — фирменный тёмно-зелёный и шрифт цифр, без плашек */
+.offer .of-acc{color:#0d553f;font-family:var(--f-num);font-weight:400;font-size:1.25em;line-height:1;white-space:nowrap}.offer .of-acc.tx{font-family:inherit;font-weight:800;font-size:1em}
 .offer .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;position:relative}
 .offer .btn{background:var(--on-color);color:#f9f9f9}
 .offer .btn.ghost{background:transparent;color:var(--on-color);border-color:var(--on-color)}
@@ -2864,7 +2866,7 @@ function home(){
     <article class="offer me" id="offer"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
       ${status}
-      <div class="title">${o.title}</div>
+      <div class="title">${o.title.replace(/(за\s)?(−\d+%|\d[\d\s\u00a0]*\s?₽)/,'<span class="nowrap">$1<span class="of-acc">$2</span></span>').replace(/в подарок/,'<span class="of-acc tx">в подарок</span>')}</div>
       <div class="meta">${o.meta.replace(/(₽|%)\.\s+/g,'$1<br>')}</div>
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
