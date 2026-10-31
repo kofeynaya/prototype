@@ -88,6 +88,7 @@ p{margin:0}
 .offer .val{font-family:var(--f-num);font-size:40px;line-height:1}
 .offer .meta{font-size:14px;max-width:70%}
 /* 31.10 (владелец выбрал вариант D): выгода в заголовке — фирменный тёмно-зелёный и шрифт цифр, без плашек */
+.offer .of-acc.yel{-webkit-text-stroke:.06em #212221;paint-order:stroke fill;text-shadow:.05em .05em 0 #212221}
 .offer .of-acc{color:#0d553f;font-family:var(--f-num);font-weight:400;font-size:1.25em;line-height:1;white-space:nowrap}.offer .of-acc.tx{font-family:inherit;font-weight:800;font-size:1em}
 .offer .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;position:relative}
 .offer .btn{background:var(--on-color);color:#f9f9f9}
@@ -2866,7 +2867,7 @@ function home(){
     <article class="offer me" id="offer"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
       ${status}
-      <div class="title">${o.title.replace(/(за\s)?(−\d+%|\d[\d\s\u00a0]*\s?₽)/,'<span class="nowrap">$1<span class="of-acc">$2</span></span>').replace(/в подарок/,'<span class="of-acc tx">в подарок</span>')}</div>
+      <div class="title">${o.title.replace(/(за\s)?(−\d+%|\d[\d\s\u00a0]*\s?₽)/,`<span class="nowrap">$1<span class="of-acc${ACC_Y(o)}" style="color:${accColor(o)}">$2</span></span>`).replace(/в подарок/,`<span class="of-acc tx" style="color:${accColor(o)==='#f2c230'?'#212221':accColor(o)}">в подарок</span>`)}</div>
       <div class="meta">${o.meta.replace(/(₽|%)\.\s+/g,'$1<br>')}</div>
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
@@ -3250,6 +3251,26 @@ const moodFace=k=>`<svg class="mface" viewBox="0 0 40 40" role="img" aria-label=
 const RH_HEAT=['#fde3cf','#fcc9a2','#fbac74','#f98d4b','#f56a32','#ea4a3c','#d6264f'];
 /* 31.10 (владелец + критик): каждая ячейка «Твоего ритма» нажимается — всплывашка под ситуацию. Сравниваем только с «сейчас» (now),
    говорим «со следующей недели», «N дня» (количество, не день недели), называем порог 150 ₽, без мужских форм */
+/* 31.10 (владелец + критик): цвет выгоды в предложении дня меняется по дням, но всегда контрастен и фону, и герою дня.
+   Палитра — тёмные насыщенные тона (контраст ≥3.3 на всех 4 пастельных фонах), жёлтый — с чёрным контуром, как у героев.
+   Убираем цвета, близкие по тону к фону (<35°) и к 2 главным цветам героя (<35°); не повторяем вчерашний; старт — номер дня */
+const ACC=['#b0124f','#00657f','#b23a00','#5e35b1','#f2c230','#0d553f','#c62828','#2b2b93','#8a5a00'];
+const BG_HUE={'var(--pink)':356,'var(--aqua)':180,'var(--sage)':145};
+const hsl=h=>{ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const [r,g,b]=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255), mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2, d=mx-mn;
+  let hh=0; if(d){ hh=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; hh*=60; if(hh<0) hh+=360; } return {h:hh,s:d?d/(1-Math.abs(2*l-1)):0,l}; };
+const hueD=(a,b)=>{ const x=Math.abs(a-b)%360; return x>180?360-x:x; };
+const _heroHue={}; function heroHues(i){ if(_heroHue[i]) return _heroHue[i]; const cnt={};
+  for(const m of ARTS[i].svg.matchAll(/fill="(#[0-9a-fA-F]{3,6})"/g)){ const c=hsl(m[1]); if(c.s<.2||c.l>.9||c.l<.15) continue; const k=Math.round(c.h/10)*10; cnt[k]=(cnt[k]||0)+1; }
+  const tot=Object.values(cnt).reduce((a,b)=>a+b,0); return _heroHue[i]=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).filter(([,n])=>n/tot>=.15).slice(0,2).map(([h])=>+h); }
+// дни считаются по порядку от DAY0: среди подходящих берём тот цвет, что был давнее всего (так все цвета чередуются ровно), вчерашний — нет
+const _accSeq=[], _accLast={}; function accFor(day,art){ day=Math.max(0,day);
+  const ok=(c,a)=>{ const h=hsl(c).h, bh=BG_HUE[ARTS[a].bg]; return (bh==null||hueD(h,bh)>=30) && heroHues(a).every(x=>hueD(h,x)>=30); };
+  while(_accSeq.length<=day){ const d=_accSeq.length, a=d%ARTS.length, prev=_accSeq[d-1];
+    const c=ACC.filter(x=>ok(x,a)&&x!==prev).sort((x,y)=>(_accLast[x]??-99)-(_accLast[y]??-99)||((ACC.indexOf(x)-d%ACC.length+ACC.length)%ACC.length)-((ACC.indexOf(y)-d%ACC.length+ACC.length)%ACC.length))[0]||ACC.find(x=>ok(x,a))||'#212221';
+    _accSeq.push(c); _accLast[c]=d; }
+  if(art===day%ARTS.length) return _accSeq[day];
+  const prev=_accSeq[day-1], ok2=ACC.filter(x=>ok(x,art)&&x!==prev); return ok2[0]||'#212221'; }
+const accColor=o=>accFor(o.day??S.day,o.art??S.day%ARTS.length), ACC_Y=o=>accColor(o)==='#f2c230'?' yel':'';
 function rhTap(n){ const w=weekOf(S.day), cur=weekDays(w), now=rate(), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0), k=n-cur;
   const D=x=>`${x} ${plural(x,'день','дня','дней')}`, Rz=x=>x===1?'ещё раз':`ещё ${x} ${plural(x,'раз','раза','раз')} в разные дни`, T=(a,b)=>toast(`${a}<br>${b}`,4000);
   const spent=S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0), fzW=fzDaysIn(w).length;
