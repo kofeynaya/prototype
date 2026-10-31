@@ -1154,6 +1154,9 @@ img.ava{object-fit:cover}
 .ser-week button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;width:100%;color:var(--muted);padding:0;background:none}
 .stc .ser-week button{color:inherit;opacity:.8}
 .ser-week button.can i{box-shadow:0 0 0 2px rgba(41,182,246,.7)}
+.ser-week button{-webkit-tap-highlight-color:transparent;outline:none;background:none!important;box-shadow:none!important}   /* 31.10: без серого прямоугольника при нажатии */
+.ser-week button i{transition:transform .12s ease}.ser-week button:active i{transform:scale(.92)}
+.ser-week button:focus-visible i{outline:2px solid var(--teal);outline-offset:2px}
 .fz-hint{margin:0;font-size:12px;opacity:.85}
 .restore{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;text-align:left;background:rgba(41,182,246,.18);border:1px solid rgba(41,182,246,.6);color:inherit}
 .restore>span:first-child{font-size:24px}
