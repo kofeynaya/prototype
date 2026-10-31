@@ -365,6 +365,13 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .bc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .bc-top{font-size:14px}.bc-top b{font-size:20px;font-weight:800}
 .bc-sub{font-size:13px;color:var(--muted)}.bc-sub b{color:var(--ink)}
+.bc-bar2{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.bb-track{position:relative;display:block;height:8px;border-radius:4px;background:rgba(128,128,128,.22)}
+.bb-track i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;border:1.5px dashed #f2c230;background:transparent;box-sizing:border-box;transition:background .35s ease,border-color .35s ease}
+.bc-bar2.on .bb-track i{background:linear-gradient(90deg,#f2c230,#ff9100);border-color:transparent}
+.bb-cap{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:currentColor;opacity:.7}
+.bb-lbl{display:flex;justify-content:space-between;gap:8px;font-size:12px;opacity:.85}.bb-lbl em{font-style:normal;font-weight:700;color:#d08a00}.bb-lbl span:only-child{margin-left:auto}
+.bb-capnote{font-size:11px;opacity:.65}
 .bc-bar{display:block;height:5px;border-radius:3px;background:rgba(242,194,48,.18);overflow:hidden}.bc-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f2c230,#ff9100)}
 .bc-sw{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}.bc-swl{font-size:12px;font-weight:700;color:var(--ink)}.bon-card.on .bc-swl{color:#2e9e5b}
 .sw{appearance:none;-webkit-appearance:none;flex:none;width:51px;height:31px;border-radius:16px;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
@@ -3126,7 +3133,7 @@ function cart(){
     ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
-      ${S.bonus>0?bonusCard('c-bonus',co.bonus,'co.bonus=this.checked;render()',qt.paid):''}
+      ${S.bonus>0?bonusCard('c-bonus',co.bonus,'co.bonus=this.checked;render()',qt):''}
       ${walletTotal()>0?depoCard('c-wallet',co.wallet,'co.wallet=this.checked;render()',qt):''}
       ${qt.card>0?`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span>`:'<div class="opt" hidden><span>'}<span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay'],['cash',S.mode==='delivery'?'Наличными курьеру':'Наличными на кассе']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
     </div>
@@ -4541,10 +4548,18 @@ function openQR(){
 let kc={}, ko={};
 /* Бонусы при оплате (владелец 26.10: «это то, что человек копил — показать заметно, не раздувая»): монетка и крупно «2 048 бонусов»,
    под ними — сколько спишется в этом заказе и сколько останется; полоска — какая часть чека оплачивается бонусами (до 30%); переключатель справа */
-function bonusCard(id,on,ch,paid){ const can=S.plus?Math.min(S.bonus,Math.floor(paid*BONUS_MAX_SHARE)):0, pct=paid?Math.round(can/paid*100):0;
+/* 31.10 (владелец + критик): полоска под бонусами отвечает на вопрос «чем я плачу»: вся дорожка — сумма к оплате,
+   выкл — кусок, который можно закрыть бонусами, обведён золотым пунктиром; вкл — он заливается золотом, подписи «86 ₽ бонусами · 299 ₽ картой»;
+   засечка 30% — только когда предел что-то ограничивает */
+function bonusCard(id,on,ch,qt,pay){ const paid=qt.paid, base=paid+(qt.fee||0), cap=Math.floor(paid*BONUS_MAX_SHARE), can=S.plus?Math.min(S.bonus,cap):0, pct=base?can/base*100:0;
+  const capped=S.plus&&S.bonus>cap&&can>0, how=PAY_W[pay||S.pay]||'картой', rest=qt.card+qt.walletSpend, w=qt.walletSpend;
+  const restHow=w>=rest&&w>0?'с депозита':w>0?`депозитом и ${how}`:how, onB=on&&can;
+  const bar=can?`<span class="bc-bar2${onB?' on':''}"><span class="bb-track"><i style="width:${pct.toFixed(1)}%"></i>${capped?`<b class="bb-cap" style="left:${(cap/base*100).toFixed(1)}%"></b>`:''}</span>
+    <span class="bb-lbl">${onB?`<em>${rub(can)} бонусами</em><span>${rub(rest)} ${restHow}</span>`:`<span>${rub(rest)} ${restHow}</span>`}</span>
+    ${capped?`<small class="bb-capnote">Больше 30% чека бонусами нельзя</small>`:''}</span>`:'';
   return `<label class="bon-card${on&&can?' on':''}${can?'':' off'}" for="${id}"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top">Бонусы <b class="money">${S.bonus.toLocaleString('ru-RU')}</b></span>
     <span class="bc-sub">${!S.plus?'Списать — только с ★ Кофейная+':!can?'В этом заказе списать нечего':on?`<b>−${rub(can)}</b> бонусами<br>Останется ${(S.bonus-can).toLocaleString('ru-RU')}`:`Можно списать <b>${rub(can)}</b><br>Это до 30% чека`}</span>
-    ${can?`<span class="bc-bar"><i style="width:${pct}%"></i></span>`:''}</span><span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }   // 26.10 (владелец): над переключателем подпись — сразу ясно, что нажать
+    ${bar}</span><span class="bc-sw"><span class="bc-swl">${on&&can?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="${id}" ${on&&can?'checked':''} ${can?'':'disabled'} onchange="${ch}"></span></label>`; }   // 26.10 (владелец): над переключателем подпись — сразу ясно, что нажать
 /* Депозит при оплате (владелец 26.10): списывается ПО УМОЛЧАНИЮ — зачем иначе класть деньги; выключить можно переключателем.
    Тот же вид, что у бонусов: значок, крупно сумма на депозите, сколько спишем и сколько останется, «Списать/Списываю» над переключателем */
 /* 29.10 (владелец): депозит меньше чека — списываем сколько есть, остальное картой или наличными; переключатель показывает выбор гостя,
@@ -4564,7 +4579,7 @@ function drawKassa(){
   const ids=[...new Set([...KASSA, ...Object.keys(kc)])];
   const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
   if(qt.bdNeedsDoc) opts.push(`<label class="bon-card${ko.doc?' on':''}" for="o-doc"><span class="bc-coin bd">🎂</span><span class="bc-tx"><span class="bc-top">Скидка в день рождения <b>−${bdInfo().pct}%</b></span><span class="bc-sub">В первый раз покажи бариста<br>паспорт или права</span></span><span class="bc-sw"><span class="bc-swl">${ko.doc?'Показал':'Показать'}</span><input type="checkbox" class="sw" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></span></label>`);   // 29.10 (владелец): окно кассы — глазами гостя, без «Бариста: проверьте…»
-  if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt.paid));
+  if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(qt.card>0) opts.push(`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span><span class="optrow">${[['card','Картой'],['cash','Наличными']].map(([k,t])=>`<button class="optbtn ${(ko.pay||'card')===k?'on':''}" style="padding:6px 10px" onclick="ko.pay='${k}';drawKassa()">${t}</button>`).join('')}</span></div>`);
   const html=`<div class="stack" style="gap:4px"><span class="label">Покупка в кофейне</span><h2>Ты показал QR на кассе</h2>
