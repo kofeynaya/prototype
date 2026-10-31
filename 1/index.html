@@ -2026,6 +2026,8 @@ function genHist(){
 function histOk(){ if(!S.ser.best&&!S.ser.n) return true; const all=[...new Set([...(S.histPast||[]),...S.visits])].filter(d=>d<=S.day), reg=S.regDay??-1e9;
   const need=S.ser.n+(S.ser.best>S.ser.n?S.ser.best:0), have=all.length+(S.ser.fzDays||[]).length;
   return !all.some(d=>d<reg) && have>=need-1 && have<=need+12; }   // и не слишком много: «всего» не должно расходиться со счётчиком и рекордом
+// 31.10: заморозки, потраченные в неделю старта счётчика (она не сгорает), возвращаем
+setTimeout(()=>{ try{ const w=weekOf(S.day), fz=fzDaysIn(w); if(fz.length&&isStartWeek(w)){ S.ser.fzDays=S.ser.fzDays.filter(d=>!fz.includes(d)); fz.forEach(()=>unFz()); save(); render(); } }catch(e){} },0);
 if(S.ser&&S.ser.pend) setTimeout(()=>{ pendToBurn(); save(); try{render();}catch(e){} },0);   // 29.10: отсрочки больше нет
 if(!S.histPast||!S.hist29){ S.hist29=1; if(S.ser.n||S.ser.best) genHist(); else S.histPast=S.histPast||[]; }
 const save=()=>{ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} };
@@ -3293,7 +3295,7 @@ function serWeek(w){
   const reg=serWin();   // ✕ — только с дня старта счётчика и не раньше регистрации (24.10)
   const miss=[0,1,2,3,4,5,6].filter(i=>{ const d=w*7+i; return d>=reg && d<S.day && !S.visits.includes(d); });
   const fzDay=(S.ser.frozen||[]).includes(w)?miss[miss.length-1]:-1, man=fzDaysIn(w).map(d=>d%7);
-  const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend && S.ser.n>0;   // счётчик ещё не начался — замораживать нечего
+  const canFz=miss.some(i=>!man.includes(i)&&i!==fzDay) && !S.ser.pend && fzUseful(w);   // в неделю, которая не сгорит, ледяных ✕ и подсказки нет   // счётчик ещё не начался — замораживать нечего
   const fzT=w===weekOf(S.day)&&canFzToday(), urge=w===weekOf(S.day)&&S.plus&&['freeze','danger'].includes(serState().k);   // 29.10: в конце недели ✕ мягко пульсируют — «вот где спасать»
   return `<div class="ser-week${urge?' urge':''}">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
     if(fzT&&day===S.day) return `<button class="now today can" onclick="freezeDay(${day})" aria-label="Сегодня — заморозить"><i><b class="gh">🔥</b></i>сегодня</button>`;
@@ -3374,12 +3376,16 @@ const fzWord=n=>plural(n,'заморозка','заморозки','заморо
 // 26.10 (владелец): когда заморозки начали тратиться — «❄️ 15 из 16 заморозок», чтобы было видно, что они кончаются
 const fzAll=()=>S.plus?FZ_MONTH+tariff().vac:0;
 const fzChip=()=>{ const l=fzLeft(), a=fzAll(); return l<a?`❄️ ${l} из ${a} ${fzWord(a)}`:`❄️ ${l} ${fzWord(l)}`; };
+// 31.10 (с критиком): заморозка нужна, только если неделя может сгореть — не в неделю старта счётчика и не когда 3 уже набраны
+const fzUseful = w => S.ser.n>0 && !isStartWeek(w) && serDays(w)<SER_MIN;
 const canFzToday=()=>S.plus&&S.ser.n>0&&S.day%7===6&&!S.visits.includes(S.day)&&!(S.ser.fzDays||[]).includes(S.day)&&serDays(weekOf(S.day))<SER_MIN&&!isStartWeek(weekOf(S.day));
 function unFz(){ if(S.ser.fzm&&S.ser.fzm.used>0) S.ser.fzm.used--; else if(S.ser.vacUsed) S.ser.vacUsed--; }
 function freezeDay(day){ const dn=day===S.day?'сегодня':fmt(day);
   if(day<(S.regDay??-1e9)) return toast('Этого дня ещё не было в приложении — замораживать нечего');
   if(!S.ser.n && !S.ser.pend) return toast('Счётчик ещё не начался — пока нечего замораживать');
+  if(isStartWeek(weekOf(day))) return toast('Эта неделя не сгорит — замораживать не нужно');
   if(day<serWin()) return toast('Этот день был до начала счётчика — замораживать его не нужно');
+  if(!fzUseful(weekOf(day))) return toast(`На этой неделе уже ${SER_MIN} посещения — счётчик не сгорит, замораживать не нужно`);
   if(!S.plus) return sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>Пропущенный день можно заморозить — он засчитается в счётчик, и посещения не сгорят.</p><p class="small muted">Это можно только с подпиской <b>★ Кофейная+</b>: ${FZ_MONTH} заморозки каждый месяц.</p><button class="btn block" onclick="closeSheet();go('plus')">Подключить Кофейная+</button>`);
   if(fzLeft()<=0) return toast('Заморозки на этот месяц закончились. Новые — 1-го числа.');
   const left=fzLeft()-1;
