@@ -3298,12 +3298,12 @@ function rhythm(){
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
     <button class="rh-q rh-qtop" onclick="openRhRules()" aria-label="Как это работает">?</button>
-    <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${plural(last,'день','дня','дней')}</small></div><i>→</i>
       <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
       <div class="r3 nxt"><span>Со следующей недели</span><b class="money">${next}%</b><small>${next>=cap?'максимум':left>0?'можно больше':'итог недели'}</small></div>
     </div>
+    <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
   </div>`;
 }
