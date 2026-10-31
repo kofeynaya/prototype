@@ -1767,7 +1767,7 @@ span.lb-gift{background:none}
 .tk-h2{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .tk-lbl{padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .tk-h2 h2{margin:0;font-size:28px;line-height:1.1;font-weight:800}
-@media (max-width:360px){#pr-ritm .tk-h2 h2{font-size:22px}}   /* 31.10: длинный заголовок «Сколько дней придёшь…» — 4 строки и на 320 px */
+#pr-ritm .tk-h2 h2{font-size:24px}@media (max-width:360px){#pr-ritm .tk-h2 h2{font-size:22px}}   /* 31.10: длинный заголовок «Сколько дней придёшь…» — 4 строки и на 320 px */
 
 /* «Твой ритм»: «сейчас → с понедельника» табличкой, подсказка-напоминалка, условия списком (владелец 24.10) */
 .rh-tab{display:flex;align-items:stretch;gap:8px}
@@ -1782,6 +1782,13 @@ span.lb-gift{background:none}
 
 /* «Твой ритм» компактно (эксперимент 24.10) */
 .rh2{gap:12px}
+#pr-ritm{gap:10px}#pr-ritm .rhythm{padding-top:0}
+.rh-qtop{position:absolute;right:18px;top:45px;width:26px;height:26px;font-size:14px;background:rgba(255,255,255,.45);border-color:rgba(23,47,40,.35)}
+.rc2 b{max-width:48px}
+.rh-sum>span{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;line-height:1.1;flex:1;min-width:0;text-align:center}
+.rh-sum{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.45);font-size:15px;color:inherit;-webkit-tap-highlight-color:transparent}
+.rh-sum b{font-family:var(--f-num);font-weight:400;font-size:22px;line-height:1;background:linear-gradient(135deg,#ff6d00,#d6264f 55%,#8e24aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rh-sum i{font-style:normal;font-weight:800;font-size:18px;opacity:.55}.rh-sum.up i{color:#1f7a55;opacity:1}.rh-sum.down i{color:#d6264f;opacity:1}
 .rh3{display:flex;align-items:stretch;gap:4px}
 .rh3>i{align-self:center;font-style:normal;font-weight:700;opacity:.6}
 .r3{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:8px 8px 7px;border-radius:14px;background:rgba(255,255,255,.4);text-align:center;align-items:center}
@@ -1800,7 +1807,7 @@ span.lb-gift{background:none}
 /* 29.10 (владелец): «мелкие и непонятно, что 1% — это дни»: клетки крупнее (как кружки недели), над каждой «1 день · 2 дня…», под ней «→ 1%», сверху строка-объяснение */
 .rc2 b{font-size:clamp(17px,6vw,26px)}.rc2.nx b{font-size:10px}
 .rc2 .dl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;letter-spacing:-.2px}.rc2.f .dl{color:var(--ink)}
-.rc2 em::before{content:'→ ';font-weight:400;opacity:.6}
+.rc2.f em{color:#d6264f}
 .burn-card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.3);margin-bottom:10px;font-size:14px}.burn-card>b{font-size:17px}.burn-card .btn{align-self:flex-start;padding:8px 16px}
 .ser-week.mini{margin:0;gap:3px}.stc .ser-week.mini i{max-width:30px;font-size:14px;border-width:1.5px}
 @media (prefers-reduced-motion:no-preference){.ser-week.urge button.can i{animation:fzPulse 1.6s ease-in-out infinite}}
@@ -2890,7 +2897,7 @@ function turboBody(){ return `
     ${serHead(true)}
     <div class="tstack">
       ${(()=>{ const st=serState(), k=tierOf(S.ser.n).k; return `<div class="tk tk-stc">${statusCard(st)}</div>`; })()}
-      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь<br>на этой неделе —<br>столько % бонусов<br>будет со следующей',rhythm(),'tk-mint')}
+      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь —<br>столько % бонусов<br>со следующей недели',rhythm(),'tk-mint')}
       ${tcard('pr-six','6️⃣ Каждый 6-й','Шестое блюдо —<br>дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
     ${PL_CLOSE()}`; }
@@ -3264,40 +3271,20 @@ function rhTap(n){ const w=weekOf(S.day), cur=weekDays(w), now=rate(), dow=S.day
   const h=n===now?`🎯 Ещё ${D(k)} — и бонусы не упадут`:`🎯 Ещё ${D(k)} с покупкой — и будет ${n}%`;
   return T(h, k===left?(today?'Получится, только если приходить каждый день до воскресенья':'Получится, только если приходить каждый день, начиная с сегодня'):(today?`До воскресенья ещё ${D(left)} — успеешь`:`До воскресенья ${D(left)}, считая сегодня — успеешь`)); }
 function rhythm(){
-  /* Эксперимент 24.10 (с критиком): карточка вдвое ниже без потери правил — «тройная система» прошлая неделя → сейчас → с понедельника,
-     ряд 1%…7% (каждый визит закрашивает ячейку, третья ячейка растёт вместе с рядом), одна строка-подсказка со смайликом, условия — мелко и по «?» */
+  /* 31.10 (владелец + критик): карточка ниже, как у уровня (≈340 px): «?» у метки, заголовок 3 строки, ряд 7 клеток (1 день → 1%),
+     одна плашка «Сейчас N% → со следующей недели M%». Подсказки и смайлик убраны — объяснения в всплывашках клеток и по «?» */
   const cur=weekDays(weekOf(S.day)), last=lastWeekDays(), cap=rateCap(), now=rate(), dow=S.day%7, today=S.visits.includes(S.day);
-  const left=7-dow-(today?1:0), D=n=>plural(n,'день','дня','дней'), next=Math.min(cur,cap);
-  let face, l1, l2='';
-  // 24.10 (владелец): без загадочного «Новая неделя!»; «будет» — всегда «на следующей неделе», и всегда «% бонусов»
-  /* 26.10 (владелец): подсказка тянет вверх — сначала «верни прошлую неделю» (сколько раз ещё прийти, чтобы снова было now%),
-     а когда прошлую неделю обогнал — хвалим и зовём ещё на один день: +1% на следующей неделе, до максимума */
-  const R=n=>plural(n,'раз','раза','раз'), praise=['Вау, красавчик!','Супер, так держать!','Ты вообще капитальный!','Ты лучший!'];
-  if(next>=cap){ face='🎉'; l1=cur>=7?`Все 7 дней — максимум ${cap}% бонусов`:`Это максимум — ${cap}% бонусов`; l2='Держи так же'; }
-  else if(!left){ face=cur>=now?'🙂':'😟'; l1=`Уже ${next}% бонусов на следующей неделе`; }
-  else if(cur<now){ const need=now-cur; face=cur?'😟':'😊';
-    l1=cur?`Пока ${next}% бонусов вместо ${now}%`:'На новой неделе ты ещё не был';
-    l2=need<=left?`Приди ${cur?'ещё ':''}${need===1?(cur?'раз':'1 раз'):`${need} ${R(need)}`} на этой неделе — и снова будет ${now}% бонусов`:`Приходи — успеешь ещё ${left} ${R(left)}, будет ${cur+left}% бонусов`; }
-  else if(!cur){ face='😊'; l1='На новой неделе ты ещё не был'; l2=`Приходи ${today?'завтра':'сегодня'} — на следующей неделе будет 1% бонусов`; }
-  else if(cur===now){ face='🙂'; l1=`Уже ${next}% бонусов, как сейчас`; l2=`Приди ещё раз — на следующей неделе будет ${next+1}% бонусов`; }
-  else { const k=Math.min(praise.length-1,cur-now-1); face=cur-now>=2?'🤩':'😊'; l1=`${praise[k]} Уже ${next}% бонусов — больше, чем сейчас`;
-    l2=next+1>=cap?`Сделай свой максимум: приди ещё раз — будет ${cap}% бонусов на следующей неделе`:`Продолжай: приди ещё раз — на следующей неделе будет ${next+1}% бонусов`; }
+  const left=7-dow-(today?1:0), next=Math.min(cur,cap), up=next>now?'up':next<now?'down':'';
   const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
     return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
   return `<div class="rhythm rh2"${F(5)}>
-    <p class="rh-h2"><span class="rh-k">💡</span><span>Чаще ходишь — больше бонусов</span></p>
-    <div class="rh3">
-      <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${D(last)}</small></div><i>→</i>
-      <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
-      <div class="r3 nxt"><span>Со следующей недели</span><b class="money">${next}%</b><small>${next>=cap?'максимум':left>0?'можно больше':'итог недели'}</small></div>
-    </div>
-    ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
+    <button class="rh-q rh-qtop" onclick="openRhRules()" aria-label="Как это работает">?</button>
     <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
-    <p class="rh-hint"><span class="fc">${face}</span><span><b>${l1}</b>${l2?`<br>${l2}`:''}</span></p>
-    <p class="rh-cond">День засчитывается от ${MIN_DAY} ₽ покупок <button class="rh-q" onclick="openRhRules()" aria-label="Подробнее">?</button></p>
+    <button class="rh-sum ${up}" onclick="toast(\`Сейчас ${now}% бонусов с каждой покупки<br>Столько, потому что на прошлой неделе было ${last} ${plural(last,'день','дня','дней')} с покупкой\`,4000)"><span>Сейчас<b class="money">${now}%</b></span><i>→</i><span>Со следующей недели<b class="money">${next}%</b></span></button>
+    ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
   </div>`;
 }
-function openRhRules(){ sheet(`<h2>📈 Твой ритм</h2><p>Сколько разных дней ты заходил на прошлой неделе — столько процентов бонусов получаешь с каждой покупки на этой</p>
+function openRhRules(){ sheet(`<h2>📈 Твой ритм</h2><p>Сколько разных дней с покупкой было на этой неделе — столько % бонусов с каждой покупки будет на следующей</p>
   <ul class="rl-list"><li>День засчитывается от ${MIN_DAY} ₽ покупок</li><li>Два чека в один день — один день</li><li>Считаем дни с понедельника по воскресенье</li><li>Больше ${PLUS_CAP}% не бывает</li></ul><button class="btn block" onclick="closeSheet()">Понятно</button>`); }
 const TURBO_IC='<path d="M12 2.5c3.2 2.2 5 6 5 10.2l-1.6 3.3H8.6L7 12.7C7 8.5 8.8 4.7 12 2.5z"/><circle cx="12" cy="9.5" r="2"/><path d="M7.4 11.5L4.5 14.5l.5 3.5 3.6-2M16.6 11.5l2.9 3-.5 3.5-3.6-2"/><path d="M10 18.5c.3 1.6 1 2.6 2 3 1-.4 1.7-1.4 2-3"/>'; // ракета: вкладка и шапка «Турбо»
 /* ---------- Серия 🔥: шапка «Турбо» (как верхняя панель Дуолинго) ---------- */
@@ -3707,7 +3694,7 @@ function progress(){
     <div class="promo-h"><h2>Акции</h2><span class="muted small">выгода за то, что ходишь чаще</span></div>
     
     <div class="tstack">
-      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь<br>на этой неделе —<br>столько % бонусов<br>будет со следующей',rhythm(),'tk-mint')}
+      ${tcard('pr-ritm','📈 Твой ритм','Сколько дней придёшь —<br>столько % бонусов<br>со следующей недели',rhythm(),'tk-mint')}
       ${tcard('pr-six','6️⃣ Каждый 6-й','Шестое блюдо —<br>дешевле',`<div class="panel"${F(11)}>${stampsBlock()}</div>`,'tk-pink')}
     </div>
     ${PL_CLOSE()}
