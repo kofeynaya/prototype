@@ -1154,6 +1154,7 @@ img.ava{object-fit:cover}
 .ser-week button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;width:100%;color:var(--muted);padding:0;background:none}
 .stc .ser-week button{color:inherit;opacity:.8}
 .ser-week button.can i{box-shadow:0 0 0 2px rgba(41,182,246,.7)}
+.ser-week .tap{cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}.ser-week .tap i{transition:transform .12s ease}.ser-week .tap:active i{transform:scale(.92)}
 .ser-week button{-webkit-tap-highlight-color:transparent;outline:none;background:none!important;box-shadow:none!important}   /* 31.10: без серого прямоугольника при нажатии */
 .ser-week button i{transition:transform .12s ease}.ser-week button:active i{transform:scale(.92)}
 .ser-week button:focus-visible i{outline:2px solid var(--teal);outline-offset:2px}
@@ -1952,7 +1953,7 @@ const _cv=document.createElement('canvas').getContext('2d');
    (не про друга или другого гостя); работает для любого выведенного текста, как и типографика */
 const S_ = '[\\s\\u00a0]+';
 const SEX_F=[['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
-  ['красавчик!','красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
+  ['красавчик!','красотка!'],['Красавчик!','Красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
   ['сэкономил','сэкономила'],['Ты'+S_+'уже'+S_+'дарил','Ты уже дарила'],['Ты'+S_+'подарил','Ты подарила'],['ты'+S_+'уже'+S_+'включил','ты уже включила'],['Что'+S_+'покупал','Что покупала']].map(([a,b])=>[new RegExp('(^|[^А-Яа-яё])'+a+'(?![А-Яа-яё])','g'),'$1'+b]);
 SEX_F.push([/^(\s*(?:ещё[\s\u00a0]+)?не[\s\u00a0]+)был(\s*)$/,'$1была$2']);   // «ты ещё <b>не был</b>» — фраза разбита тегом
 const sexFix=t=>S&&S.sex==='f'?SEX_F.reduce((x,[rx,to])=>x.replace(rx,to),t):t;
@@ -3299,6 +3300,12 @@ function serState(){
   else { k='doomed'; msg=`<b>На этой неделе ${SER_MIN} посещения уже не набрать</b><br>Счётчик сгорит, но лучший результат 👑 ${S.ser.best} останется`; }
   return {k,msg,cur,left,X,M,need};
 }
+/* 31.10 (владелец): нажатие на огонь — похвала во всплывашке, на снежинку — что день заморожен */
+const WD_FULL=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'], WD_IN=['В понедельник','Во вторник','В среду','В четверг','В пятницу','В субботу','В воскресенье'], DAY_PRAISE=['Красавчик!','Так держать!','Огонь!','Ты молодец!','Вот это ритм!'];
+function dayTap(day){ const w=weekOf(day), nm=day===S.day?'Сегодня':WD_FULL[day%7];
+  if(!S.visits.includes(day)) return toast(`❄️ ${nm} — день заморожен<br>Засчитан в счётчик, посещения не сгорят`);
+  const k=S.visits.filter(d=>weekOf(d)===w&&d<=day).length;
+  toast(`🔥 ${day===S.day?'Сегодня':WD_IN[day%7]} ты был у нас<br>${DAY_PRAISE[day%DAY_PRAISE.length]} Это ${k}-е посещение на этой неделе`); }
 // Дни этой недели у счётчика посещений: 🔥 — день с покупкой, ✕ — пропущенный день (красный, чтобы задевало), ❄️ — день, закрытый заморозкой
 function serWeek(w){
   // дни до регистрации — не пропуск: их не было в приложении, ✕ не ставим и заморозить нельзя (правило владельца 22.10)
@@ -3310,6 +3317,7 @@ function serWeek(w){
   return `<div class="ser-week${urge?' urge':''}">${WD.map((d,i)=>{ const day=w*7+i, v=S.visits.includes(day);
     if(fzT&&day===S.day) return `<button class="now today can" onclick="freezeDay(${day})" aria-label="Сегодня — заморозить"><i><b class="gh">🔥</b></i>сегодня</button>`;
     const k=v?'v':day<(S.regDay??-1e9)?'pre':(i===fzDay||man.includes(i))?'fz':day<S.day?'x':day===S.day?'now':'fut';   // 31.10: любой пропущенный день после регистрации — красный ✕ (замораживается только тот, что в окне счётчика)   // 29.10: тусклые — только дни до регистрации; «сегодня» всегда зовущий кружок, даже когда счётчик 0
+    if(k==='v'||k==='fz') return `<span class="${k} ${day===S.day?'today':''} tap" role="button" tabindex="0" onclick="dayTap(${day})"><i>${v?'🔥':'❄️'}</i>${day===S.day?'сегодня':d}</span>`;   // 31.10: нажал на огонь — похвала
     return k==='x'?`<button class="x ${canFz&&miss.includes(i)?'can':''}" onclick="freezeDay(${day})" aria-label="${d}: пропуск"><i>✕</i>${d}</button>`:`<span class="${k} ${day===S.day?'today':''}"><i>${v?'🔥':k==='fz'?'❄️':k==='now'?'<b class="gh">🔥</b>':''}</i>${day===S.day?'сегодня':d}</span>`; }).join('')}</div>
     ${canFz?`<p class="fz-hint">${S.plus?'Пропустил день? <b>Нажми на <i class="x-mini">✕</i></b> — и заморозь его ❄️':'Пропустил день? С <b>★ Кофейная+</b> его можно заморозить задним числом ❄️'}</p>`:''}`;
 }
