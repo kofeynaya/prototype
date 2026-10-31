@@ -4401,7 +4401,7 @@ function birthday(){
       :bd.active?bdBanner():`<div class="panel"><strong>Твой день рождения — ${fmtDate(bd.date)}</strong><span class="small muted">${bd.tooLate?'Дату указали меньше чем за 30 дней — скидка будет со следующего дня рождения':`Скидка ${bd.age}% с ${fmtDate(bd.from)} по ${fmtDate(bd.to)}<br>До ${rub(BD_CAP)} скидки в день`}</span>${S.plus?'':`<span class="bd-lockline">★ Только с Кофейная+</span><button class="btn" style="align-self:flex-start" onclick="go('plus')">Подключить</button><span class="small muted">Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц</span>`}</div>`}
     ${bd.set?`<div class="panel small"><strong>Дата рождения: ${b.d} ${MON[b.m]} ${b.y}</strong>
       <span class="${b.verified?'save':'muted'}">${b.verified?'✓ Подтверждена документом на кассе':'Не подтверждена — бариста проверит паспорт или права при первой покупке на кассе'}</span>
-      <ul class="rules"><li>Дату можно указать один раз. Изменить — через <button class="inl-link" onclick="openSupport('bd')">поддержку</button>.</li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка в день рождения — только после подтверждения на кассе.</li></ul></div>`:''}
+      <ul class="rules"><li>Дату можно указать один раз. Изменить — через <button class="inl-link" onclick="openSupport('bd')">поддержку</button></li><li>Указать нужно минимум за 30 дней до дня рождения.</li><li>Мы не храним данные документа.</li><li>В доставке скидка в день рождения — только после подтверждения на кассе.</li></ul></div>`:''}
     ${bd.set?`<button class="link" style="align-self:center" onclick="demoBirthdayToday()">Демо: сделать день рождения сегодня</button>`:''}
   </section>`;
 }
