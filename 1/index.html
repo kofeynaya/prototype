@@ -353,7 +353,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .topup .eq{grid-column:1/-1;justify-self:end;margin-top:-2px;padding:3px 10px;border-radius:999px;background:rgba(46,158,91,.14);color:var(--ok);font-size:13px;font-weight:600}
 .topup .eq:empty{display:none}
 .inv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.inv-stats>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-align:center}.inv-stats b{font-size:26px;line-height:1;font-variant-numeric:tabular-nums}.inv-stats span{font-size:12px;color:var(--muted);line-height:1.2}.inv-stats .ok b{color:var(--ok)}
-.ok-tick{color:#2e9e5b;font-weight:800}   /* 25.10: галочка «засчитано» — зелёная */
+.ok-tick{color:#2e9e5b;font-weight:800}.ok-tick.big{font-style:normal;font-size:1.3em;line-height:1;vertical-align:-.06em;font-weight:900}   /* 25.10: галочка «засчитано» — зелёная */
 .friend{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
 /* путь друга (26.10): точки на линии, подписи мелко под ними */
 .rtrack{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr)}
@@ -1248,7 +1248,9 @@ img.ava{object-fit:cover}
 .ld small{font-size:12px;line-height:1.15;opacity:.7;display:flex;flex-direction:column;gap:1px}.ld small em{font-style:normal;font-weight:700}
 .ld-h{display:block;font-size:12.5px;font-weight:600;opacity:.75;margin:4px 0 -2px}
 .ld.ok b{opacity:1;background:#2e9e5b;border-color:#2e9e5b;color:#fff}.ld.ok small{opacity:1;font-weight:700}
-.ld.next b{opacity:1;box-shadow:0 0 0 4px rgba(255,255,255,.45)}.ld.next small{opacity:1}
+.ld.next b{opacity:1;border-color:#ff9100;color:#e65100;background:rgba(255,145,0,.14);border-width:2.5px;width:34px;height:34px;margin-top:-2px;font-weight:800}.ld.next small{opacity:1}.ld.next small em{color:#e65100}
+.t-plat .ld.next b,.t-gold .ld.next b{color:#ffb74d}.t-plat .ld.next small em{color:#ffb74d}
+@media (prefers-reduced-motion:no-preference){.ld.next b{animation:todayPulse 2s ease-in-out infinite}}   /* 1.11 (владелец): следующая ступень — «сюда ты идёшь сейчас», как кружок «сегодня» */
 .ld-line{flex:1;height:2px;margin-top:15px;background:currentColor;opacity:.25;border-radius:1px}.ld-line.ok{background:#2e9e5b;opacity:1}
 .stc-perk{align-self:flex-start;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.5);margin-right:118px}
 .t-plat .stc-perk{background:rgba(255,255,255,.16)}
@@ -3359,7 +3361,7 @@ const FLAME_P='M15 1c2 7 12 12 12 23a12 12 0 0 1-24 0c0-6 3-9 5-12 1 4 3 6 5 6-2
 function nextStep(left){
   const real=weekDays(weekOf(S.day)), tp=tierPlus(), pc=d=>Math.min(d,PLUS_CAP)+tp;
   if(!left) return `<b>Неделя в копилке ✓</b> В понедельник бонусы станут ${pc(real)}%`;
-  if(real<CHEST_MIN-1) return `<b>Счётчик спасён ✓</b> Приходи ещё 1 раз — бонусы на следующей неделе станут ${pc(real+1)}% вместо ${pc(real)}%`;
+  if(real<CHEST_MIN-1) return `<b>Счётчик спасён <i class="ok-tick big">✓</i></b> Приходи ещё 1 раз — бонусы на следующей неделе станут ${pc(real+1)}% вместо ${pc(real)}%`;
   if(real<CHEST_MIN) return `<b>Ещё 1 раз — и сундук с призом 🎁</b> А бонусы станут ${pc(real+1)}%`;
   if(real<7) return `<b>Сундук твой! 🎁</b> Каждый следующий день — ещё +1% бонусов`;
   return `<b>Идеальная неделя! 🎉</b> Максимум бонусов`;
