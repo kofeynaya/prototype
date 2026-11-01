@@ -1193,6 +1193,7 @@ img.ava{object-fit:cover}
 @media (prefers-reduced-motion:no-preference){.btn.ice-btn::after{animation:iceSweep 2.8s ease-in-out infinite}}
 @keyframes iceSweep{0%,50%{background-position:-200% 0}100%{background-position:200% 0}}
 .btn.ice-btn:active{transform:scale(.98)}
+.ice-ic{display:inline-grid;place-items:center;width:30px;height:30px;margin-left:8px;border-radius:50%;vertical-align:middle;font-size:17px;line-height:1;text-shadow:none;background:radial-gradient(circle at 35% 30%,#4f8fd6,#1565c0 60%,#0d3b66);box-shadow:0 0 0 2px rgba(255,255,255,.9),0 3px 8px rgba(13,59,102,.45)}   /* 1.11: снежинка на тёмно-синей подложке — не теряется на голубом */
 .more-h{margin:-6px 0 -10px;font-size:22px;font-weight:800}.more-list{display:flex;flex-direction:column;gap:8px}.more-list .gift-row{margin:0}   /* 31.10: «А ещё:» — крупнее, карточки плотнее */
 .restore{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;text-align:left;background:rgba(41,182,246,.18);border:1px solid rgba(41,182,246,.6);color:inherit}
 .restore>span:first-child{font-size:24px}
@@ -3525,7 +3526,7 @@ function freezeDay(day){ const dn=day===S.day?'сегодня':fmt(day);
   if(fzLeft()<=0) return toast('Заморозки на этот месяц закончились. Новые — 1-го числа.');
   const left=fzLeft()-1;
   sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>${day===S.day?'Сегодня не успеваешь — день засчитается в счётчик, как будто ты зашёл<br>Если всё-таки придёшь, заморозка вернётся':'День засчитается в счётчик, как будто ты зашёл. Посещения не сгорят.'}</p><p class="small muted">Останется ${left} ${fzWord(left)}.</p>
-    <button class="btn block ice-btn" onclick="doFreeze(${day})">Заморозить ❄️</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
+    <button class="btn block ice-btn" onclick="doFreeze(${day})">Заморозить <span class="ice-ic">❄️</span></button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
 function doFreeze(day){ useFz(day); (S.ser.fzDays=S.ser.fzDays||[]).push(day);
   save(); closeSheet(); render(); toast(`❄️ ${fmt(day)} заморожен — счётчик не сгорит.`); }
 // Предложение после недели с пропусками: заморозить недостающие дни — или счётчик сгорит через 7 дней
