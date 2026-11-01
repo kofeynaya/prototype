@@ -1790,6 +1790,7 @@ span.lb-gift{background:none}
 /* заголовок карточки акции: метка-название + крупный заголовок-выгода */
 .tk-h2{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .tk-lbl{padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.stc-lbl{align-self:flex-start;display:inline-flex;align-items:center;gap:4px}.t-plat .stc-lbl{background:rgba(255,255,255,.92);color:#212221}   /* 1.11 (владелец): названия карточек — одной системой */
 .tk-h2 h2{margin:0;font-size:28px;line-height:1.1;font-weight:800}
 #pr-ritm .tk-h2 h2{font-size:24px}
 /* 31.10 (владелец выбрал вариант A): «дней» и «% бонусов» — градиентом плашки «Бонусы сейчас» */
@@ -3449,7 +3450,7 @@ function statusCard(st){
   const t=tierOf(S.ser.n), nx=TIERS[TIERS.indexOf(t)+1], w=weekOf(S.day);
   return `<div class="stc t-${t.k} ser ${st.k}">
     <div class="stc-top" onclick="openTiers()">
-      <span class="stc-chip">Твой уровень</span>
+      <span class="tk-lbl stc-lbl">🏅 Твой уровень</span>
       <b class="stc-name">${t.n}</b>
       <span class="stc-perk">${TIER_TXT[t.k]}</span>
       ${nx?`<div class="stc-prog"><span>До ${nx.to}</span><span class="money">${S.ser.n} / ${nx.from}</span></div><div class="stc-bar"><i style="width:${Math.round((S.ser.n-t.from)/(nx.from-t.from)*100)}%"></i></div>`
