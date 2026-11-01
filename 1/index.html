@@ -90,7 +90,19 @@ p{margin:0}
 /* 31.10 (владелец выбрал вариант D): выгода в заголовке — фирменный тёмно-зелёный и шрифт цифр, без плашек */
 .offer .of-acc.yel{-webkit-text-stroke:.06em #212221;paint-order:stroke fill;text-shadow:.05em .05em 0 #212221}
 .offer .of-acc{color:#0d553f;font-family:var(--f-num);font-weight:400;font-size:1.25em;line-height:1;white-space:nowrap}.offer .of-acc.tx{font-family:inherit;font-weight:800;font-size:1em}
-.offer .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;position:relative}
+.offer .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;position:relative;z-index:2}
+/* 1.11: баннер предложения дня — выгода крупно первой строкой, название ниже, герой внизу справа */
+.offer.me{gap:0}.offer.me .ostat{margin-bottom:10px}
+.offer .of-ben{position:relative;font-family:var(--f-num);font-weight:400;font-size:44px;line-height:1;letter-spacing:-.02em;white-space:nowrap;max-width:100%}
+.offer .of-ben s{font-family:'Roboto Condensed',system-ui,sans-serif;font-weight:600;font-size:16px;white-space:nowrap;letter-spacing:0;opacity:.5;margin-left:10px;color:var(--on-color);vertical-align:.5em}
+.offer .of-ben.yel{-webkit-text-stroke:.05em #212221;paint-order:stroke fill;text-shadow:.04em .04em 0 #212221}
+.offer .of-ben.tx{font-size:32px}
+.offer.me .title.of-name{max-width:calc(100% - 104px);margin-top:6px;font-weight:700;line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
+.offer .of-name.n1{font-size:26px}.offer .of-name.n2{font-size:22px}.offer .of-name.n3{font-size:19px}
+.offer.me .actions{flex-wrap:nowrap}.offer.me .actions .btn{flex:1;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}
+.offer.me .title.of-name+.meta{max-width:calc(100% - 104px);margin-top:10px;margin-bottom:18px;opacity:.72;line-height:1.3}
+.offer.me:has(.of-ben) .artwrap{top:auto;bottom:74px;right:-4px;width:120px;height:136px}
+@media (max-width:370px){.offer .of-ben{font-size:36px}.offer .of-ben s{font-size:14px;margin-left:6px}.offer.me .actions .btn{font-size:15px}.offer .of-ben.tx{font-size:28px}.offer.me:has(.of-ben) .artwrap{top:14px;bottom:auto;width:84px;height:96px}.offer.me:has(.of-ben) .of-ben{max-width:calc(100% - 76px)}.offer.me .title.of-name{max-width:calc(100% - 76px)}.offer.me .title.of-name+.meta{max-width:100%}}
 .offer .btn{background:var(--on-color);color:#f9f9f9}
 .offer .btn.ghost{background:transparent;color:var(--on-color);border-color:var(--on-color)}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(33,34,33,.1)}
@@ -1172,6 +1184,14 @@ img.ava{object-fit:cover}
 .ser-week button i{transition:transform .12s ease}.ser-week button:active i{transform:scale(.92)}
 .ser-week button:focus-visible i{outline:2px solid var(--teal);outline-offset:2px}
 .fz-hint{margin:0;font-size:12px;opacity:.85}
+/* 1.11 (владелец): кнопка «Заморозить» — как лёд: голубой лёд с инеем, тёмно-синий текст, по льду пробегает блик */
+.btn.ice-btn{position:relative;overflow:hidden;color:#0d3b66;border:1.5px solid #4fc3f7;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.8);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40'%3E%3Cg stroke='%23fff' stroke-width='.9' stroke-linecap='round' opacity='.7' fill='none'%3E%3Cpath d='M10 8l6 6m-6 0l6-6M13 6v10M8 11h10'/%3E%3Cpath d='M100 24l6 6m-6 0l6-6M103 22v10M98 27h10'/%3E%3Cpath d='M30 30l3 3m-3 0l3-3M84 6l3 3m-3 0l3-3M60 34l2 2m-2 0l2-2'/%3E%3Cpath d='M22 2l-3 7 5 3-4 6M112 4l-5 4 2 5M70 2l-2 5 4 2'/%3E%3C/g%3E%3C/svg%3E") center/auto 100% repeat-x,linear-gradient(180deg,#f3fbff 0%,#c9ecfb 45%,#8fd6f5 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -6px 14px rgba(41,182,246,.25),0 6px 18px rgba(41,182,246,.45)}
+.btn.ice-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%) -200% 0/200% 100% no-repeat;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.btn.ice-btn::after{animation:iceSweep 2.8s ease-in-out infinite}}
+@keyframes iceSweep{0%,50%{background-position:-200% 0}100%{background-position:200% 0}}
+.btn.ice-btn:active{transform:scale(.98)}
 .more-h{margin:-6px 0 -10px;font-size:22px;font-weight:800}.more-list{display:flex;flex-direction:column;gap:8px}.more-list .gift-row{margin:0}   /* 31.10: «А ещё:» — крупнее, карточки плотнее */
 .restore{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;text-align:left;background:rgba(41,182,246,.18);border:1px solid rgba(41,182,246,.6);color:inherit}
 .restore>span:first-child{font-size:24px}
@@ -1973,7 +1993,7 @@ const _cv=document.createElement('canvas').getContext('2d');
    (не про друга или другого гостя); работает для любого выведенного текста, как и типографика */
 const S_ = '[\\s\\u00a0]+';
 const SEX_F=[['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
-  ['не'+S_+'приходил','не приходила'],['красавчик!','красотка!'],['Красавчик!','Красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
+  ['не'+S_+'приходил','не приходила'],['ты'+S_+'зашёл','ты зашла'],['красавчик!','красотка!'],['Красавчик!','Красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
   ['сэкономил','сэкономила'],['Ты'+S_+'уже'+S_+'дарил','Ты уже дарила'],['Ты'+S_+'подарил','Ты подарила'],['ты'+S_+'уже'+S_+'включил','ты уже включила'],['Что'+S_+'покупал','Что покупала']].map(([a,b])=>[new RegExp('(^|[^А-Яа-яё])'+a+'(?![А-Яа-яё])','g'),'$1'+b]);
 SEX_F.push([/^(\s*(?:ещё[\s\u00a0]+)?не[\s\u00a0]+)был(\s*)$/,'$1была$2']);   // «ты ещё <b>не был</b>» — фраза разбита тегом
 const sexFix=t=>S&&S.sex==='f'?SEX_F.reduce((x,[rx,to])=>x.replace(rx,to),t):t;
@@ -2865,8 +2885,7 @@ function home(){
     <article class="offer me" id="offer"${F(1)} style="background:${ARTS[o.art??S.day%ARTS.length].bg}" onclick="openOffer()">
       ${artSvg(o.art??S.day%ARTS.length)}
       ${status}
-      <div class="title">${o.title.replace(/(за\s)?(−\d+%|\d[\d\s\u00a0]*\s?₽)/,`<span class="nowrap">$1<span class="of-acc${ACC_Y(o)}" style="color:${accColor(o)}">$2</span></span>`).replace(/в подарок/,`<span class="of-acc tx" style="color:${accColor(o)==='#f2c230'?'#212221':accColor(o)}">в подарок</span>`)}</div>
-      <div class="meta">${o.meta.replace(/(₽|%)\.\s+/g,'$1<br>')}</div>
+      ${offerHead(o)}
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
         ${o.status==='shown' ? `<button class="btn ghost" onclick="event.stopPropagation();activate()">На кассе по QR</button>` : o.status==='activated' ? `<button class="btn ghost" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ''}
@@ -3269,6 +3288,20 @@ const _accSeq=[], _accLast={}; function accFor(day,art){ day=Math.max(0,day);
   if(art===day%ARTS.length) return _accSeq[day];
   const prev=_accSeq[day-1], ok2=ACC.filter(x=>ok(x,art)&&x!==prev); return ok2[0]||'#212221'; }
 const accColor=o=>accFor(o.day??S.day,o.art??S.day%ARTS.length), ACC_Y=o=>accColor(o)==='#f2c230'?' yel':'';
+/* 1.11 (владелец + критик): баннер предложения дня — «по-дизайнерски». Выгода первой строкой крупно (Dela, цвет дня, одна строка),
+   название ниже, кегль по длине (≤18 — 26 px, ≤30 — 22 px, длиннее — 19 px), не больше 4 строк вместе; комбо — цена в заголовке,
+   подарок — «В подарок»; герой меньше, внизу справа (на узком — маленький вверху справа), текстовая колонка ~67% вместо 57% */
+function offerHead(o){ const it=byId(o.item)||{n:o.title}, c=accColor(o), y=ACC_Y(o);
+  let ben, strike='', name=it.n, meta=o.meta.replace(/(₽|%)\.\s+/g,'$1<br>');
+  if(o.mech==='pct') ben=`−${o.pct}%`;
+  else if(o.mech==='price') ben=`за ${rub(o.newPrice)}`;
+  else if(o.mech==='gift'){ ben='В подарок'; name='Шоколадное печенье'; meta='К любому кофе<br>Одна штука, только сегодня'; }
+  else if(o.mech==='combo'){ const f=byId(o.combo[0]).p+byId(o.combo[1]).p; ben=rub(o.comboPrice); strike=rub(f); name=`${byId(o.combo[0]).n} +&nbsp;${byId(o.combo[1]).n.toLowerCase()}`; meta='Вместе, только сегодня'; }
+  else return `<div class="title">${o.title}</div><div class="meta">${meta}</div>`;
+  const L=name.replace(/&nbsp;/g,' ').length, sz=L<=18?'n1':L<=30?'n2':'n3';
+  return `<div class="of-ben${y}${o.mech==='gift'?' tx':''}" style="color:${c==='#f2c230'&&o.mech==='gift'?'#212221':c}">${ben.replace(/ /g,'&nbsp;')}${strike?`<s>${strike}</s>`:''}</div>
+      <div class="title of-name ${sz}">${name}</div>
+      <div class="meta">${meta}</div>`; }
 function rhTap(n){ const w=weekOf(S.day), cur=weekDays(w), now=rate(), dow=S.day%7, today=S.visits.includes(S.day), left=7-dow-(today?1:0), k=n-cur;
   const D=x=>`${x} ${plural(x,'день','дня','дней')}`, Rz=x=>x===1?'ещё раз':`ещё ${x} ${plural(x,'раз','раза','раз')} в разные дни`, T=(a,b)=>toast(`${a}<br>${b}`,4000);
   const spent=S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0), fzW=fzDaysIn(w).length;
@@ -3483,7 +3516,7 @@ function freezeDay(day){ const dn=day===S.day?'сегодня':fmt(day);
   if(fzLeft()<=0) return toast('Заморозки на этот месяц закончились. Новые — 1-го числа.');
   const left=fzLeft()-1;
   sheet(`<h2>❄️ Заморозить ${dn}?</h2><p>${day===S.day?'Сегодня не успеваешь — день засчитается в счётчик, как будто ты зашёл<br>Если всё-таки придёшь, заморозка вернётся':'День засчитается в счётчик, как будто ты зашёл. Посещения не сгорят.'}</p><p class="small muted">Останется ${left} ${fzWord(left)}.</p>
-    <button class="btn block" onclick="doFreeze(${day})">Заморозить ❄️</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
+    <button class="btn block ice-btn" onclick="doFreeze(${day})">Заморозить ❄️</button><button class="btn ghost block" onclick="closeSheet()">Не надо</button>`); }
 function doFreeze(day){ useFz(day); (S.ser.fzDays=S.ser.fzDays||[]).push(day);
   save(); closeSheet(); render(); toast(`❄️ ${fmt(day)} заморожен — счётчик не сгорит.`); }
 // Предложение после недели с пропусками: заморозить недостающие дни — или счётчик сгорит через 7 дней
