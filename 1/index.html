@@ -99,7 +99,7 @@ p{margin:0}
 .offer .of-ben.tx{font-size:32px}
 .offer.me .title.of-name{max-width:calc(100% - 104px);margin-top:6px;font-weight:700;line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
 .offer .of-name.n1{font-size:26px}.offer .of-name.n2{font-size:22px}.offer .of-name.n3{font-size:19px}
-.offer.me .actions{flex-wrap:nowrap}.of-done{flex:1;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;border-radius:999px;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff;font-size:14px;line-height:1.25;box-shadow:0 6px 16px rgba(31,122,85,.35)}.of-done b{font-size:16px}.od-ic{flex:none;width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center}.of-done>span:last-child{text-wrap:wrap;min-width:0}@media (max-width:370px){.of-done{gap:10px;padding-right:12px;font-size:13px}.of-done b{font-size:15px}.od-ic{width:34px;height:34px}}
+.offer.me .actions{flex-wrap:nowrap}.offer .btn.of-in{background:linear-gradient(135deg,#2e9e6a,#1f7a55)!important;color:#fff!important;border-color:transparent!important}.of-wait{display:block;font-size:13px;font-weight:700;color:#e65100}.of-hint{margin:4px 0 -6px;font-size:15px;font-weight:600}.of-kassa{padding:10px 12px;border-radius:14px;background:rgba(255,145,0,.12);border:1.5px dashed rgba(255,145,0,.6);font-size:14px;margin:6px 0}.of-kassa.ok{background:rgba(46,158,106,.12);border-color:rgba(46,158,106,.5)}.of-done{flex:1;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;border-radius:999px;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff;font-size:14px;line-height:1.25;box-shadow:0 6px 16px rgba(31,122,85,.35)}.of-done b{font-size:16px}.od-ic{flex:none;width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center}.of-done>span:last-child{text-wrap:wrap;min-width:0}@media (max-width:370px){.of-done{gap:10px;padding-right:12px;font-size:13px}.of-done b{font-size:15px}.od-ic{width:34px;height:34px}}
 .od-ic svg{width:24px;height:24px;fill:none;stroke:#1f9d5c;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}.offer.me .actions .btn{flex:1;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}
 .offer.me .title.of-name+.meta{max-width:calc(100% - 104px);margin-top:10px;margin-bottom:18px;opacity:.72;line-height:1.3}
 .offer.me:has(.of-ben) .artwrap{top:auto;bottom:74px;right:-4px;width:120px;height:136px}
@@ -2275,10 +2275,13 @@ function recommend(n=8){
    lines: [{id, qty, sur}] — sur = доплата за опции. На строку одна лучшая скидка; комбо — на свои строки. */
 function quote(lines, opt={}){
   let regular=0, offerUsed=false, bdDisc=0; const sixthUsed=[];
-  const prem=S.plus, o=prem && S.offer && S.offer.status==='activated' ? S.offer : null;   // без Премиум — ни предложения дня, ни 6-го, ни ДР, ни бонусов, ни депозита
+  const prem=S.plus, o=prem && S.offer && S.offer.status!=='used' ? S.offer : null;   // 1.11: кнопки «На кассе по QR» нет — предложение действует само   // без Премиум — ни предложения дня, ни 6-го, ни ДР, ни бонусов, ни депозита
   const units=[]; for(const l of lines) for(let i=0;i<l.qty;i++) units.push({id:l.id,sur:l.sur||0});
   const comboLeft = o&&o.mech==='combo' ? [...o.combo] : null;
-  let singleLeft = o&&(o.mech==='pct'||o.mech==='price') ? 1 : 0;
+  /* 1.11 (владелец + критик): скидку/спеццену дня — только если в чеке есть ещё хоть одна позиция (любая, хоть вторая порция того же);
+     по акции — одна порция на чек и на день */
+  const offerSingle = o&&(o.mech==='pct'||o.mech==='price'), offerHas = offerSingle&&units.some(u=>u.id===o.item), offerWait0 = !!(offerHas&&units.length<2);
+  let singleLeft = offerSingle&&!offerWait0 ? 1 : 0;
   let giftLeft = o&&o.mech==='gift'&&units.some(u=>LCAT(byId(u.id))==='coffee') ? 1 : 0;
   const comboOk = comboLeft && comboLeft.every(c=>units.some(u=>u.id===c));
   const bd=bdInfo(), bdOn=prem&&bd.active&&(S.birth.verified||opt.doc||opt.online); let bdLeft=bdOn?bd.capLeft:0;
@@ -2305,6 +2308,8 @@ function quote(lines, opt={}){
     if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
     out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why,k:best.k==='gift'?'offer':best.k});
   }
+  // подсказку «добавь ещё» показываем, только если акция правда выгоднее того, что уже есть (например, скидки в день рождения)
+  const ol=offerWait0&&out.find(l=>l.id===o.item), offerWait=!!(ol&&(o.mech==='pct'?Math.round(ol.regular*(1-o.pct/100)):o.newPrice)<ol.price);
   if(comboOk){ const cl=out.filter(l=>l.price===null); const full=cl.reduce((a,l)=>a+l.regular-0,0);
     cl.forEach(l=>l.price=Math.round(l.regular/full*o.comboPrice)); offerUsed=true; }
   const paid=out.reduce((a,l)=>a+l.price,0);
@@ -2312,7 +2317,7 @@ function quote(lines, opt={}){
   const bonusSpend = opt.bonus&&prem ? Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE)) : 0;
   const after = paid-bonusSpend+fee;
   const walletSpend = opt.wallet&&prem ? Math.min(walletTotal(), after) : 0;
-  return {lines:out, regular, paid, saved:regular-paid, offerUsed, sixthUsed, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
+  return {lines:out, regular, paid, saved:regular-paid, offerUsed, offerWait, sixthUsed, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
           bonusSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rateAll()/100)};
 }
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
@@ -2359,7 +2364,13 @@ function checkAch(){ const got=[]; for(const a of ACH){ if(!S.ach[a.id] && a.tes
 
 /* ===================== Действия лояльности ===================== */
 function activate(){ if(!S.plus) return premGate('Предложение дня — только с ★ Кофейная+','Каждый день своя скидка только для тебя'); if(S.offer.status==='shown'){ S.offer.status='activated'; S.funnel.activated++; if(!S.offer.opened){S.offer.opened=true;S.funnel.opened++} save(); render(); toast('Предложение активировано: сработает на кассе по QR и в заказе в приложении.'); } }
-function offerToCart(){ activate(); const o=S.offer; if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render(); toast('Добавили в корзину. Скидка уже посчитана.'); }
+const offerPrice=o=>{ const it=byId(o.item); return o.mech==='pct'?Math.round(it.p*(1-o.pct/100)):o.mech==='price'?o.newPrice:null; };
+const offerInCart=()=>{ const o=S.offer; if(!o) return false; return o.mech==='combo'?o.combo.every(id=>qtyOf(id)>0):qtyOf(o.item)>0; };
+function offerToCart(){ const o=S.offer; if(offerInCart()) return go('cart');   // 1.11 (владелец): по акции — один раз, повторное нажатие просто открывает корзину
+  activate(); if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render();
+  const it=byId(o.item), other=basketCount()>1;
+  if(offerPrice(o)!=null&&!other) toast(`✓ ${it.n} в корзине<br>Добавь ещё что-нибудь — и будет ${rub(offerPrice(o))}`,4000);
+  else toast(`✓ ${o.mech==='combo'?'Комбо':it.n} в корзине по акции`); }
 function openOffer(){ if(S.plus && !S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
 function nextDay(){
   supMorning();
@@ -2902,7 +2913,7 @@ function home(){
       ${status}
       ${offerHead(o)}
       <div class="actions">
-        ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : offerDone(o)}
+        ${o.status==='used' ? offerDone(o) : offerInCart() ? `<button class="btn of-in" onclick="event.stopPropagation();offerToCart()">✓ В корзине — открыть</button>` : `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>`}
         <!-- 1.11 (владелец): кнопки «На кассе по QR» / «Показать QR» убраны — человек должен класть в корзину и докупать -->
       </div>
     </article>
@@ -3185,9 +3196,10 @@ function cart(){
     <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
     <div>${S.basket.map((l,i)=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
       return `<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}
-        <span class="money">${sum<reg?`<s class="muted">${rub(reg)}</s> `:''}${rub(sum)}</span></div>
+        <span class="money">${sum<reg?`<s class="muted">${rub(reg)}</s> `:''}${rub(sum)}</span>${qt.offerWait&&S.offer&&l.id===S.offer.item?`<span class="of-wait">${rub(offerPrice(S.offer))} — если добавить ещё что-нибудь</span>`:''}</div>
         <div class="qty"><button aria-label="Меньше" onclick="cartMinus(${i})">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="cartPlus(${i})">+</button></div></div>` }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
+    ${qt.offerWait?`<p class="of-hint">💡 Добавь любую позицию — и ${byId(S.offer.item).n.toLowerCase()} будет за ${rub(offerPrice(S.offer))}</p>`:''}
     ${ups.length?`<div class="stack"><h3>Добавить к заказу?</h3><div class="hscroll">${ups.map(id=>{const m=byId(id);return `<div class="rec">${photo(m)}<span class="nm">${m.n}</span><button class="pill" onclick="addLine('${id}',null,true);render()">${rub(m.p)} +</button></div>`}).join('')}</div></div>`:''}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
@@ -3311,8 +3323,8 @@ function offerDone(o){ const it=byId(o.item), save=it&&o.mech==='pct'?Math.round
   return `<div class="of-done"><span class="od-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"/></svg></span><span><b>${save>0?`Уже твоё — <span class="nowrap">минус ${rub(save)}</span>`:'Уже твоё — выгода получена'}</b><br>Завтра — новое предложение</span></div>`; }
 function offerHead(o){ const it=byId(o.item)||{n:o.title}, c=accColor(o), y=ACC_Y(o);
   let ben, strike='', name=it.n, meta=o.meta.replace(/(₽|%)\.\s+/g,'$1<br>');
-  if(o.mech==='pct') ben=`−${o.pct}%`;
-  else if(o.mech==='price') ben=`за ${rub(o.newPrice)}`;
+  if(o.mech==='pct'){ ben=`−${o.pct}%`; meta='Одна порция, только сегодня<br>С любой второй позицией в заказе'; }
+  else if(o.mech==='price'){ ben=`за ${rub(o.newPrice)}`; meta=`Вместо ${rub(it.p)}, только сегодня<br>С любой второй позицией в заказе`; }
   else if(o.mech==='gift'){ ben='В подарок'; name='Шоколадное печенье'; meta='К любому кофе<br>Одна штука, только сегодня'; }
   else if(o.mech==='combo'){ const f=byId(o.combo[0]).p+byId(o.combo[1]).p; ben=rub(o.comboPrice); strike=rub(f); name=`${byId(o.combo[0]).n} +&nbsp;${byId(o.combo[1]).n.toLowerCase()}`; meta='Вместе, только сегодня'; }
   else return `<div class="title">${o.title}</div><div class="meta">${meta}</div>`;
@@ -4733,7 +4745,7 @@ function drawKassa(){
   if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(qt.card>0) opts.push(`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span><span class="optrow">${[['card','Картой'],['cash','Наличными']].map(([k,t])=>`<button class="optbtn ${(ko.pay||'card')===k?'on':''}" style="padding:6px 10px" onclick="ko.pay='${k}';drawKassa()">${t}</button>`).join('')}</span></div>`);
   const html=`<div class="stack" style="gap:4px"><span class="label">Покупка в кофейне</span><h2>Ты показал QR на кассе</h2>
-    <p class="small muted">${o.status==='activated'?`Предложение дня включено: «${o.title}»`:o.status==='used'?'Предложение дня уже использовано':'Предложение дня не включено'}</p></div>
+    ${o.status==='used'?'<p class="small muted">Предложение дня уже использовано</p>':qt.offerWait?`<div class="of-kassa"><b>${byId(o.item).n} — ${rub(byId(o.item).p)}</b><br>За ${rub(offerPrice(o))} — если взять что-то ещё</div>`:qt.offerUsed?`<div class="of-kassa ok"><b>Предложение дня сработало ✓</b><br>${o.title}</div>`:`<p class="small muted">Предложение дня: ${o.title}<br>С любой второй позицией</p>`}</div>
     <div class="menu">${ids.map(id=>{ const m=byId(id), pp=myPrice(id), six=sixReady(id);
       return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.n}</span><span class="pr">${pp!=null?`<s>${rub(m.p)}</s> <span class="pp">${rub(pp)}</span>`:rub(m.p)}${six?` · <span class="pp">6-й −${Math.round(sixOff(six)*100)}%</span>`:''}</span></div>
       <div class="qty"><button aria-label="Убрать" onclick="kc['${id}']=Math.max(0,(kc['${id}']||0)-1);if(!kc['${id}'])delete kc['${id}'];drawKassa()">−</button><span>${kc[id]||0}</span><button aria-label="Добавить" onclick="kc['${id}']=(kc['${id}']||0)+1;drawKassa()">+</button></div></div>` }).join('')}</div>
