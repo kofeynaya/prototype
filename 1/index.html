@@ -2225,7 +2225,7 @@ function makeOffer(){
   const item = rnd(MENU.filter(m=>LCAT(m)===cat && m.p<=700));
   const o = {day:S.day, cat, mech, item:item.id, status:'shown', explore, opened:false};
   const nm = item.n;
-  if(mech==='pct'){ o.pct=rnd([10,15,20]); o.title=`${nm} −${o.pct}%`; o.meta=`Сегодня со скидкой ${o.pct}%<br>Одна порция — на кассе или в заказе`; }
+  if(mech==='pct'){ o.pct=rnd([10,15,20]); o.title=`${nm} −${o.pct}%`; o.meta=`Сегодня со скидкой ${o.pct}%<br>Одна порция, только сегодня`; }
   if(mech==='price'){ o.newPrice=Math.round(item.p*0.8/10)*10; o.title=`${nm} за ${o.newPrice} ₽`; o.meta=`Вместо ${rub(item.p)}<br>Одна порция, только сегодня`; }
   if(mech==='gift'){ o.item=ID.cookie; o.cat='pastry'; o.title='Шоколадное печенье в подарок к кофе'; o.meta='Возьмите любой кофе — печенье добавим бесплатно.'; }
   if(mech==='combo'){ const c=rnd([ID.cap,ID.latte,ID.flat]), p=rnd([ID.croissant,ID.muffin]); o.combo=[c,p]; o.item=c;
@@ -2888,7 +2888,7 @@ function home(){
       ${offerHead(o)}
       <div class="actions">
         ${o.status!=='used' ? `<button class="btn" onclick="event.stopPropagation();offerToCart()">В корзину</button>` : ''}
-        ${o.status==='shown' ? `<button class="btn ghost" onclick="event.stopPropagation();activate()">На кассе по QR</button>` : o.status==='activated' ? `<button class="btn ghost" onclick="event.stopPropagation();openQR()">Показать QR</button>` : ''}
+        <!-- 1.11 (владелец): кнопки «На кассе по QR» / «Показать QR» убраны — человек должен класть в корзину и докупать -->
       </div>
     </article>
 
