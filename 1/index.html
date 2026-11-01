@@ -99,7 +99,8 @@ p{margin:0}
 .offer .of-ben.tx{font-size:32px}
 .offer.me .title.of-name{max-width:calc(100% - 104px);margin-top:6px;font-weight:700;line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
 .offer .of-name.n1{font-size:26px}.offer .of-name.n2{font-size:22px}.offer .of-name.n3{font-size:19px}
-.offer.me .actions{flex-wrap:nowrap}.of-done{flex:1;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:18px;background:rgba(255,255,255,.55);color:#212221;font-size:14px;line-height:1.25}.of-done b{font-size:15px}.od-ic{font-size:22px;flex:none}.offer.me .actions .btn{flex:1;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}
+.offer.me .actions{flex-wrap:nowrap}.of-done{flex:1;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;border-radius:999px;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff;font-size:14px;line-height:1.25;box-shadow:0 6px 16px rgba(31,122,85,.35)}.of-done b{font-size:16px}.od-ic{flex:none;width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center}.of-done>span:last-child{text-wrap:wrap;min-width:0}@media (max-width:370px){.of-done{gap:10px;padding-right:12px;font-size:13px}.of-done b{font-size:15px}.od-ic{width:34px;height:34px}}
+.od-ic svg{width:24px;height:24px;fill:none;stroke:#1f9d5c;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}.offer.me .actions .btn{flex:1;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}
 .offer.me .title.of-name+.meta{max-width:calc(100% - 104px);margin-top:10px;margin-bottom:18px;opacity:.72;line-height:1.3}
 .offer.me:has(.of-ben) .artwrap{top:auto;bottom:74px;right:-4px;width:120px;height:136px}
 @media (max-width:370px){.offer .of-ben{font-size:36px}.offer .of-ben s{font-size:14px;margin-left:6px}.offer.me .actions .btn{font-size:15px}.offer .of-ben.tx{font-size:28px}.offer.me:has(.of-ben) .artwrap{top:14px;bottom:auto;width:84px;height:96px}.offer.me:has(.of-ben) .of-ben{max-width:calc(100% - 76px)}.offer.me .title.of-name{max-width:calc(100% - 76px)}.offer.me .title.of-name+.meta{max-width:100%}}
@@ -3293,7 +3294,7 @@ const accColor=o=>accFor(o.day??S.day,o.art??S.day%ARTS.length), ACC_Y=o=>accCol
    подарок — «В подарок»; герой меньше, внизу справа (на узком — маленький вверху справа), текстовая колонка ~67% вместо 57% */
 // 1.11 (владелец): после использования вместо пустоты — плашка «Уже твоё» на месте кнопки
 function offerDone(o){ const it=byId(o.item), save=it&&o.mech==='pct'?Math.round(it.p*o.pct/100):it&&o.mech==='price'?it.p-o.newPrice:0;
-  return `<div class="of-done"><span class="od-ic">🎉</span><span><b>${save>0?`Уже твоё — минус ${rub(save)}`:'Уже твоё — выгода получена'}</b><br>Завтра здесь будет новое предложение</span></div>`; }
+  return `<div class="of-done"><span class="od-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"/></svg></span><span><b>${save>0?`Уже твоё — <span class="nowrap">минус ${rub(save)}</span>`:'Уже твоё — выгода получена'}</b><br>Завтра — новое предложение</span></div>`; }
 function offerHead(o){ const it=byId(o.item)||{n:o.title}, c=accColor(o), y=ACC_Y(o);
   let ben, strike='', name=it.n, meta=o.meta.replace(/(₽|%)\.\s+/g,'$1<br>');
   if(o.mech==='pct') ben=`−${o.pct}%`;
