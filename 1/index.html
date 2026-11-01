@@ -1670,6 +1670,8 @@ span.lb-gift{background:none}
 .pw-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px}.pw-foot .pw-act{margin-top:0}
 .pw-ok.no{color:#ff5252}.pw-ok.no::before{background:#e53935;box-shadow:0 0 0 3px rgba(229,57,53,.25)}   /* красный — как батарейка при низком заряде (владелец 24.10) */
 .pw-on .pw-act{padding:8px 13px;font-size:13.5px;margin-top:8px}
+.pw-ok.no.gone{color:#ffb300}.pw-ok.no.gone::before{background:#ff9800;box-shadow:0 0 0 3px rgba(255,152,0,.25)}.pw-n.gone{background:#ff9800;color:#212221}
+.pw-l-gone{border-color:rgba(255,152,0,.55);background:linear-gradient(180deg,rgba(255,152,0,.10),transparent 120px),var(--surface)}
 .pw-l-off{border-color:rgba(229,57,53,.45);background:linear-gradient(180deg,rgba(229,57,53,.08),transparent 120px),var(--surface)}
 .pw-l-on{border-color:rgba(46,158,91,.45);background:linear-gradient(180deg,rgba(46,158,91,.1),transparent 120px),var(--surface)}
 
@@ -2318,7 +2320,7 @@ function applyPurchase(q, channel, doc){
   let w=q.walletSpend; const fm=Math.min(S.wallet.money,w); S.wallet.money-=fm; w-=fm; S.wallet.gift-=w;
   if(q.walletSpend) (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`${channel==='Касса'?SHOPS[S.shop].n+' · касса':channel} · ${q.lines.length} поз.`,sum:-q.walletSpend});
   S.pastryCount+=q.lines.filter(l=>LCAT(byId(l.id))==='pastry').length;
-  if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
+  if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.offerLast=S.day; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
   const bought=new Set(q.lines.map(l=>l.id));
   S.six.slots.forEach((sl,i)=>{ if(!sl||!bought.has(sl.id)||!S.plus) return;
     if(q.sixthUsed.includes(sl.id)){ S.six.usedDay=S.day; S.six.slots[i]=null; }   // круг закрыт — ячейка свободна, можно выбрать новое
@@ -3768,7 +3770,19 @@ function progress(){
 
 /* ---------- Заряд выгоды: сколько выгод приложения гость уже берёт (как заряд батарейки) ---------- */
 /* Без подписки все выгоды под замком — значит, ни одна не «включена»: заряд 0%, первым советом — Кофейная+ (баг 21.10: было 75–88% без подписки) */
-function powerItems(){ const it=powerAll(); if(S.plus) return it;
+/* 1.11 (владелец + критик): «Ещё не пользуешься» — только если ни разу; было и перестало — «Давно не пользуешься» (x.gone, тёплый янтарный),
+   с подписью-напоминанием и кнопкой. Батарейка считает «давно» выключенным. ДР и друг «перестать» не могут */
+const PW_GONE={
+  'Предложение дня':{lbl:'давно не было', no:'Скидка под тебя ждёт каждый день|Сегодня новая — загляни', act:'Посмотреть'},
+  'Твой ритм':{lbl:'давно не было', no:'Бонусы за покупки снова 0%|Приходи 3 дня в неделю — будет 3% бонусов', act:'В меню'},
+  'Каждый 6-й':{lbl:'давно не было', no:'Отметки сгорели|Купи любимое блюдо — счёт начнётся заново', act:'Выбрать'},
+  'Депозит':{lbl:'закончился', no:'Депозит закончился|Пополни на 3 000 ₽ — вернётся 150 ₽ кэшбэком', act:'Пополнить'},
+  'Кофейная+':{lbl:'закончилась', no:'Подписка закончилась — выгоды под замком|Верни их за 99 ₽ в месяц', act:'Вернуть'},
+  'Платить бонусами':{lbl:'давно не было', no:()=>`У тебя ${S.bonus.toLocaleString('ru-RU')} бонусов|Ими можно оплатить до 30% чека`, act:'Потратить'} };
+function pwGone(x){ const ev=S.pwEver||(S.pwEver={}); if(x.on){ ev[x.t]=1; return false; }
+  const was=ev[x.t]||(x.t==='Предложение дня'&&S.funnel.used>0)||(x.t==='Депозит'&&(S.wallet.ops||[]).some(o=>o.k==='top'))||(x.t==='Твой ритм'&&(S.visits.length||(S.histPast||[]).length))||(x.t==='Платить бонусами'&&S.orders.some(o=>o.bonusSpend>0));
+  if(!was||!PW_GONE[x.t]) return false; if(x.t==='Платить бонусами'&&!S.bonus) return false; return true; }
+function powerItems(){ const it=powerAll().map(x=>{ if(!pwGone(x)) return x; const g=PW_GONE[x.t]; return {...x,gone:g.lbl,no:typeof g.no==='function'?g.no():g.no,act:g.act}; }); if(S.plus) return it;
   const pl=it.find(x=>x.t==='Кофейная+');
   return [pl,...it.filter(x=>x!==pl).map(x=>({...x,on:false,no:'Откроется с ★ Кофейная+',act:'Подключить ★',btn:"go('plus')"}))]; }
 // Подпись «Твой ритм — работает»: сколько бонусов сейчас и что будет с понедельника (процент этой недели от покупок этой недели не меняется)
@@ -3780,9 +3794,9 @@ function rhYes(lw,tw){ const cap=rateCap(), now=rateAll(), next=Math.min(tw,cap)
   if(tw===lw) return `Сейчас ${now}% бонусов с каждой покупки|Приходи ещё раз — с понедельника будет ${next+1}%`;
   return `Сейчас ${now}% бонусов с каждой покупки|Приходи ещё ${lw-tw} ${plural(lw-tw,'раз','раза','раз')} — и с понедельника будет столько же`; }
 function powerAll(){
-  const lw=lastWeekDays(), tw=weekDays(weekOf(S.day)), wal=walletTotal(), fr=S.ref.friends.filter(f=>!f.blocked).length, spent=S.orders.some(o=>o.bonusSpend>0);
+  const lw=lastWeekDays(), tw=weekDays(weekOf(S.day)), wal=walletTotal(), fr=S.ref.friends.filter(f=>!f.blocked).length, spent=S.orders.some(o=>o.bonusSpend>0&&S.day-o.day<=30);
   return [
-    {ic:'☀️', t:'Предложение дня',  on:S.funnel.used>0,                 yes:'Пользуешься — каждый день новое',            no:'Скидка под твой вкус, каждый день новая|Используй её на кассе или в заказе', act:'Воспользоваться', btn:"goTo('home','#offer')"},
+    {ic:'☀️', t:'Предложение дня',  on:S.funnel.used>0&&S.day-(S.offerLast??S.day)<=14,                 yes:'Пользуешься — каждый день новое',            no:'Скидка под твой вкус, каждый день новая|Используй её на кассе или в заказе', act:'Воспользоваться', btn:"goTo('home','#offer')"},
     // 24.10, с критиком: ритм «работает», если бонусы уже идут (на прошлой неделе был день) или на этой уже есть день — порог «3 дня» только для счётчика
     {ic:'📈', t:'Твой ритм',        on:lw>0||tw>0,                      yes:rhYes(lw,tw),                                 no:'Купи сегодня от 150 ₽|С понедельника пойдут бонусы', act:'В меню', btn:"go('menu')"},
     {ic:'☕', t:'Каждый 6-й',       on:S.six.slots.some(x=>x&&x.n>0), yes:'Копишь отметки', no:S.six.slots.some(Boolean)?'Купи выбранное блюдо — появится первая отметка':'Выбери блюда, которые будешь копить|Новое −50%, привычное −20%', act:S.six.slots.some(Boolean)?'Мои блюда':'Выбрать', btn:"goTo('progress','#pr-six')"},
@@ -3821,12 +3835,13 @@ function power(){
     </div>
     ${(()=>{ /* 24.10: на тестах люди принимали зелёную галочку слева за чекбокс. Теперь две отдельные группы без кружков:
         «Ещё не пользуешься» — карточки целиком нажимаются, справа кнопка-действие; «Уже работает на тебя» — спокойные строки с надписью «работает», без кнопок */
-      const off=it.filter(x=>!x.on), onL=it.filter(x=>x.on);
+      const gone=it.filter(x=>!x.on&&x.gone), off=it.filter(x=>!x.on&&!x.gone), onL=it.filter(x=>x.on);
       // 24.10 (2): владелец — отдельные плашки тяжело читать; снова одна панель со всеми выгодами, у каждой справа понятная надпись
       // «● работает» (зелёная) или «● не работает» (оранжевая), у неработающих — кнопка-действие под текстом
-      const row=x=>`<div class="pw-on${x.on?'':' off'}"><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${(x.on?x.yes:x.no).split('|').join('<br>')}</small>${x.on?'':`<span class="pw-foot"><button class="pw-act" onclick="${x.btn}">${x.act||'Открыть'} ›</button><span class="pw-ok no">ещё не подключено</span></span>`}</span>${x.on?'<span class="pw-ok">работает</span>':''}</div>`;
+      const row=x=>`<div class="pw-on${x.on?'':' off'}"><span class="pi">${x.ic}</span><span class="tx"><b>${x.t}</b><small>${(x.on?x.yes:x.no).split('|').join('<br>')}</small>${x.on?'':`<span class="pw-foot"><button class="pw-act" onclick="${x.btn}">${x.act||'Открыть'} ›</button><span class="pw-ok no${x.gone?' gone':''}">${x.gone||'ещё не подключено'}</span></span>`}</span>${x.on?'<span class="pw-ok">работает</span>':''}</div>`;
       // 24.10 (3): две отдельные панели — «не подключено» (красноватая рамка) и «уже работает» (зеленоватая), чтобы группы не сливались
-      return `${off.length?`<div class="panel pw-list pw-l-off"><h2 class="pw-h">Ещё не пользуешься <span class="pw-n">${off.length}</span></h2>${off.map(row).join('')}</div>`:''}
+      return `${gone.length?`<div class="panel pw-list pw-l-gone"><h2 class="pw-h">Давно не пользуешься <span class="pw-n gone">${gone.length}</span></h2>${gone.map(row).join('')}</div>`:''}
+        ${off.length?`<div class="panel pw-list pw-l-off"><h2 class="pw-h">Ещё не пользуешься <span class="pw-n">${off.length}</span></h2>${off.map(row).join('')}</div>`:''}
         ${onL.length?`<div class="panel pw-list pw-l-on"><h2 class="pw-h">Уже работает на тебя <span class="pw-n ok">${onL.length}</span></h2>${onL.map(row).join('')}</div>`:''}`; })()}
   </section>`;
 }
