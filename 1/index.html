@@ -1839,6 +1839,22 @@ span.lb-gift{background:none}
 .rc2 b{font-size:clamp(17px,6vw,26px)}.rc2.nx b{font-size:10px}
 .rc2 .dl{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;letter-spacing:-.2px}.rc2.f .dl{color:var(--ink)}
 .rc2.f em{color:#d6264f}
+
+/* 3.11 лестница «Твой ритм» (с критиком) */
+.rs-sub{margin:-6px 0 0;font-size:14px;font-weight:600;color:var(--muted)}
+.rs-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;height:84px;align-items:end;padding-top:6px}
+.rs{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+.rs b{width:100%;max-width:52px;border-radius:10px 10px 8px 8px;background:rgba(23,47,40,.12);display:flex;align-items:flex-start;justify-content:center;padding-top:6px;box-sizing:border-box;
+  font-family:var(--f-num);font-weight:400;font-size:clamp(12px,3.9vw,17px);color:rgba(23,47,40,.6);white-space:nowrap;transition:transform .12s ease}
+.rs:active b{transform:scale(.94)}
+.rs.f b{background:linear-gradient(160deg,#ff6d00,#d6264f 55%,#8e24aa);color:#fff;box-shadow:0 4px 10px -4px rgba(214,38,79,.55)}
+.rs.nx b{background:rgba(255,255,255,.55);border:2.5px solid #ff6d00;color:#e65100}
+@media (prefers-reduced-motion:no-preference){.rs.go b{animation:todayPulse 1.8s ease-in-out infinite}}
+.rs.out b{background:rgba(23,47,40,.06);color:rgba(23,47,40,.32);text-decoration:line-through;text-decoration-thickness:1.5px}
+.rs.lock b{opacity:.5}
+.rs i{font-style:normal;height:13px;line-height:13px;font-size:12px;color:var(--ink);margin-top:2px}
+.rs-line{margin:0;font-size:15px;line-height:1.3;font-weight:600}
+.rs-line br+*,.rs-line{color:var(--ink)}
 .burn-card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.3);margin-bottom:10px;font-size:14px}.burn-card>b{font-size:17px}.burn-card .btn{align-self:flex-start;padding:8px 16px}
 .ser-week.mini{margin:0;gap:3px}.stc .ser-week.mini i{max-width:30px;font-size:14px;border-width:1.5px}
 @media (prefers-reduced-motion:no-preference){.ser-week.urge button.can i{animation:fzPulse 1.6s ease-in-out infinite}}
@@ -3360,16 +3376,29 @@ function rhythm(){
      три плашки «прошлая неделя → сейчас → со следующей» (владелец вернул). Подсказки и смайлик убраны — объяснения в всплывашках клеток и по «?» */
   const cur=weekDays(weekOf(S.day)), last=lastWeekDays(), cap=rateCap(), now=rate(), dow=S.day%7, today=S.visits.includes(S.day);
   const left=7-dow-(today?1:0), next=Math.min(cur,cap);
-  const cell=n=>{ const f=n<=cur, star=n>cap, nx=n===cur+1&&!today&&left>0&&!star;
-    return `<span class="rc2 ${f?'f':''} ${nx?'nx':''} ${star&&!f?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><i class="dl">${n}&nbsp;${plural(n,'день','дня','дней')}</i><b>${f?'🔥':nx?'<span class="nx-l">сегодня</span>?':''}</b><em>${star?'★':''}${n}%</em></span>`; };
+  /* 3.11 (владелец: «какой день? где сегодня, где следующий?» — клетки читались как дни недели; решение с критиком): ритм — ЛЕСТНИЦА,
+     а не полоса времени: 7 ступенек растут, внутри «N%», набранные — градиентом «Бонусы сейчас» (без 🔥: 🔥 = «был в этот день» в неделе выше),
+     ▲ — где ты сейчас, следующая ступенька — оранжевый контур («дышит», если можно прийти сегодня), недостижимые на этой неделе — бледные,
+     цифра зачёркнута. Под лестницей одна строка в две мысли: где я / что сделать. Слов «сегодня/завтра» над ступеньками нет */
+  const reach=cur+Math.max(0,left), D=x=>`${x}&nbsp;${plural(x,'день','дня','дней')}`;
+  const cell=n=>{ const f=n<=cur, star=n>cap&&!f, nx=n===cur+1&&left>0&&!star, out=!f&&n>reach, h=Math.round(60+(n-1)*40/6);
+    return `<span class="rs ${f?'f':''} ${nx?'nx':''} ${nx&&!today?'go':''} ${out?'out':''} ${star?'lock':''} tap" role="button" tabindex="0" onclick="rhTap(${n})"><b style="height:${h}%">${star?'★':''}${n}%</b><i>${n===cur&&cur>0?'▲':''}</i></span>`; };
+  const line=!S.plus?`Бонусы за дни — только с ★&nbsp;Кофейная+<br>Бесплатно до ${FREE_UNTIL}`
+    : cur>=7?'Все 7 дней — это максимум ✓<br>Со следующей недели 7% бонусов'
+    : left<=0?(cur?`Неделя готова — ${D(cur)} ✓<br>Со следующей недели ${next}% бонусов`:'На этой неделе дней с покупкой не было<br>Приходи в понедельник — начнёшь с 1%')
+    : cur===0?`${dow===0?'Новая неделя':'Пока ни одной ступеньки'}<br>Приходи ${today?'завтра':'сегодня'} — будет 1%`
+    : reach<7&&left<=3?`Ещё успеешь до ${Math.min(reach,cap)}%<br>${left===1?(today?'Приходи завтра':'Приходи сегодня'):'Приходи каждый день до воскресенья'}`
+    : `Ты на ${cur}-й ступеньке — ${D(cur)}<br>Приходи ${today?'завтра':'сегодня'} — будет ${cur+1}%`;
   return `<div class="rhythm rh2"${F(5)}>
     <button class="rh-q rh-qtop" onclick="openRhRules()" aria-label="Как это работает">?</button>
+    <p class="rs-sub">1 день с покупкой = +1% бонусов</p>
     <div class="rh3">
       <div class="r3"><span>Прошлая неделя</span><b class="money">${last}</b><small>${plural(last,'день','дня','дней')}</small></div><i>→</i>
       <div class="r3 now"><span>Бонусы сейчас</span><b class="money">${now}%</b><small>с покупки</small></div><i>→</i>
       <div class="r3 nxt"><span>Со следующей недели</span><b class="money">${next}%</b><small>${next>=cap?'максимум':left>0?'можно больше':'итог недели'}</small></div>
     </div>
-    <div class="rh-row2">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
+    <div class="rs-row">${[1,2,3,4,5,6,7].map(cell).join('')}</div>
+    <p class="rs-line">${line}</p>
     ${!S.plus&&last>cap?`<p class="small muted" style="margin:0">По ритму у тебя ${Math.min(last,PLUS_CAP)}%, без подписки начисляем до ${cap}%. <button class="link" onclick="go('plus')">Кофейная+</button> — до ${PLUS_CAP}%.</p>`:''}
   </div>`;
 }
