@@ -1575,6 +1575,10 @@ img.ava{object-fit:cover}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gf-chat{background:radial-gradient(rgba(0,0,0,.06) 1px,transparent 1.5px) 0 0/14px 14px,#ece7df;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}}
 :root[data-theme="light"] .gf-chat{background:radial-gradient(rgba(0,0,0,.06) 1px,transparent 1.5px) 0 0/14px 14px,#ece7df;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
 .gf-prev-l{margin-top:10px}
+.gf-card-row{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);text-align:left}
+.gf-card-row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.gf-card-row .tx b{font-size:16px}.gf-card-row .tx small{font-size:14px;color:var(--muted)}.gf-card-row .link{flex:none}
+.gf-card-row.bad{border-color:rgba(229,57,53,.6)}.gf-card-row .cm-plus{display:grid;place-items:center;width:44px;height:30px;border-radius:6px;border:1.5px dashed var(--line);font-size:18px}
+.card-row.on{border-color:#2e9e6a}.cs-note{margin:0 0 4px}
 .gf-sign{flex-wrap:wrap;gap:8px}.gf-sign .optbtn{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gf-sign-h{margin:2px 0 0;min-height:2.6em}
 .gc-ava.anon{background:#2b2b33;font-size:20px}
 .gf-ta-w{position:relative;display:flex;align-items:flex-start;gap:8px;padding:12px 14px 22px;border-radius:16px;background:var(--surface);border:1.5px solid rgba(46,158,106,.7);box-shadow:0 0 0 3px rgba(46,158,106,.12);cursor:text;transition:border-color .15s,box-shadow .15s}
@@ -2479,6 +2483,10 @@ function cardPick(where){ const ok=cardsOk(), sel=where==='tp'?tp.card:cpCard;
   return ok.map(c=>`<button class="tp-opt${c.id===sel?' on':''}" onclick="pickCard('${where}','${c.id}',this)">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small>${c.main?'Основная · ':''}до ${c.exp}</small></span></button>`).join('')
     +`<button class="tp-opt add" onclick="openAddCard('${where}')"><span class="cm-plus">＋</span><span><b>${ok.length?'Другая карта':'Добавить карту'}</b><small>Привяжем и запомним</small></span></button>`; }
 function cards(){ syncCard(); const m=S.cards.find(c=>c.main), expMain=S.cards.find(c=>c.wasMain&&cardExpired(c));
+  if(cardSel==='gift'){ const sel=giftCard();
+    return `<section class="screen">${back()}<h1>Банковские карты</h1><p class="notice cs-note">Выбери карту для подарка</p>
+      ${cardsOk().length?`<div class="cards-list">${cardsOk().map(c=>`<button class="card-row${sel&&sel.id===c.id?' on':''}" onclick="cardChoose('${c.id}')">${cardMini(c)}<span class="tx"><b>${cardSys(c)} ${cardLbl(c)}</b><small>до ${c.exp}${c.main?' · основная':''}</small></span>${sel&&sel.id===c.id?'<span class="main-tag">✓ Выбрана</span>':'<span class="chev">›</span>'}</button>`).join('')}</div>`:''}
+      <button class="btn block" onclick="openAddCard('gift')">＋ Добавить карту</button></section>`; }
   return `<section class="screen">${back()}<h1>Банковские карты</h1>
     ${expMain?`<div class="notice warn">Карта ${cardLbl(expMain)} больше не работает<br>Добавь новую</div>`:''}
     ${S.cards.length?`<div class="cards-list">${S.cards.map(c=>`<button class="card-row${cardExpired(c)?' exp':''}" onclick="openCardMenu('${c.id}')">${cardMini(c)}<span class="tx"><b>${cardSys(c)} ${cardLbl(c)}</b><small>${cardExpired(c)?'<span class="bad">Срок истёк</span>':`до ${c.exp}`}</small></span>${c.main&&!cardExpired(c)?'<span class="main-tag">Основная</span>':''}<span class="chev">›</span></button>`).join('')}</div>
@@ -2512,7 +2520,7 @@ function acAdd(){ const go=document.getElementById('acgo'); if(go.disabled) retu
   go.disabled=true; go.innerHTML='<span class="cp-spin"></span><span>Проверяем карту…</span>';
   setTimeout(()=>{ const c={id:'c'+Date.now().toString(36),f:n[0],last4:n.slice(-4),exp:e,main:false}; if(mk) S.cards.forEach(x=>x.main=false), c.main=true; S.cards.push(c); syncCard();
     toast(`Карта ${cardLbl(c)} привязана ✓`);
-    if(acBack==='tp'){ tp.card=c.id; tpCheck(); } else if(acBack==='cp'){ cpCard=c.id; openCardPay(); } else { closeSheet(); render(); } },1200); }
+    if(acBack==='tp'){ tp.card=c.id; tpCheck(); } else if(acBack==='cp'){ cpCard=c.id; openCardPay(); } else if(acBack==='gift'&&gf){ closeSheet(); cardChoose(c.id); } else { closeSheet(); render(); } },1200); }
 function openCardMenu(id){ const c=cardById(id), exp=cardExpired(c);
   sheet(`<div class="cm-head">${cardMini(c)}<span><b>${cardSys(c)} ${cardLbl(c)}</b><small class="muted">${exp?'Срок истёк':`до ${c.exp}`}${c.main&&!exp?' · основная':''}</small></span></div>
     ${!c.main&&!exp?`<button class="btn block" onclick="setMainCard('${id}')">Платить этой картой по умолчанию</button>`:''}
@@ -4366,18 +4374,18 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <button class="btn block" id="gamt-go" ${gf.amt>0?'':'disabled'} onclick="gf.step=3;drawGift()">Дальше</button>`:''}`; }
   if(s===3&&gf.kind==='bonus'){ const p=giftPrice(), a=gf.amt||0, bMax=Math.min(Math.floor(S.bonus||0),a), w=walletTotal(), N=x=>x.toLocaleString('ru-RU');
     body=`${toLine}<h2>Чем оплатить?</h2>
-      <div class="gf-item"><span class="gf-cn">${COIN}</span><span class="tx"><b>Подарочные бонусы</b><small>Подарок для ${esc(t.short)}</small></span><b class="money">${N(a)}</b></div>
+      <div class="gf-item"><span class="gf-cn">${COIN}</span><span class="tx"><b>Подарочные бонусы</b><small>Получит ${esc(t.short)}</small></span><b class="money">${N(a)}</b></div>
       <div class="panel" style="gap:0">
         <label class="bon-card${p.bonus?' on':''}${bMax?'':' off'}" for="gb"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top">Своими бонусами <b class="money">${N(Math.floor(S.bonus||0))}</b></span>
           <span class="bc-sub">${!bMax?'Бонусов пока нет':p.bonus?`<b>−${N(p.bonus)}</b> бонусов<br>Останется ${N(Math.floor(S.bonus)-p.bonus)}`:`Можно отдать до <b>${N(bMax)}</b><br>Включи, чтобы списать`}</span></span>
           <span class="bc-sw"><span class="bc-swl">${p.bonus?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="gb" ${p.bonus?'checked':''} ${bMax?'':'disabled'} onchange="gf.bon=this.checked;if(this.checked&&!gf.bAmt)gf.bAmt=null;drawGift()"></span></label>
         ${p.bonus&&bMax?`<div class="gf-bpart"><span>Сколько своими бонусами</span><input type="number" inputmode="numeric" min="0" max="${bMax}" value="${p.bonus}" onchange="giftBPart(this)"></div>`:''}
         <label class="bon-card depo${p.dep?' on':''}${w?'':' off'}" for="gd"><span class="bc-coin dp">₽</span><span class="bc-tx"><span class="bc-top">С депозита <b class="money">${rub(w)}</b></span>
-          <span class="bc-sub">${!w?'Депозит пустой':p.dep?`<b>−${rub(p.dep)}</b> с депозита<br>Останется ${rub(w-p.dep)}`:p.bonus>=a?'Всё уже оплачено бонусами<br>Депозит не тратим':'Включи, чтобы оплатить остальное'}</span></span>
+          <span class="bc-sub">${!w?'Депозит пустой':p.dep?`<b>−${rub(p.dep)}</b> с депозита<br>Останется ${rub(w-p.dep)}`:p.bonus>=a?'Всё уже оплачено бонусами<br>Депозит не тратим':p.bonus?'Включи, чтобы оплатить остальное':'Включи, чтобы оплатить с депозита'}</span></span>
           <span class="bc-sw"><span class="bc-swl">${gf.dep&&w?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="gd" ${gf.dep&&w?'checked':''} ${w?'':'disabled'} onchange="gf.dep=this.checked;drawGift()"></span></label>
-        ${p.card>0?`<div class="opt"><span>Остальное <b class="money">${rub(p.card)}</b> — картой<br><small class="muted">${S.card}</small></span></div>`:''}
+        ${p.card>0?giftCardRow(p):''}
       </div>
-      <button class="btn block" onclick="gf.step=4;drawGift()">Дальше</button>`; }
+      <button class="btn block" ${p.card>0&&!giftCard()?'disabled':''} onclick="gf.step=4;drawGift()">Дальше</button>`; }
   else if(s===3){ const m=byId(gf.item), p=giftPrice(), canB=Math.min(giftBonLeft(t),Math.floor(m.p*BONUS_MAX_SHARE)), w=walletTotal();
     body=`${toLine}<h2>Чем оплатить?</h2>
       <div class="gf-item">${photo(m,'sr-ph')}<span class="tx"><b>${m.n}</b><small>${wt(m)}</small></span><b class="money">${rub(m.p)}</b></div>
@@ -4420,6 +4428,17 @@ function giftSignBox(t){ const who=t.via==='app'?t.short:'получатель',
   return `<span class="label">Как подписать подарок</span>
     <div class="optrow gf-sign">${opt('anon','🕶 Инкогнито')}${opt('name',esc(S.name||'Имя'))}${S.last?opt('full',esc(fullName())):`<button class="optbtn" onclick="closeSheet();go('me')">＋ С фамилией</button>`}</div>
     <p class="hint gf-sign-h">${cap}</p>`; }
+/* 4.11 (владелец + критик): оплата картой в подарке — строка-кнопка с мини-картой и «Сменить ›»; «Весь подарок — картой», если
+   бонусы и депозит ничего не покрыли, иначе «Остальное — картой»; нажатие — тот же экран «Банковские карты» в режиме выбора
+   (без меню «Основная/Удалить»), выбор — только для этого подарка, возврат на тот же шаг; карт нет / все просрочены — «Дальше» серая */
+const giftCard=()=>{ const ok=cardsOk(); return ok.find(c=>c.id===gf.card)||mainCard(); };
+function giftCardRow(p){ const c=giftCard(), all=!p.bonus&&!p.dep, exp=!c&&S.cards.find(x=>x.wasMain||x.main);
+  if(!c) return `<button class="gf-card-row bad" onclick="giftPickCard()"><span class="cm-plus">＋</span><span class="tx"><b>${exp?`Карта ${cardLbl(exp)} больше не работает`:'Карты пока нет'}</b><small>${exp?'Срок истёк — добавь новую':all?'Добавь, чтобы оплатить подарок':'Добавь, чтобы оплатить остальное'}</small></span><span class="link small">Добавить ›</span></button>`;
+  return `<button class="gf-card-row" onclick="giftPickCard()">${cardMini(c)}<span class="tx"><b>${all?'Весь подарок — картой':'Остальное — картой'}</b><small><span class="money">${rub(p.card)}</span> с ${cardLbl(c)}</small>${!c.main?'<small class="muted">Только для этого подарка</small>':''}</span><span class="link small">Сменить ›</span></button>`; }
+let cardSel=null;
+function giftPickCard(){ cardSel='gift'; closeSheet(); if(!S.cards.length){ go('cards'); setTimeout(()=>openAddCard('gift'),80); } else go('cards'); }
+function cardChoose(id){ gf.card=id; gf._card=1; cardSel=null; goBack(); }
+function giftResume(){ setTimeout(()=>{ if(gf) drawGift(); },60); }
 function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
   if(gf.kind==='bonus'&&!(p.total>0)) return toast('Напиши, сколько подарить');
   if(!(p.bonus>=0)||p.bonus>S.bonus) return toast(`Столько бонусов нет<br>У тебя ${S.bonus.toLocaleString('ru-RU')}`);   // нельзя больше, чем в кошельке
@@ -4666,13 +4685,13 @@ const curSec=()=>TOP_TABS.includes(tab)?secOf(tab):(secRoot||TAB_OF[tab]||'home'
 function navClear(){ const n=navStack.length; navStack=[]; if(n){ navSkip++; try{ history.go(-n); }catch(e){ navSkip--; } } }   // navAnim: 'fwd' — экран въезжает справа (провалился внутрь), 'back' — слева
 // с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
 // системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
-function go(t,replace){ if(t==='qr'){ openQR(); return; }
+function go(t,replace){ if(t==='qr'){ openQR(); return; } if(t!=='cards') cardSel=null;
   if(t==='lab'&&tab!=='lab') labSixD=null;   // черновик «Каждого 6-го» в пульте — заново при входе
   if(TOP_TABS.includes(t)){ navClear(); setRoot(t); }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
     if(k>=0){ const d=navStack.length-k; navStack=navStack.slice(0,k); navSkip++; try{ history.go(-d); }catch(e){ navSkip--; } } else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); } }
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
-function navPop(fallback){ const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
+function navPop(fallback){ const fromGift=tab==='cards'&&gf&&(cardSel==='gift'||gf._card); cardSel=null; if(gf) gf._card=0; if(fromGift) giftResume(); const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
   tab=p.t; if(TOP_TABS.includes(tab)) setRoot(tab); render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
 let navSkip=0, pendPush=0;
 // пока браузер ещё отматывает историю (history.go/back — не сразу), новые записи откладываем: иначе отмотка снесёт и их
