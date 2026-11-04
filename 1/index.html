@@ -4278,7 +4278,7 @@ function giftBonUsed(){ const L=S.gft.sent; return { day:L.filter(g=>g.day===S.d
 function giftBonLeft(to){ return Math.max(0,Math.floor(S.bonus||0)); }
 function giftWhyNot(to){ return S.bonus>0?'':'Бонусов пока нет|Они приходят с покупок'; }
 /* 26.10: сумму подарка бонусами гость вводит сам — от 1 до всех своих бонусов; больше, чем есть, отправить нельзя */
-function giftAmtHint(){ return '1 бонус = 1&nbsp;₽ в кофейной<br>Чем оплатить — выберешь дальше'; }
+function giftAmtHint(){ const b=Math.floor(S.bonus||0), w=walletTotal(); return `1 бонус = 1&nbsp;₽ в кофейной<br>Оплатишь на следующем шаге: ${[b?`своими бонусами (${b.toLocaleString('ru-RU')})`:'',w?`с депозита (${rub(w)})`:'','картой'].filter(Boolean).join(', ')}`; }
 function giftAmt(inp){ let v=Math.floor(+inp.value||0); if(v<0) v=0; gf.amt=v; gf.bAmt=null;
   const b=document.getElementById('gamt-go'); if(b) b.disabled=!(v>0);
   document.querySelectorAll('.gf-quick .optbtn').forEach(x=>x.classList.remove('on')); }
