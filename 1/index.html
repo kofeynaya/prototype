@@ -323,7 +323,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .stamp.ready .hint{color:var(--ink);font-weight:600}
 /* 5.11 (владелец): шестое уже в корзине — плитка «✓ В корзине» (зелёная, без мигания), отметки остаются заполненными до оплаты */
 .stamp.in-cart .sl.six{background:linear-gradient(160deg,#3f9a72,#0d553f);border:2px solid #7cc9a2;box-shadow:none;animation:none!important;padding:0;display:grid;place-items:center;overflow:visible}
-.stamp.in-cart .sl.six .six-ok{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#f9f9f9;color:#0d553f;font-size:20px;font-weight:900;line-height:1}
+.stamp.in-cart .sl.six .six-ok{display:grid;place-items:center;width:44%;max-width:24px;aspect-ratio:1;border-radius:50%;background:#f9f9f9;color:#0d553f;font-size:14px;font-weight:900;line-height:1}   /* 5.11 (владелец): кружок меньше — вокруг воздух */
 .stamp.in-cart .sl.six .six-lbl{position:absolute;top:calc(100% + 5px);left:-6px;right:-6px;text-align:center;font-style:normal;font-weight:700;font-size:12px;line-height:1;color:#1f7a55;white-space:nowrap}   /* 5.11 (владелец): подпись под плиткой, а не внутри — внутри «еле умещается» */
 .stamp.in-cart .srow{margin-bottom:18px}
 .stamp .six-open{align-self:flex-start;margin-top:2px;font-weight:700}
@@ -2751,6 +2751,8 @@ function refreshBasket(id){
     document.querySelectorAll(`[data-pill="${id}"]`).forEach(el=>el.outerHTML=pillHtml(byId(id)));
     const cb=$('#cartbar'); if(cb) cb.outerHTML=cartbarHtml(); else render();
     document.querySelector('.app').classList.toggle('has-cart', basketCount()>0);
+    /* 5.11 (владелец + критик): на «Турбо» блок «Каждый 6-й» тоже зависит от корзины («✓ В корзине») — перерисовываем его сразу, без полной перерисовки экрана */
+    document.querySelectorAll('.stamps').forEach(el=>{ el.outerHTML=stampsBlock(); });
   } else render();
 }
 
@@ -2911,6 +2913,8 @@ const sixOff=sl=>sl.isNew?SIX_NEW:SIX_OLD;
 const sixSlotOf=id=>S.six.slots.find(sl=>sl&&sl.id===id);
 const sixReady=id=>{ const sl=S.plus&&sixSlotOf(id); return sl&&sl.n>=5&&sl.sixDay!==S.day?sl:null; };
 const sixExtra=sl=>{ const c=Math.floor(sl.n/5)-1, r=sl.n%5; return c>0?`<br>Потом ещё ${c} — по одному в день${r?` · и ${r} из 5`:''}`:r&&sl.n>5?`<br>И ещё ${r} из 5 к следующему`:''; };
+/* 5.11 (критик): шестое показываем праздником, только если движок правда отдаст скидку шестого — другая выгода на строке (день рождения −33% против −20%) выгоднее, и шестое ждёт */
+const sixWould=id=>quote([...S.basket.map(l=>({id:l.id,qty:l.qty,sur:l.sur||0})),{id,qty:1,sur:0}]).sixthUsed.includes(id);
 const sixInCart=id=>S.basket.length&&basketQuote().sixthUsed.includes(id);   // шестое со скидкой уже лежит в корзине — второе не даём
 const boughtWithin=(id,days)=>S.orders.some(o=>o.day>S.day-days&&o.day<=S.day&&(o.items||[]).includes(id));
 const visitDaysTotal=()=>new Set([...(S.histPast||[]),...S.visits].filter(d=>d<=S.day)).size;
@@ -3158,7 +3162,7 @@ let pd=null;
 function openProduct(id){ const m=byId(id); pd={id, opts:defOpts(m), qty:1, more:{}}; drawProduct(); }
 function drawProduct(){
   const m=byId(pd.id), x=m.vars[pd.opts.v], pp=myPrice(m.id), base=unitPrice(m,pd.opts), unit=pp!=null&&pd.opts.v===0? base-(m.p-pp) : base;
-  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, sixIn=six&&st>=5&&sixInCart(m.id), sixToday=six&&sixSl.sixDay===S.day, readyOk=six&&st>=5&&!sixIn&&!sixToday;
+  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, sixIn=six&&st>=5&&sixInCart(m.id), sixToday=six&&sixSl.sixDay===S.day, readyOk=six&&st>=5&&!sixIn&&!sixToday&&sixWould(m.id);
   /* 26.10 (владелец + критик): выгода на ОДНУ штуку (шестое, подарок) — без «− 1 +»: одна кнопка «В корзину · цена», вторая штука — ссылкой «Ещё один — за 190 ₽» */
   const gPerk=!readyOk&&giftsLive().find(g=>gk(g).fit(m)&&!giftInCart(g)), perkOff=readyOk?Math.round(m.p*SOFF):gPerk?Math.round(m.p*gk(gPerk).off):0, perk=perkOff>0;
   if(perk) pd.qty=1;
@@ -3193,7 +3197,7 @@ function pickOpt(gi,i){
   else pd.opts.s[gi]=[...a,i];
   drawProduct();
 }
-function addFromPd(extra){ const id0=pd.id, psl=sixReady(id0)&&!sixInCart(id0)?sixReady(id0):null; const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), party=!!psl;
+function addFromPd(extra){ const id0=pd.id, psl=sixReady(id0)&&!sixInCart(id0)&&sixWould(id0)?sixReady(id0):null; const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), party=!!psl;
   closeSheet(); refreshBasket(id);
   if(extra){ if(party) confetti(); toast(`${m.n} — 2&nbsp;шт. в корзине<br>1&nbsp;шт. ${pd.perkFree?'в подарок':'со скидкой'}, 1&nbsp;шт. по обычной цене`,4000); return; }
   if(party){ confetti(); toast(`🎉 Шестое в корзине<br>${m.n} — на ${Math.round(sixOff(psl)*100)}% дешевле`,4000); } else toast(`${m.n} — в корзине`); }
