@@ -170,7 +170,7 @@ p{margin:0}
 .h-rep{grid-column:1/-1;justify-self:start;margin-top:8px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:700}
 .h-rep.in{border-color:transparent;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff}
 /* 4.11 (владелец): «очень важная кнопка» — фирменный зелёный, как карта депозита и кнопка «Турбо» */
-.btn.cart-menu{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 16px;background:radial-gradient(120% 160% at 30% 0%,#3f9a72,#0d553f 72%);color:#fff;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 8px 18px -8px rgba(13,85,63,.7)}.cart-menu b{font-size:17px}.btn.cart-menu small{font-size:13px;color:rgba(255,255,255,.8);font-weight:400}
+.btn.cart-menu{display:flex;flex-direction:column;align-items:center;gap:2px;padding:15px 16px;background:radial-gradient(120% 160% at 30% 0%,#3f9a72,#0d553f 72%);color:#fff;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 8px 18px -8px rgba(13,85,63,.7)}.cart-menu b{font-size:17px}.btn.cart-menu small{font-size:13px;color:rgba(255,255,255,.8);font-weight:400}
 .menu-add-h{margin:0;font-size:18px;font-weight:700;line-height:1.3}.menu-add-h small{font-size:14px;font-weight:400;color:var(--muted)}
 .rep-note{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:14px}.rep-note p{margin:0}
 .save{color:var(--ok)}
@@ -3285,7 +3285,7 @@ function cart(){
       return ofl?`<div class="of-grp ok">${row}<p class="of-ok">✓ Предложение дня сработало — минус&nbsp;${rub(ofl.regular-ofl.price)}</p></div>`:row; }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
     ${upsRow(false)}
-    <button class="btn ghost block cart-menu" onclick="goMenuAdd()"><b>＋ Добавить из меню</b><small>Всё, что есть в кофейной</small></button>
+    <button class="btn ghost block cart-menu" onclick="goMenuAdd()"><b>＋ Добавить из меню</b></button>
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
       ${(S.gbon||0)>0?gbonCard(qt):''}
