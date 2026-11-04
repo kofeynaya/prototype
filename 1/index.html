@@ -1568,7 +1568,17 @@ img.ava{object-fit:cover}
 .gf-item{display:flex;align-items:center;gap:12px}.gf-item .tx{flex:1;display:flex;flex-direction:column;min-width:0}.gf-item small{color:var(--muted)}
 .gf-check{gap:10px}.gf-check .row{align-items:flex-start;gap:12px}.gf-check b{text-align:right}
 /* 26.10 (владелец): «Так увидит получатель» — как переписка в Телеграме / iMessage: аватар, имя, входящие пузыри с хвостиком, время */
-.gf-chat{padding:14px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--line)}
+/* 4.11 (владелец: «поле ввода и „Так увидит“ сливаются — одинаковые рамки»): поле — светлее, с карандашом и счётчиком, при вводе зелёная рамка;
+   показ — без рамки, утоплен в экран, фон переписки (точки), как в мессенджере, и не нажимается */
+.gf-chat{padding:16px 12px;border-radius:20px;border:0;pointer-events:none;
+  background:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1.5px) 0 0/14px 14px,rgba(0,0,0,.28);box-shadow:inset 0 2px 10px rgba(0,0,0,.35)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gf-chat{background:radial-gradient(rgba(0,0,0,.06) 1px,transparent 1.5px) 0 0/14px 14px,#ece7df;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}}
+:root[data-theme="light"] .gf-chat{background:radial-gradient(rgba(0,0,0,.06) 1px,transparent 1.5px) 0 0/14px 14px,#ece7df;box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
+.gf-prev-l{margin-top:10px}
+.gf-ta-w{position:relative;display:flex;align-items:flex-start;gap:8px;padding:12px 14px 22px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);cursor:text;transition:border-color .15s,box-shadow .15s}
+.gf-ta-w:focus-within{border-color:#2e9e6a;box-shadow:0 0 0 3px rgba(46,158,106,.18)}
+.gf-ta-ic{font-size:16px;line-height:24px;opacity:.75}
+.gf-ta-n{position:absolute;right:14px;bottom:6px;font-size:12px;color:var(--muted)}
 .gc-row{display:flex;align-items:flex-end;gap:8px}.gc-ava{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;font-weight:800}
 .gc-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}.gc-who{font-size:12px;color:var(--muted);margin-left:12px}
 .gc-bub{max-width:88%;padding:9px 13px;border-radius:18px 18px 18px 18px;background:#e9e9eb;color:#111;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
@@ -1584,7 +1594,7 @@ img.ava{object-fit:cover}
 .gf-card{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;border-radius:22px;color:#f9f9f9;background:linear-gradient(140deg,#d6264f,#ff6d00);box-shadow:0 10px 24px rgba(214,38,79,.3)}
 .gf-card b{font-size:18px;line-height:1.2}.gf-card span{font-size:14px;opacity:.92}
 .gf-msgs{display:flex;flex-wrap:wrap;gap:8px}
-.gf-ta{font:inherit;font-size:16px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);resize:none;width:100%}
+.gf-ta{font:inherit;font-size:16px;line-height:24px;padding:0;border:0;outline:none;background:transparent;color:var(--ink);resize:none;width:100%;flex:1}
 .gf-note{font-style:italic;font-size:15px!important;opacity:1!important;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.18);max-width:100%;overflow-wrap:anywhere}
 .gift-terms{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted);padding:0 4px}
 .gin-from{display:flex;align-items:center;gap:12px}.gin-from>span{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -4323,7 +4333,8 @@ const GSTEP=['Кому','Что','Оплата','Проверь'];
 const GIFT_MSGS=['С днём рождения! 🎂','Спасибо! ❤️','Просто так ☕','Хорошего дня! ☀️'], GIFT_MSG_MAX=140;
 const esc = t => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function giftMsg(v,typed){ gf.msg=String(v).slice(0,GIFT_MSG_MAX); const ta=document.getElementById('gmsg'); if(ta&&!typed) ta.value=gf.msg;
-  const n=document.getElementById('gnote'); if(n){ n.textContent=gf.msg.trim(); n.hidden=!gf.msg.trim(); } }
+  const n=document.getElementById('gnote'); if(n){ n.textContent=gf.msg.trim(); n.hidden=!gf.msg.trim(); }
+  const c=document.getElementById('gmsg-n'); if(c) c.textContent=gf.msg.length+'/'+GIFT_MSG_MAX; }
 function drawGift(){ const s=gf.step, t=gf.to;
   const head=`<div class="gf-steps">${GSTEP.map((x,i)=>`<span class="${i+1<s?'done':i+1===s?'on':''}"><i>${i+1<s?'✓':i+1}</i>${x}</span>`).join('')}</div>`;
   const toLine=t?`<button class="gf-to" onclick="gf.step=1;drawGift()">${giftWho()}<span class="tx"><small>Кому</small><b>${t.n}</b></span><span class="link small">Изменить</span></button>`:'';
@@ -4385,9 +4396,9 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <div class="row between"><span class="muted">Оплата</span><b>${parts.join('<br>')}</b></div></div>
       <span class="label">Подпиши открытку <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">— можно не писать</span></span>
       <div class="gf-msgs">${GIFT_MSGS.map(x=>`<button class="sr-chip" onclick="giftMsg(this.textContent)">${x}</button>`).join('')}</div>
-      <textarea id="gmsg" class="gf-ta" maxlength="${GIFT_MSG_MAX}" rows="2" placeholder="Например: С праздником! Выпей кофе за моё здоровье ☕" oninput="giftMsg(this.value,1)">${esc(gf.msg)}</textarea>
-      <span class="label">Так увидит ${t.via==='app'?t.short:'получатель'}</span>
+      <label class="gf-ta-w" for="gmsg"><span class="gf-ta-ic" aria-hidden="true">✏️</span><textarea id="gmsg" class="gf-ta" maxlength="${GIFT_MSG_MAX}" rows="2" placeholder="Или напиши своё" oninput="giftMsg(this.value,1)">${esc(gf.msg)}</textarea><small class="gf-ta-n" id="gmsg-n">${gf.msg.length}/${GIFT_MSG_MAX}</small></label>
       ${S.last?'':`<button class="gf-last" onclick="closeSheet();go('me')"><span>👤 Добавь фамилию — так ${t.via==='app'?t.short:'получатель'} точно поймёт, от кого подарок</span><b>Добавить ›</b></button>`}
+      <span class="label gf-prev-l">👁 Так увидит ${t.via==='app'?t.short:'получатель'}</span>
       <div class="gf-chat"><div class="gc-row"><span class="gc-ava">${esc((S.name||'?')[0])}</span><div class="gc-col"><span class="gc-who">${esc(fullName())}</span>
         <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):''}<b>${m?m.n:`<span class="gc-cn">${COIN}</span>${p.total.toLocaleString('ru-RU')}&nbsp;${plural(p.total,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
         <div class="gc-bub gc-txt" id="gnote"${gf.msg.trim()?'':' hidden'}>${esc(gf.msg)}</div><span class="gc-time">${new Date().toTimeString().slice(0,5)}</span></div></div></div>
