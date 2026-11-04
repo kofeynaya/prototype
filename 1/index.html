@@ -167,6 +167,9 @@ p{margin:0}
 .hist .h{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
 .hist .h:last-child{border-bottom:0}
 .hist .h .d{font-size:13px;color:var(--muted);grid-column:1/-1}
+.h-rep{grid-column:1/-1;justify-self:start;margin-top:8px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:700}
+.h-rep.in{border-color:transparent;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff}
+.rep-note{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:14px}.rep-note p{margin:0}
 .save{color:var(--ok)}
 
 /* достижения */
@@ -2071,7 +2074,7 @@ const sexFix=t=>S&&S.sex==='f'?SEX_F.reduce((x,[rx,to])=>x.replace(rx,to),t):t;
 function typo(str){ let t=sexFix(str); for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
 /* 1.11 (владелец, правило для всего приложения): галочка «✓» в тексте — всегда зелёная и чуть крупнее (.ok-tick.big), а не цвета текста.
    Ставится автоматически для любого выведенного текста; кроме мест, где галочка уже на цветном фоне (зелёные таблетки, ступени, всплывашки) */
-const TICK_SKIP='.ok-tick,.gu-pill,.ld,.toast,.of-done,.od-ic,svg,.pw-ok,.stc-chip,.ostat,.btn:not(.ghost),.pill';
+const TICK_SKIP='.ok-tick,.h-rep,.gu-pill,.ld,.toast,.of-done,.od-ic,svg,.pw-ok,.stc-chip,.ostat,.btn:not(.ghost),.pill';
 function tickWrap(t){ const p=t.parentNode; if(!p||p.nodeType!==1||!t.nodeValue.includes('✓')||p.closest(TICK_SKIP)) return false;
   const frag=document.createDocumentFragment(); t.nodeValue.split('✓').forEach((part,i)=>{ if(i){ const k=document.createElement('i'); k.className='ok-tick big'; k.textContent='✓'; frag.appendChild(k); } if(part) frag.appendChild(document.createTextNode(part)); });
   p.replaceChild(frag,t); return true; }
@@ -2388,7 +2391,7 @@ function quote(lines, opt={}){
 function applyPurchase(q, channel, doc){
   const src={}; q.lines.forEach(l=>{ if(l.k&&l.regular>l.price) src[l.k]=(src[l.k]||0)+l.regular-l.price; });
   const giftSpend=Math.max(0,q.walletSpend-Math.min(S.wallet.money,q.walletSpend));
-  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend-(q.gbonSpend||0)+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
+  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend-(q.gbonSpend||0)+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel, free:q.lines.filter(l=>l.price===0).map(l=>l.id)});
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   let mile=null;
@@ -3263,6 +3266,7 @@ function cart(){
     return list.length?`<div class="stack${inGrp?' of-ups':''}"><h3>Добавить к заказу?</h3><div class="hscroll">${list.join('')}</div></div>`:''; };
   return `<section class="screen">${back('menu','Меню')}
     <div class="row between"${F(19)}><h1>Корзина</h1><button class="link" onclick="S.basket=[];save();render()">Очистить</button></div>
+    ${repNote()}
     <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
     <div>${S.basket.map((l,i)=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
       const row=`<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}
@@ -3301,7 +3305,7 @@ function checkout(){
   const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
   const ch = S.mode==='delivery'?'Доставка':S.mode==='pickup'?'Самовывоз':'За столиком';
   if(co.when==='at'&&!atOk(co.at)){ toast('Это время уже слишком близко<br>Выбери другое — не раньше чем через час'); openWhen(); return; }
-  const msg=applyPurchase(qt, ch, false);
+  const msg=applyPurchase(qt, ch, false); S.orders[S.orders.length-1].bk=S.basket.map(l=>({id:l.id,opts:l.opts,qty:l.qty})); S.rep=null;
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
   S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, dep:qt.walletSpend, rest:qt.card, pay:S.pay, status:0, when:co.when==='at'?atLbl(co.at):'asap', code:String(10+Math.floor(Math.random()*89))});
   S.basket=[]; co={bonus:false,wallet:true,when:'asap',at:null,comment:''}; save();
@@ -4090,6 +4094,32 @@ let histPer='all', histFrom=null, histTo=null;
 function histRange(){ const t=S.day, d=dateOf(t), since=benSince();
   let lo= histPer==='today'?t : histPer==='week'?weekOf(t)*7 : histPer==='month'?dayOff(new Date(d.getFullYear(),d.getMonth(),1)) : histPer==='custom'?Math.min(histFrom??t,histTo??t) : since;
   let hi= histPer==='custom'?Math.max(histFrom??t,histTo??t):t; lo=Math.max(lo,since); hi=Math.min(Math.max(hi,lo),t); return [lo,hi]; }
+/* 4.11 (владелец + критик): «↻ Повторить» у каждой покупки (касса и онлайн): кладёт блюда в корзину и открывает её; корзина не пустая —
+   «Добавить к ним / Заменить»; пока повторённое лежит в корзине — «✓ В корзине — открыть» (второй раз не кладём); подарки за 0 ₽ и блюда,
+   которых нет в меню, не кладём и честно пишем плашкой в корзине; цены и скидки — на сегодня; в составе повторы — «Ягодный чизкейк — 3 шт» */
+function histItems(o){ const c={}; o.items.forEach(i=>c[i]=(c[i]||0)+1); return Object.entries(c).map(([i,n])=>{ const m=byId(i); return (m?m.n:'Блюдо из прошлого меню')+(n>1?` — ${n}&nbsp;шт`:''); }).join(', '); }
+function repList(o){ const free=[...(o.free||[])], out=[], skip={gift:[],gone:[]};
+  const src=o.bk?o.bk.flatMap(l=>Array(l.qty).fill(l)):o.items.map(id=>({id,opts:null}));
+  src.forEach(l=>{ const fi=free.indexOf(l.id); if(fi>=0){ free.splice(fi,1); skip.gift.push(l.id); return; } if(!byId(l.id)){ skip.gone.push(l.id); return; } out.push(l); });
+  return {out,skip}; }
+function repInCart(i){ return S.rep&&S.rep.i===i&&S.rep.keys.length&&S.rep.keys.every(k=>S.basket.some(l=>l.k===k)); }
+function repBtn(i){ const o=S.orders[i]; if(!o||!repList(o).out.length) return '';
+  return repInCart(i)?`<button class="h-rep in" onclick="closeSheet();go('cart')">✓ В корзине — открыть</button>`:`<button class="h-rep" onclick="repeatOrder(${i})">↻ Повторить</button>`; }
+function repeatOrder(i,mode){ const o=S.orders[i]; if(!o) return; const {out,skip}=repList(o);
+  if(!mode&&S.basket.length){ const n=S.basket.reduce((a,l)=>a+l.qty,0);
+    return sheet(`<h2>В корзине уже ${n}&nbsp;${plural(n,'блюдо','блюда','блюд')}</h2><p class="muted">Добавить к ним или начать заново?</p>
+      <div class="row" style="gap:8px"><button class="btn" style="flex:1" onclick="repeatOrder(${i},'add')">Добавить к ним</button><button class="btn ghost" style="flex:1" onclick="repeatOrder(${i},'new')">Заменить</button></div>`); }
+  if(mode==='new') S.basket=[];
+  const keys=new Set(); out.forEach(l=>{ const m=byId(l.id), opts=l.opts||defOpts(m); addLine(l.id,opts,true); keys.add(lineKey(l.id,opts)); });
+  const N=id=>(byId(id)||{n:'блюдо из прошлого меню'}).n;
+  S.rep={i, keys:[...keys], d:o.day, kassa:!o.bk, gift:[...new Set(skip.gift)].map(N), gone:skip.gone.length};
+  save(); closeSheet(); go('cart'); }
+function repNote(){ const r=S.rep; if(!r||!r.keys.some(k=>S.basket.some(l=>l.k===k))) return '';
+  const y=dateOf(r.d), lines=[`🔁 Повторили заказ от ${y.getDate()}&nbsp;${MON[y.getMonth()]}<br>Цены и скидки — на сегодня`];
+  if(r.gift.length) lines.push(`🎁 ${r.gift.join(', ')} — ${r.gift.length>1?'были подарками':'был подарком'}<br>Можно добавить из меню`);
+  if(r.gone) lines.push(`Сегодня в меню нет ${r.gone} ${plural(r.gone,'блюда','блюд','блюд')}<br>Остальное в корзине`);
+  if(r.kassa) lines.push('Размер — обычный<br>Нажми на блюдо в меню, чтобы выбрать другой');
+  return `<div class="rep-note">${lines.map(x=>`<p>${x}</p>`).join('')}</div>`; }
 function openHistory(per){ if(per){ histPer=per; if(per==='custom'&&histFrom==null){ histFrom=Math.max(benSince(),S.day-6); histTo=S.day; } }
   const [lo,hi]=histRange(), os=S.orders.filter(o=>o.day>=lo&&o.day<=hi).slice().reverse();
   const fd=x=>{ const y=dateOf(x); return y.getDate()+' '+MON[y.getMonth()]; };
@@ -4099,8 +4129,8 @@ function openHistory(per){ if(per){ histPer=per; if(per==='custom'&&histFrom==nu
   const body=!S.orders.length?'<p class="small muted" style="margin:0">Покупок пока нет — они появятся здесь после первой покупки на кассе или в приложении</p>'
     :!os.length?`<p class="small muted" style="margin:0">${lo===hi?`${fd(lo)} покупок не было`:`С ${fd(lo)} по ${fd(hi)} покупок не было`}<br>Выбери другие даты</p>`
     :days.map(d=>{ const ds=os.filter(o=>o.day===d), tot=ds.reduce((a,o)=>a+o.sum,0);
-      return `<div class="h-day"><span>${fmt(d)}</span><b class="money">${rub(tot)}</b></div>`+ds.map(o=>`<div class="h"><span>${o.items.map(i=>byId(i).n).join(', ')}</span><span class="money">${rub(o.sum)}</span>
-      <span class="d">${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span></div>`).join(''); }).join('');
+      return `<div class="h-day"><span>${fmt(d)}</span><b class="money">${rub(tot)}</b></div>`+ds.map(o=>`<div class="h"><span>${histItems(o)}</span><span class="money">${rub(o.sum)}</span>
+      <span class="d">${o.ch||'Касса'}${o.saved?` · <span class="save">экономия ${rub(o.saved)}</span>`:''} · бонусы +${o.bonus}${o.bonusSpend?` −${o.bonusSpend}`:''}</span>${repBtn(S.orders.indexOf(o))}</div>`).join(''); }).join('');
   const html=`<div id="hist-root"><h2>История покупок</h2>
     ${S.orders.length?`<div class="ben-per">${chips}</div>
     ${histPer==='custom'?`<div class="ben-dates"><label>с<button class="bd-pick" onclick="openBenCal('from','hist')">${fd(lo)}</button></label><label>по<button class="bd-pick" onclick="openBenCal('to','hist')">${fd(hi)}</button></label></div>`:''}
