@@ -1178,6 +1178,8 @@ img.ava{object-fit:cover}
 @media (prefers-reduced-motion:no-preference){.vm-grid .d.now{animation:vmBreath 2.4s ease-in-out infinite}}
 @keyframes vmBreath{0%,100%{box-shadow:inset 0 0 0 2.5px #ff9100,0 0 0 0 rgba(255,145,0,.45)}50%{box-shadow:inset 0 0 0 2.5px #ff9100,0 0 0 7px rgba(255,145,0,0)}}
 .vm-grid .d .tp{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-style:normal;font-size:9.5px;font-weight:800;line-height:1;padding:2px 5px;border-radius:999px;background:#ff9100;color:#212221;white-space:nowrap}
+/* 5.11 (владелец: «крестик ровно по центру») — ✕ рисуем линиями, а не буквой: у буквы своя линия шрифта, и она съезжала вниз */
+.vm-grid .d .xs,.vm-leg .vlg .xs{display:block;width:38%;height:38%;color:#ff5a52}
 .vm-leg>span{display:inline-flex;align-items:center;gap:6px}.vm-leg .vlg{display:inline-grid;grid-template-columns:none;place-items:center;width:20px;height:20px;padding:0;border:0;gap:0;border-radius:50%;font-style:normal;font-size:10px;flex:none}
 .vm-leg .vlg.v{background:#ff8a3d;color:#fff}.vm-leg .vlg.reg{background:#ff4f9a;color:#fff;font-weight:700}.vm-leg .vlg.fz{background:rgba(155,217,217,.45)}.vm-leg .vlg.burn{background:rgba(229,57,53,.16)}.vm-leg .vlg.x{font-size:11px}
 .vm-regdot,.vm-predot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:5px}.vm-regdot{background:#ff4f9a}.vm-predot{background:var(--muted);opacity:.35}
@@ -2069,6 +2071,7 @@ const _cv=document.createElement('canvas').getContext('2d');
 /* 26.10 (владелец): пол в профиле — обращения к гостю в женском роде, если выбран «Женский». Только фразы, которые точно про самого гостя
    (не про друга или другого гостя); работает для любого выведенного текста, как и типографика */
 const S_ = '[\\s\\u00a0]+';
+const XSVG='<svg class="xs" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const SEX_F=[['Ты'+S_+'остановился','Ты остановилась'],['ты'+S_+'сам'+S_+'не'+S_+'скажешь','ты сама не скажешь'],['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
   ['не'+S_+'приходил','не приходила'],['ты'+S_+'зашёл','ты зашла'],['красавчик!','красотка!'],['Красавчик!','Красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
   ['сэкономил','сэкономила'],['Ты'+S_+'уже'+S_+'дарил','Ты уже дарила'],['Ты'+S_+'подарил','Ты подарила'],['ты'+S_+'уже'+S_+'включил','ты уже включила'],['Что'+S_+'покупал','Что покупала']].map(([a,b])=>[new RegExp('(^|[^А-Яа-яё])'+a+'(?![А-Яа-яё])','g'),'$1'+b]);
@@ -3619,12 +3622,12 @@ function openVisits(){
     for(let i=0;i<dim;i++){ const day=first+i, v=all.has(day)&&day<=S.day&&day>=reg; if(v) cnt++;
       // 31.10 (владелец + критик): голых чисел нет — каждый день в кружке, как в легенде; пропуск — красный ✕, как в неделе; сегодня — как в неделе
       const k=day<reg?'pre':v?'v':burnt.has(day)?'burn':fz.has(day)?'fz':day>S.day?'fut':day===S.day?'now':'x';
-      cells+=`<span class="d ${k} ${day===S.day?'today':''} ${day===reg?'reg':''}">${v?'🔥':k==='burn'?'💔':k==='fz'?'❄️':k==='x'?'✕':k==='now'?'<b class="gh">🔥</b>':i+1}${day===S.day?'<em class="tp">сегодня</em>':''}</span>`; }
+      cells+=`<span class="d ${k} ${day===S.day?'today':''} ${day===reg?'reg':''}">${v?'🔥':k==='burn'?'💔':k==='fz'?'❄️':k==='x'?XSVG:k==='now'?'<b class="gh">🔥</b>':i+1}${day===S.day?'<em class="tp">сегодня</em>':''}</span>`; }
     return `<div class="vm-mon"><h3>${MON_N[m.getMonth()]} ${m.getFullYear()} <small>· ${cnt} ${plural(cnt,'посещение','посещения','посещений')}</small></h3><div class="vm-grid">${cells}</div></div>`; };
   sheet(`<h2>Все мои посещения</h2>
     <div class="vm-sum"><div><b>👑 ${S.ser.best}</b><span>мой рекорд<br>подряд</span></div><div><b>🔥 ${S.ser.n}</b><span>${plural(S.ser.n,'посещение','посещения','посещений')}<br>подряд</span></div><div><b>📅 ${total}</b><span>всего<br>посещений</span></div></div>
     <p class="small muted" style="margin:0">С нами с ${r.getDate()} ${MON[r.getMonth()]} ${r.getFullYear()}</p>
-    <div class="vm-leg"><span><span class="vlg pre">1</span>тебя ещё не было с нами</span><span><span class="vlg reg">1</span>первый день с нами</span><span><span class="vlg v">🔥</span>был в кофейной</span><span><span class="vlg x">✕</span>не приходил</span><span><span class="vlg fz">❄️</span>заморозка</span><span><span class="vlg burn">💔</span>счётчик сгорел</span><span><span class="vlg now"></span>сегодня</span></div>
+    <div class="vm-leg"><span><span class="vlg pre">1</span>тебя ещё не было с нами</span><span><span class="vlg reg">1</span>первый день с нами</span><span><span class="vlg v">🔥</span>был в кофейной</span><span><span class="vlg x">${XSVG}</span>не приходил</span><span><span class="vlg fz">❄️</span>заморозка</span><span><span class="vlg burn">💔</span>счётчик сгорел</span><span><span class="vlg now"></span>сегодня</span></div>
     ${months.map(mon).join('')}`);
 }
 // Заморозить пропущенный день — только вручную и только с подпиской «Кофейная+»
