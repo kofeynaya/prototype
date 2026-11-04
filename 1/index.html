@@ -322,9 +322,10 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .stamp.ready .sl.six{border-style:solid;border-color:#f2c230;box-shadow:0 0 0 3px rgba(242,194,48,.35)}
 .stamp.ready .hint{color:var(--ink);font-weight:600}
 /* 5.11 (владелец): шестое уже в корзине — плитка «✓ В корзине» (зелёная, без мигания), отметки остаются заполненными до оплаты */
-.stamp.in-cart .sl.six{background:linear-gradient(160deg,#3f9a72,#0d553f);border:2px solid #7cc9a2;box-shadow:none;animation:none!important;padding:4px 2px 18px}
-.stamp.in-cart .sl.six .six-ok{display:grid;place-items:center;width:30px;height:30px;margin:2px auto 0;border-radius:50%;background:#f9f9f9;color:#0d553f;font-size:20px;font-weight:900;line-height:1}
-.stamp.in-cart .sl.six i{font-family:inherit;font-weight:700;font-size:11px;line-height:1.05}
+.stamp.in-cart .sl.six{background:linear-gradient(160deg,#3f9a72,#0d553f);border:2px solid #7cc9a2;box-shadow:none;animation:none!important;padding:0;display:grid;place-items:center;overflow:visible}
+.stamp.in-cart .sl.six .six-ok{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#f9f9f9;color:#0d553f;font-size:20px;font-weight:900;line-height:1}
+.stamp.in-cart .sl.six .six-lbl{position:absolute;top:calc(100% + 5px);left:-6px;right:-6px;text-align:center;font-style:normal;font-weight:700;font-size:12px;line-height:1;color:#1f7a55;white-space:nowrap}   /* 5.11 (владелец): подпись под плиткой, а не внутри — внутри «еле умещается» */
+.stamp.in-cart .srow{margin-bottom:18px}
 .stamp .six-open{align-self:flex-start;margin-top:2px;font-weight:700}
 @media (prefers-reduced-motion:no-preference){.stamp.ready .sl.six{animation:sixglow 1.4s ease-in-out infinite}}
 @keyframes sixglow{50%{box-shadow:0 0 0 7px rgba(242,194,48,.15);transform:scale(1.05)}}
@@ -2973,7 +2974,7 @@ function stampsBlock(){
       return `<div class="sw-wrap" data-i="${i}" data-w="${ready?110:220}"><div class="sw-acts">${ready?'':`<button class="sw-chg" onclick="swClose();openSixPick(${i})" aria-label="Поменять ${m.n}"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Поменять</button>`}<button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button></div><div class="stamp k-${k}${ready?' ready':''}${inC?' in-cart':''}">
         <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
         <span class="six-badge ${sl.isNew?'nw':''}">${sl.isNew?'Новое':'Привычное'} −${pct}%</span>
-        <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}${inC?`<button class="sl six" onclick="go('cart')" aria-label="Шестое в корзине — открыть корзину"><span class="six-ok">✓</span><i>В корзине</i></button>`:`<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button>`}</div>
+        <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}${inC?`<button class="sl six" onclick="go('cart')" aria-label="Шестое в корзине — открыть корзину"><span class="six-ok">✓</span><em class="six-lbl">В корзине</em></button>`:`<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button>`}</div>
         <span class="hint">${inC?`Шестое уже в корзине ✓<br>Оплати заказ — и начнётся новый круг${sixExtra(sl)}</span><button class="link six-open" onclick="go('cart')">Открыть корзину ›</button><span hidden>`:ready&&sl.sixDay===S.day?`Следующее шестое со скидкой — завтра<br>Оно тебя подождёт${sixExtra(sl)}`:ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}${sixExtra(sl)}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
         ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки сгорят':''}</button>`}</div></div>`; }).join('')}
     ${S.six.slots.some(Boolean)?'<p class="sw-tip">← Смахни блюдо влево — поменять или убрать</p>':''}</div>`;
