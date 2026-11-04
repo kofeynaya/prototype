@@ -99,7 +99,10 @@ p{margin:0}
 .offer .of-ben.tx{font-size:32px}
 .offer.me .title.of-name{max-width:calc(100% - 104px);margin-top:6px;font-weight:700;line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
 .offer .of-name.n1{font-size:26px}.offer .of-name.n2{font-size:22px}.offer .of-name.n3{font-size:19px}
-.offer.me .actions{flex-wrap:nowrap}.offer .btn.of-in{background:linear-gradient(135deg,#2e9e6a,#1f7a55)!important;color:#fff!important;border-color:transparent!important}.of-wait{display:block;font-size:13px;font-weight:700;color:#e65100}.of-hint{margin:0;padding:10px 0 2px;border-top:1px dashed rgba(255,145,0,.45);font-size:15px;line-height:1.3;font-weight:700;color:#ff9100}
+.offer.me .actions{flex-wrap:nowrap}.offer .btn.of-in{background:linear-gradient(135deg,#2e9e6a,#1f7a55)!important;color:#fff!important;border-color:transparent!important}.of-wait{display:block;font-size:13px;font-weight:700;color:#e65100}.gf-bpart{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 0 10px 50px;font-size:14px;color:var(--muted)}.gf-bpart input{width:96px;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:transparent;color:inherit;text-align:right}
+.gf-cn{display:grid;place-items:center;width:44px;height:44px}.gf-cn svg,.gf-cn img{width:40px;height:40px}
+.bc-coin.gb{background:linear-gradient(135deg,#ec407a,#ab47bc);font-size:18px}.bc-gnote{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.of-hint{margin:0;padding:10px 0 2px;border-top:1px dashed rgba(255,145,0,.45);font-size:15px;line-height:1.3;font-weight:700;color:#ff9100}
 .of-grp{border:1.5px solid rgba(255,145,0,.7);background:rgba(255,145,0,.07);border-radius:16px;padding:0 12px 12px;margin:6px 0}
 @media (max-width:370px){.of-grp{padding:0 8px 10px}.app .cartline{grid-template-columns:44px minmax(0,1fr) auto;gap:8px}.app .cartline .ph{width:44px;height:44px}.app .cartline .qty{gap:6px}.app .cartline .qty button{width:30px;height:30px}}
 .app .of-grp>.cartline{border-bottom:0}.of-grp .of-ups{margin-top:10px}.of-again{display:block;font-size:12px;font-weight:700;color:#ff9100}.of-grp .of-ups h3{margin-top:0}
@@ -2337,17 +2340,19 @@ function quote(lines, opt={}){
     cl.forEach(l=>l.price=Math.round(l.regular/full*o.comboPrice)); offerUsed=true; }
   const paid=out.reduce((a,l)=>a+l.price,0);
   const fee=opt.fee||0;
-  const bonusSpend = opt.bonus&&prem ? Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE)) : 0;
-  const after = paid-bonusSpend+fee;
+  /* 4.11 (владелец + критик): подарочные бонусы (подарили другие) списываются первыми и без предела 30% — подарок тратится хоть на весь заказ; подписка не нужна */
+  const gbonSpend = opt.gbon===false?0:Math.min(S.gbon||0, paid);
+  const bonusSpend = opt.bonus&&prem ? Math.max(0,Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE), paid-gbonSpend)) : 0;
+  const after = paid-gbonSpend-bonusSpend+fee;
   const walletSpend = opt.wallet&&prem ? Math.min(walletTotal(), after) : 0;
   return {lines:out, regular, paid, saved:regular-paid, offerUsed, offerWait, sixthUsed, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
-          bonusSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rateAll()/100)};
+          bonusSpend, gbonSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rateAll()/100)};
 }
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
 function applyPurchase(q, channel, doc){
   const src={}; q.lines.forEach(l=>{ if(l.k&&l.regular>l.price) src[l.k]=(src[l.k]||0)+l.regular-l.price; });
   const giftSpend=Math.max(0,q.walletSpend-Math.min(S.wallet.money,q.walletSpend));
-  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
+  S.orders.push({day:S.day, items:q.lines.map(l=>l.id), sum:q.paid-q.bonusSpend-(q.gbonSpend||0)+q.fee, goods:q.paid, saved:q.saved, src, giftSpend, bonus:q.bonus, bonusSpend:q.bonusSpend, walletSpend:q.walletSpend, ch:channel});
   const dayTotal = S.orders.filter(o=>o.day===S.day).reduce((a,o)=>a+(o.goods??o.sum),0);
   const counted = S.visits.includes(S.day), first = !counted && dayTotal>=MIN_DAY;
   let mile=null;
@@ -2355,7 +2360,7 @@ function applyPurchase(q, channel, doc){
   if(first){ S.visits.push(S.day); if(S.plus){ if(!S.ser.n){ S.ser.start=S.day; if(S.remind==null) S.remindAsk=1; } S.ser.n++; S.ser.best=Math.max(S.ser.best,S.ser.n); mile=checkMile(); if(givePlat()) setTimeout(()=>toast('💎 Ты Платиновый! Держи подарок: один напиток на выбор −50% (1 штука) — 3 дня',4500),mile?6000:3400); } }
   (q.giftsUsed||[]).forEach(id=>{ const g=S.rw.gifts.find(x=>x.id===id); if(g) g.used=S.day; });
   if(mile) setTimeout(()=>celebrateMile(mile),2600);
-  S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend;
+  S.saved+=q.saved; S.bonus+=q.bonus-q.bonusSpend; S.gbon=Math.max(0,(S.gbon||0)-(q.gbonSpend||0));
   let w=q.walletSpend; const fm=Math.min(S.wallet.money,w); S.wallet.money-=fm; w-=fm; S.wallet.gift-=w;
   if(q.walletSpend) (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`${channel==='Касса'?SHOPS[S.shop].n+' · касса':channel} · ${q.lines.length} поз.`,sum:-q.walletSpend});
   S.pastryCount+=q.lines.filter(l=>LCAT(byId(l.id))==='pastry').length;
@@ -2583,7 +2588,7 @@ function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
    блюдо попадает в «Мои подарки» и само становится бесплатным в заказе или на кассе (30 дней), бонусы — сразу на счёт */
 if(!S.gin) S.gin=[];
 /* 26.10 (владелец): условия подарка — техническая информация, не часть послания: под перепиской, мелко, отдельной строкой */
-const giftTerms=(m,until)=>`<div class="gift-terms">${m?`<span>⏳ Забери до ${fmtShort(until)}</span><span>В любой кофейной по QR или в заказе</span>`:`<span>Бонусы придут на счёт сразу</span><span>Ими можно оплатить до 30% чека</span>`}</div>`;
+const giftTerms=(m,until)=>`<div class="gift-terms">${m?`<span>⏳ Забери до ${fmtShort(until)}</span><span>В любой кофейной по QR или в заказе</span>`:`<span>Бонусы придут сразу</span><span>Потратить можно в любой кофейной, хоть на весь заказ</span>`}</div>`;
 function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'?byId(g.item):null, gi=GUESTS.findIndex(x=>x.n===g.from);
   const until=g.day+GIFT_DISH_DAYS-1, nm=g.from.split(' ')[0];
   S.notes.forEach(n=>{ if(n.k==='gin'&&n.gi===i) n.read=1; }); save();
@@ -2599,9 +2604,9 @@ function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'
   if(!g.took) confetti(); }
 function giftInTake(i){ const g=S.gin[i]; if(!g||g.took) return; g.took=S.day;
   if(g.kind==='dish'){ const r=giveGift('friend',`От: ${g.from}`); r.item=g.item; r.until=S.day+GIFT_DISH_DAYS-1; }
-  else S.bonus+=g.bonus;
+  else S.gbon=(S.gbon||0)+g.bonus;   // 4.11: подарок — в «подарочные бонусы», тратятся хоть на весь заказ
   save(); closeSheet(); render();
-  toast(g.kind==='dish'?`Подарок у тебя ✓<br>${byId(g.item).n} станет бесплатным в заказе или на кассе по QR`:`+${g.bonus.toLocaleString('ru-RU')} ${plural(g.bonus,'бонус','бонуса','бонусов')} на твоём счёте ✓`); }
+  toast(g.kind==='dish'?`Подарок у тебя ✓<br>${byId(g.item).n} станет бесплатным в заказе или на кассе по QR`:`+${g.bonus.toLocaleString('ru-RU')} подарочных ${plural(g.bonus,'бонус','бонуса','бонусов')} ✓<br>Ими можно оплатить хоть весь заказ`); }
 function giftInThanks(i){ const g=S.gin[i]; if(!g) return; g.thx=1; save(); toast(`Спасибо отправлено ❤️<br>${esc(g.from.split(' ')[0])} увидит\u00a0его в\u00a0приложении`); }
 function labGiftIn(kind){ const gs=GUESTS.slice(0,8), who=gs[Math.floor(Math.random()*gs.length)].n, dish=KASSA[Math.floor(Math.random()*6)];
   const g={from:who,kind,item:kind==='dish'?dish:null,bonus:kind==='bonus'?300:0,msg:GIFT_MSGS[Math.floor(Math.random()*GIFT_MSGS.length)],day:S.day,tm:supTime()};
@@ -3234,6 +3239,7 @@ function cart(){
     ${qt.offerWait&&S.basket.some(l=>S.offer&&l.id===S.offer.item)?'':upsRow(false)}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
+      ${(S.gbon||0)>0?gbonCard(qt):''}
       ${S.bonus>0?bonusCard('c-bonus',co.bonus,'co.bonus=this.checked;render()',qt):''}
       ${walletTotal()>0?depoCard('c-wallet',co.wallet,'co.wallet=this.checked;render()',qt):''}
       ${qt.card>0?`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span>`:'<div class="opt" hidden><span>'}<span class="optrow">${[['card','Картой онлайн'],['sberpay','SberPay'],['cash',S.mode==='delivery'?'Наличными курьеру':'Наличными на кассе']].map(([k,t])=>`<button class="optbtn ${S.pay===k?'on':''}" style="padding:6px 10px" onclick="S.pay='${k}';save();render()">${t}</button>`).join('')}</span></div>
@@ -3242,6 +3248,7 @@ function cart(){
     <div class="sum panel">
       <div class="r"><span>Товары</span><span class="money">${rub(qt.regular)}</span></div>
       ${qt.saved?`<div class="r save"><span>Ваши скидки</span><span class="money">−${rub(qt.saved)}</span></div>`:''}
+      ${qt.gbonSpend?`<div class="r"><span>Подарочными бонусами</span><span class="money">−${qt.gbonSpend}</span></div>`:''}
       ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
       ${del?`<div class="r"><span>Доставка</span><span class="money">${qt.fee?rub(qt.fee):'бесплатно'}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
@@ -4022,7 +4029,7 @@ function dashboard(){
   return `<div class="stack dash-st" style="gap:14px"><h2>Мои выгоды</h2>
     ${PL_OPEN('Депозит и бонусы — с ★ Кофейная+','Клади деньги на депозит с кэшбэком, копи бонусы и смотри, сколько сэкономил')}
     ${bankCard()}
-    <button class="bon-row" onclick="openBonus()">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
+    <button class="bon-row" onclick="openBonus()">${COIN}<span class="tx"><b><span class="money">${S.bonus}</span> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</b><small>Ими можно оплатить до ${Math.round(BONUS_MAX_SHARE*100)}% чека${(S.gbon||0)>0?`<br>🎁 И ещё ${(S.gbon).toLocaleString('ru-RU')} подарочных — хоть на весь заказ`:''}</small></span><span class="pc"><b class="money">${rateAll()}%</b><small>бонусами<br>с покупки</small></span><span class="go">›</span></button>
     <h2 class="ben-title">Выгода от приложения</h2>
     ${benefit()}
     ${PL_CLOSE()}
@@ -4263,7 +4270,7 @@ function drawSearch(){ const out=document.getElementById('srout'); if(!out) retu
    Бонусы: сколько угодно, но не больше, чем есть (владелец 26.10 убрал лимиты в день/месяц/людям). В интерфейсе — «подарить», не «перевод».
    Блюдо: бонусами — до 30% цены (как в любом чеке), остальное — с депозита или картой онлайн. Цена фиксируется. Живёт 30 дней, не забрали — деньги вернутся на депозит, бонусы — бонусами.
    Подарок не растит получателю счётчик, отметки 6-го и ритм — они только за свои покупки. */
-const GIFT_BON=[100,300,500], GIFT_DISH_DAYS=30;   // 26.10 (владелец): лимитов на подарок бонусами нет — «его бонусы, пусть сам распоряжается»; нельзя только больше, чем есть
+const GIFT_BON=[100,300,500,1000], GIFT_DISH_DAYS=30;   // 26.10 (владелец): лимитов на подарок бонусами нет — «его бонусы, пусть сам распоряжается»; нельзя только больше, чем есть
 const monthOf = d => { const x=dateOf(d); return x.getFullYear()*12+x.getMonth(); };
 function giftBonUsed(){ const L=S.gft.sent; return { day:L.filter(g=>g.day===S.day).reduce((a,g)=>a+g.pay.bonus,0), month:L.filter(g=>monthOf(g.day)===monthOf(S.day)).reduce((a,g)=>a+g.pay.bonus,0),
   people:new Set(L.filter(g=>monthOf(g.day)===monthOf(S.day)&&g.pay.bonus>0).map(g=>g.to.key)) }; }
@@ -4271,18 +4278,17 @@ function giftBonUsed(){ const L=S.gft.sent; return { day:L.filter(g=>g.day===S.d
 function giftBonLeft(to){ return Math.max(0,Math.floor(S.bonus||0)); }
 function giftWhyNot(to){ return S.bonus>0?'':'Бонусов пока нет|Они приходят с покупок'; }
 /* 26.10: сумму подарка бонусами гость вводит сам — от 1 до всех своих бонусов; больше, чем есть, отправить нельзя */
-function giftAmtHint(){ const left=giftBonLeft(gf&&gf.to), a=gf&&gf.amt||0;
-  if(a>left) return `<b class="bad">Столько нет — у тебя ${left.toLocaleString('ru-RU')} ${plural(left,'бонус','бонуса','бонусов')}</b>`;
-  return a>0?`У тебя останется ${(left-a).toLocaleString('ru-RU')} ${plural(left-a,'бонус','бонуса','бонусов')}`:`У тебя ${left.toLocaleString('ru-RU')} ${plural(left,'бонус','бонуса','бонусов')}`; }
-function giftAmt(inp){ const left=giftBonLeft(gf.to); let v=Math.floor(+inp.value||0); if(v<0) v=0; gf.amt=v;
-  const h=document.getElementById('gamt-h'), b=document.getElementById('gamt-go'); if(h) h.innerHTML=giftAmtHint(); if(b) b.disabled=!(v>0&&v<=left);
+function giftAmtHint(){ return '1 бонус = 1&nbsp;₽ в кофейной<br>Чем оплатить — выберешь дальше'; }
+function giftAmt(inp){ let v=Math.floor(+inp.value||0); if(v<0) v=0; gf.amt=v; gf.bAmt=null;
+  const b=document.getElementById('gamt-go'); if(b) b.disabled=!(v>0);
   document.querySelectorAll('.gf-quick .optbtn').forEach(x=>x.classList.remove('on')); }
+function giftBPart(inp){ const mx=Math.min(Math.floor(S.bonus||0),gf.amt||0); let v=Math.floor(+inp.value||0); v=Math.max(0,Math.min(mx,v)); gf.bAmt=v; gf.bon=v>0; drawGift(); }
 let gf=null;
 function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
-  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
+  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, dep:true, bAmt:null, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
   drawGift(); }
-function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=ph9(to.ph); gf.nm=to.nm||''; } if(gf.kind==='bonus' && !giftBonLeft(to)) gf.kind=null; drawGift(); }
+function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=ph9(to.ph); gf.nm=to.nm||''; } drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
 /* 29.10 (владелец): номер пишем как принято — «+7 (911) 177-07-77». «+7 (9» стоит всегда и не стирается (номера только мобильные),
    гость вводит 9 цифр; больше набрать нельзя; вставили «+7 911…», «8911…» или «911…» — лишнее убираем сами */
@@ -4300,7 +4306,10 @@ function giftPhone(){ const el=document.getElementById('gph'), d9=el?el.dataset.
   const nm=((document.getElementById('gnm')||{}).value||'').trim();
   giftTo({key:'p'+d, ph:d9, nm, n:nm||phFull(d9), short:nm||'получатель', phone:`+7 (${d.slice(1,4)}) •••-${d.slice(7,9)}-${d.slice(9)}`, via:'sms'}); }
 function giftLink(){ giftTo({key:'link'+Date.now(), n:'Тот, кому отправишь ссылку', short:'получатель', via:'link'}); }
-function giftPrice(){ if(gf.kind==='bonus') return {bonus:gf.amt||0, dep:0, card:0, total:gf.amt||0};
+/* 4.11 (владелец + критик): «Подарочные бонусы» — гость не переводит деньги, а покупает подарок внутри кофейной: платит своими бонусами
+   (по умолчанию первыми, без предела 30%), остальное — с депозита, не хватило — картой. Получатель видит просто подарочные бонусы */
+function giftPrice(){ if(gf.kind==='bonus'){ const a=gf.amt||0, bMax=Math.min(Math.floor(S.bonus||0),a), b=gf.bon?Math.min(bMax,gf.bAmt==null?bMax:Math.max(0,Math.floor(gf.bAmt))):0, d=gf.dep?Math.min(walletTotal(),a-b):0;
+    return {bonus:b, dep:d, card:a-b-d, total:a}; }
   const m=byId(gf.item); if(!m) return {bonus:0,dep:0,card:0,total:0};
   const total=m.p, maxB=gf.bon?Math.min(giftBonLeft(gf.to), Math.floor(total*BONUS_MAX_SHARE)):0, rest=total-maxB;
   const dep=gf.rest==='dep'?Math.min(walletTotal(),rest):0;
@@ -4335,15 +4344,28 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <div class="gf-dishes">${list.length?list.map(m=>`<button class="sr-row" onclick="gf.item='${m.id}';gf.step=3;drawGift()">${photo(m,'sr-ph')}<span class="tx"><span class="nm">${m.n}</span><small>${wt(m)}</small></span><span class="pr money">${rub(m.p)}</span></button>`).join(''):'<p class="empty-note">Не нашли такое блюдо</p>'}</div>
         <button class="link" onclick="gf.kind=null;drawGift()">← Подарить бонусы</button>`; }
     else body=`${toLine}<h2>Что подарить?</h2>
-      <div class="gf-kinds"><button class="gf-kind${gf.kind==='bonus'?' on':''}${left?'':' off'}" onclick="${left?"gf.kind='bonus';drawGift()":`toast('${why.replace('|','. ')}')`}"><span class="big">🪙</span><b>Бонусы</b><small>${left?`У тебя ${left.toLocaleString('ru-RU')}`:why.split('|')[0]}</small></button>
+      <div class="gf-kinds"><button class="gf-kind${gf.kind==='bonus'?' on':''}" onclick="gf.kind='bonus';drawGift()"><span class="big">🪙</span><b>Подарочные бонусы</b><small>Потратит на что захочет</small></button>
         <button class="gf-kind" onclick="gf.kind='dish';drawGift()"><span class="big">☕</span><b>Блюдо</b><small>Кофе, десерт<br>или завтрак</small></button></div>
-      ${gf.kind==='bonus'?`<span class="label">Сколько бонусов</span>
-        <div class="ownrow own-field gf-in" onclick="this.querySelector('input').focus()"><input class="own-in" id="gamt" type="number" inputmode="numeric" min="1" max="${left}" step="1" placeholder="Сколько подарить" value="${gf.amt||''}" oninput="giftAmt(this)"><span>бонусов</span></div>
-        <div class="gf-quick">${[...GIFT_BON.filter(a=>a<left),left].map(a=>`<button class="optbtn${gf.amt===a?' on':''}" onclick="gf.amt=${a};drawGift()">${a===left?`Все ${left.toLocaleString('ru-RU')}`:a}</button>`).join('')}</div>
+      ${gf.kind==='bonus'?`<span class="label">Сколько подарить</span>
+        <div class="ownrow own-field gf-in" onclick="this.querySelector('input').focus()"><input class="own-in" id="gamt" type="number" inputmode="numeric" min="1" step="1" placeholder="Сколько подарить" value="${gf.amt||''}" oninput="giftAmt(this)"><span>бонусов</span></div>
+        <div class="gf-quick">${GIFT_BON.map(a=>`<button class="optbtn${gf.amt===a?' on':''}" onclick="gf.amt=${a};gf.bAmt=null;drawGift()">${a.toLocaleString('ru-RU')}</button>`).join('')}</div>
         <p class="hint" id="gamt-h">${giftAmtHint()}</p>
-        <button class="btn block" id="gamt-go" ${gf.amt>0&&gf.amt<=left?'':'disabled'} onclick="gf.step=4;drawGift()">Дальше</button>`:''}`; }
-
-  if(s===3){ const m=byId(gf.item), p=giftPrice(), canB=Math.min(giftBonLeft(t),Math.floor(m.p*BONUS_MAX_SHARE)), w=walletTotal();
+        <button class="btn block" id="gamt-go" ${gf.amt>0?'':'disabled'} onclick="gf.step=3;drawGift()">Дальше</button>`:''}`; }
+  if(s===3&&gf.kind==='bonus'){ const p=giftPrice(), a=gf.amt||0, bMax=Math.min(Math.floor(S.bonus||0),a), w=walletTotal(), N=x=>x.toLocaleString('ru-RU');
+    body=`${toLine}<h2>Чем оплатить?</h2>
+      <div class="gf-item"><span class="gf-cn">${COIN}</span><span class="tx"><b>Подарочные бонусы</b><small>Подарок для ${esc(t.short)}</small></span><b class="money">${N(a)}</b></div>
+      <div class="panel" style="gap:0">
+        <label class="bon-card${p.bonus?' on':''}${bMax?'':' off'}" for="gb"><span class="bc-coin">Б</span><span class="bc-tx"><span class="bc-top">Своими бонусами <b class="money">${N(Math.floor(S.bonus||0))}</b></span>
+          <span class="bc-sub">${!bMax?'Бонусов пока нет':p.bonus?`<b>−${N(p.bonus)}</b> бонусов<br>Останется ${N(Math.floor(S.bonus)-p.bonus)}`:`Можно отдать до <b>${N(bMax)}</b><br>Включи, чтобы списать`}</span></span>
+          <span class="bc-sw"><span class="bc-swl">${p.bonus?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="gb" ${p.bonus?'checked':''} ${bMax?'':'disabled'} onchange="gf.bon=this.checked;if(this.checked&&!gf.bAmt)gf.bAmt=null;drawGift()"></span></label>
+        ${p.bonus&&bMax?`<div class="gf-bpart"><span>Сколько своими бонусами</span><input type="number" inputmode="numeric" min="0" max="${bMax}" value="${p.bonus}" onchange="giftBPart(this)"></div>`:''}
+        <label class="bon-card depo${p.dep?' on':''}${w?'':' off'}" for="gd"><span class="bc-coin dp">₽</span><span class="bc-tx"><span class="bc-top">С депозита <b class="money">${rub(w)}</b></span>
+          <span class="bc-sub">${!w?'Депозит пустой':p.dep?`<b>−${rub(p.dep)}</b> с депозита<br>Останется ${rub(w-p.dep)}`:p.bonus>=a?'Всё уже оплачено бонусами<br>Депозит не тратим':'Включи, чтобы оплатить остальное'}</span></span>
+          <span class="bc-sw"><span class="bc-swl">${gf.dep&&w?'Списываю':'Списать'}</span><input type="checkbox" class="sw" id="gd" ${gf.dep&&w?'checked':''} ${w?'':'disabled'} onchange="gf.dep=this.checked;drawGift()"></span></label>
+        ${p.card>0?`<div class="opt"><span>Остальное <b class="money">${rub(p.card)}</b> — картой<br><small class="muted">${S.card}</small></span></div>`:''}
+      </div>
+      <button class="btn block" onclick="gf.step=4;drawGift()">Дальше</button>`; }
+  else if(s===3){ const m=byId(gf.item), p=giftPrice(), canB=Math.min(giftBonLeft(t),Math.floor(m.p*BONUS_MAX_SHARE)), w=walletTotal();
     body=`${toLine}<h2>Чем оплатить?</h2>
       <div class="gf-item">${photo(m,'sr-ph')}<span class="tx"><b>${m.n}</b><small>${wt(m)}</small></span><b class="money">${rub(m.p)}</b></div>
       <div class="panel" style="gap:0">
@@ -4355,11 +4377,11 @@ function drawGift(){ const s=gf.step, t=gf.to;
       </div>
       <button class="btn block" onclick="gf.step=4;drawGift()">Дальше</button>`; }
   if(s===4){ const p=giftPrice(), m=gf.kind==='dish'?byId(gf.item):null, until=S.day+GIFT_DISH_DAYS;
-    const parts=[p.bonus?`${p.bonus} ${plural(p.bonus,'бонус','бонуса','бонусов')}`:'', p.dep?`${rub(p.dep)} с депозита`:'', p.card?`${rub(p.card)} картой`:''].filter(Boolean);
+    const parts=[p.bonus?`${p.bonus.toLocaleString('ru-RU')} ${m?plural(p.bonus,'бонус','бонуса','бонусов'):plural(p.bonus,'бонусом','бонусами','бонусами')}`:'', p.dep?`${rub(p.dep)} с депозита`:'', p.card?`${rub(p.card)} картой`:''].filter(Boolean);
     body=`<h2>Проверь подарок</h2>
       <div class="panel gf-check">
         <div class="row between"><span class="muted">Кому</span><b>${t.n}${t.phone&&t.n!==t.phone?`<br><small class="muted money">${t.phone}</small>`:''}</b></div>
-        <div class="row between"><span class="muted">Подарок</span><b>${m?m.n:`${p.bonus} ${plural(p.bonus,'бонус','бонуса','бонусов')}`}</b></div>
+        <div class="row between"><span class="muted">Подарок</span><b>${m?m.n:`${p.total.toLocaleString('ru-RU')} ${plural(p.total,'бонус','бонуса','бонусов')}`}</b></div>
         <div class="row between"><span class="muted">Оплата</span><b>${parts.join('<br>')}</b></div></div>
       <span class="label">Подпиши открытку <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">— можно не писать</span></span>
       <div class="gf-msgs">${GIFT_MSGS.map(x=>`<button class="sr-chip" onclick="giftMsg(this.textContent)">${x}</button>`).join('')}</div>
@@ -4367,20 +4389,21 @@ function drawGift(){ const s=gf.step, t=gf.to;
       <span class="label">Так увидит ${t.via==='app'?t.short:'получатель'}</span>
       ${S.last?'':`<button class="gf-last" onclick="closeSheet();go('me')"><span>👤 Добавь фамилию — так ${t.via==='app'?t.short:'получатель'} точно поймёт, от кого подарок</span><b>Добавить ›</b></button>`}
       <div class="gf-chat"><div class="gc-row"><span class="gc-ava">${esc((S.name||'?')[0])}</span><div class="gc-col"><span class="gc-who">${esc(fullName())}</span>
-        <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):''}<b>${m?m.n:`<span class="gc-cn">${COIN}</span>${p.bonus}&nbsp;${plural(p.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
+        <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):''}<b>${m?m.n:`<span class="gc-cn">${COIN}</span>${p.total.toLocaleString('ru-RU')}&nbsp;${plural(p.total,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
         <div class="gc-bub gc-txt" id="gnote"${gf.msg.trim()?'':' hidden'}>${esc(gf.msg)}</div><span class="gc-time">${new Date().toTimeString().slice(0,5)}</span></div></div></div>
       ${giftTerms(m,until)}
       ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
-      <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=${m?3:2};drawGift()">← Назад</button>`; }
+      <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=3;drawGift()">← Назад</button>`; }
   sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
   if(drawGift.last!==s){ const sh=document.querySelector('.sheet'); if(sh) sh.scrollTop=0; drawGift.last=s; }   // новый шаг — с начала; переключатели на том же шаге — без прыжка
   if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
 function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.item):null;
-  if(!(p.bonus>=0)||p.bonus>S.bonus||(gf.kind==='bonus'&&!(p.bonus>0))) return toast(`Столько бонусов нет<br>У тебя ${S.bonus.toLocaleString('ru-RU')}`);   // нельзя больше, чем в кошельке
+  if(gf.kind==='bonus'&&!(p.total>0)) return toast('Напиши, сколько подарить');
+  if(!(p.bonus>=0)||p.bonus>S.bonus) return toast(`Столько бонусов нет<br>У тебя ${S.bonus.toLocaleString('ru-RU')}`);   // нельзя больше, чем в кошельке
   if(p.dep>walletTotal()) return toast('На депозите не хватает');
   S.bonus-=p.bonus;
-  if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m.n} для ${t.short}`,sum:-p.dep}); }
-  const g={day:S.day, to:{key:t.key,n:t.n,short:t.short,via:t.via,gi:t.gi}, kind:gf.kind, item:m?m.id:null, price:m?m.p:0, pay:{bonus:p.bonus,dep:p.dep,card:p.card}, until:m?S.day+GIFT_DISH_DAYS:null, st:m?'wait':'done', msg:(gf.msg||'').trim()};
+  if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m?m.n:'подарочные бонусы'} для ${t.short}`,sum:-p.dep}); }
+  const g={day:S.day, to:{key:t.key,n:t.n,short:t.short,via:t.via,gi:t.gi}, kind:gf.kind, item:m?m.id:null, price:m?m.p:0, amt:m?0:p.total, pay:{bonus:p.bonus,dep:p.dep,card:p.card}, until:m?S.day+GIFT_DISH_DAYS:null, st:m?'wait':'done', msg:(gf.msg||'').trim()};
   S.gft.sent.push(g);
   if(t.via!=='link'){ S.gft.recent=[t,...(S.gft.recent||[]).filter(r=>r.key!==t.key)].slice(0,50); }
   save(); render();
@@ -4399,17 +4422,18 @@ function giftDay(){ let msg=''; for(const g of S.gft.sent){ if(g.st!=='wait') co
 function giftList(){ const L=S.gft.sent.slice().reverse(); if(!L.length) return '';
   const st=g=>g.kind==='bonus'?'<span class="save">подарено ✓</span>':g.st==='took'?'<span class="save">забрали ✓</span>':g.st==='back'?'вернулось тебе':`ждёт до ${fmtShort(g.until)}`;
   const who=g=>g.to.via==='link'?'По ссылке':g.to.n, ava=g=>g.to.via==='link'?'🔗':esc((g.to.n||'?')[0]);
-  const what=g=>g.kind==='bonus'?`${g.pay.bonus.toLocaleString('ru-RU')} ${plural(g.pay.bonus,'бонус','бонуса','бонусов')}`:`${byId(g.item).n} · ${rub(g.price||byId(g.item).p)}`;
+  const what=g=>g.kind==='bonus'?(a=>`${a.toLocaleString('ru-RU')} ${plural(a,'бонус','бонуса','бонусов')}${g.pay.dep||g.pay.card?' · '+[g.pay.bonus?g.pay.bonus+' бонусами':'',g.pay.dep?rub(g.pay.dep)+' с депозита':'',g.pay.card?rub(g.pay.card)+' картой':''].filter(Boolean).join(' + '):''}`)(g.amt||g.pay.bonus):`${byId(g.item).n} · ${rub(g.price||byId(g.item).p)}`;
   return `<div class="stack" style="gap:6px"><span class="label">Ты подарил · ${L.length}</span>${L.map(g=>`<div class="gf-h"><span class="gh-ava">${ava(g)}</span><span class="tx"><b>${esc(who(g))}</b><span class="gh-what">${g.kind==='bonus'?'🪙':'🎁'} ${what(g)}</span><small>${fmtShort(g.day)}${g.msg?` · «${esc(g.msg)}»`:''}</small></span><small class="gh-st">${st(g)}</small></div>`).join('')}</div>`; }
 // экран «Бонусы» — сюда проваливаешься из профиля
 function openBonus(){ const left=giftBonLeft(null), why=giftWhyNot(null);
   sheet(`<h2>Бонусы</h2>
     <div class="bon-big">${COIN}<span><b class="money">${S.bonus.toLocaleString('ru-RU')}</b> ${plural(S.bonus,'бонус','бонуса','бонусов')} = ${rub(S.bonus)}</span></div>
     <ul class="rl-list"><li>1 бонус = 1 ₽<br>Ими можно оплатить до 30% чека</li><li>Бонусы не сгорают</li></ul>
+    ${(S.gbon||0)>0?`<div class="gf-share"><b>🎁 Подарочные бонусы ${(S.gbon).toLocaleString('ru-RU')}</b><span>Тебе подарили — ими можно оплатить хоть весь заказ<br>В корзине и на кассе спишутся первыми</span></div>`:''}
     <button class="rate-link" onclick="closeSheet();goTo('progress','#pr-ritm')"><span class="tx"><b>📈 Сейчас <em>${rateAll()}%</em> бонусами с каждой покупки</b><small>Как получить больше</small></span><span class="chev">›</span></button>
-    <div class="gf-share"><b>🎁 Подари близким</b><span>Бонусы или блюдо — по номеру телефона<br>или ссылкой. Им подписка не нужна</span>
+    <div class="gf-share"><b>🎁 Подари близким</b><span>Подарочные бонусы или блюдо — по номеру телефона<br>или ссылкой. Им подписка не нужна</span>
       <div class="row" style="gap:8px"><button class="btn" style="flex:1" onclick="openGift({kind:'bonus'})" ${S.plus?'':''}>🪙 Бонусы</button><button class="btn" style="flex:1" onclick="openGift({kind:'dish'})">☕ Блюдо</button></div>
-      ${S.plus&&!left&&why?`<small class="muted">${why.replace('|','<br>')}</small>`:''}</div>
+</div>
     ${giftList()}`); }   // 25.10, с критиком: «Сейчас N%» ведёт прямо к карточке «Твой ритм»; старая ссылка «Мой ритм в «Турбо»» убрана
 
 /* ---------- Профиль (как в Starter + лояльность) ---------- */
@@ -4757,6 +4781,7 @@ let kc={}, ko={};
 /* 31.10 (владелец + критик): полоска под бонусами отвечает на вопрос «чем я плачу»: вся дорожка — сумма к оплате,
    выкл — кусок, который можно закрыть бонусами, обведён золотым пунктиром; вкл — он заливается золотом, подписи «86 ₽ бонусами · 299 ₽ картой»;
    засечка 30% — только когда предел что-то ограничивает */
+const gbonCard=qt=>`<div class="bon-card on gbc"><span class="bc-coin gb">🎁</span><span class="bc-tx"><span class="bc-top">Подарочные бонусы <b class="money">${(S.gbon||0).toLocaleString('ru-RU')}</b></span><span class="bc-sub">${qt.gbonSpend?`<b>−${rub(qt.gbonSpend)}</b> подарочными<br>Останется ${((S.gbon||0)-qt.gbonSpend).toLocaleString('ru-RU')}`:'В этом заказе списать нечего'}</span><small class="bc-gnote">Ими можно оплатить хоть весь заказ</small></span></div>`;
 function bonusCard(id,on,ch,qt,pay){ const paid=qt.paid, base=paid+(qt.fee||0), cap=Math.floor(paid*BONUS_MAX_SHARE), can=S.plus?Math.min(S.bonus,cap):0, pct=base?can/base*100:0;
   const capped=S.plus&&S.bonus>cap&&can>0, how=PAY_W[pay||S.pay]||'картой', rest=qt.card+qt.walletSpend, w=qt.walletSpend;
   const restHow=w>=rest&&w>0?'с депозита':w>0?`депозитом и ${how}`:how, onB=on&&can;
@@ -4785,6 +4810,7 @@ function drawKassa(){
   const ids=[...new Set([...KASSA, ...Object.keys(kc)])];
   const qt=quote(Object.entries(kc).map(([id,qty])=>({id,qty,sur:0})),ko), o=S.offer, opts=[];
   if(qt.bdNeedsDoc) opts.push(`<label class="bon-card${ko.doc?' on':''}" for="o-doc"><span class="bc-coin bd">🎂</span><span class="bc-tx"><span class="bc-top">Скидка в день рождения <b>−${bdInfo().pct}%</b></span><span class="bc-sub">В первый раз покажи бариста<br>паспорт или права</span></span><span class="bc-sw"><span class="bc-swl">${ko.doc?'Показал':'Показать'}</span><input type="checkbox" class="sw" id="o-doc" ${ko.doc?'checked':''} onchange="ko.doc=this.checked;drawKassa()"></span></label>`);   // 29.10 (владелец): окно кассы — глазами гостя, без «Бариста: проверьте…»
+  if((S.gbon||0)>0) opts.push(gbonCard(qt));
   if(S.bonus>0) opts.push(bonusCard('o-bonus',ko.bonus,'ko.bonus=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(walletTotal()>0) opts.push(depoCard('o-wallet',ko.wallet,'ko.wallet=this.checked;drawKassa()',qt,ko.pay||'card'));
   if(qt.card>0) opts.push(`<div class="opt"><span>${qt.walletSpend?'Остальное':'Оплата'}</span><span class="optrow">${[['card','Картой'],['cash','Наличными']].map(([k,t])=>`<button class="optbtn ${(ko.pay||'card')===k?'on':''}" style="padding:6px 10px" onclick="ko.pay='${k}';drawKassa()">${t}</button>`).join('')}</span></div>`);
@@ -4797,6 +4823,7 @@ function drawKassa(){
     <div class="sum panel">
       ${qt.lines.map(l=>`<div class="r"><span>${l.name}${l.why?` <span class="muted small">· ${l.why}</span>`:''}</span><span class="money">${l.price<l.regular?`<s class="muted">${rub(l.regular)}</s> `:''}${rub(l.price)}</span></div>`).join('') || '<span class="muted small">Чек пуст</span>'}
       ${qt.saved?`<div class="r save"><span>Экономия</span><span class="money">−${rub(qt.saved)}</span></div>`:''}
+      ${qt.gbonSpend?`<div class="r"><span>Подарочными бонусами</span><span class="money">−${qt.gbonSpend}</span></div>`:''}
       ${qt.bonusSpend?`<div class="r"><span>Бонусами</span><span class="money">−${qt.bonusSpend}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
       <div class="r"><span>Бонусы за покупку (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
