@@ -1545,8 +1545,14 @@ img.ava{object-fit:cover}
 .sr-empty{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 0 6px}.sr-big{font-size:44px}.sr-empty b{font-size:18px}
 /* Подарки */
 .gift{display:flex;flex-direction:column;gap:12px}
-.gf-steps{display:flex;gap:4px;justify-content:space-between;padding-right:54px;min-height:30px;align-items:center;font-size:12px;color:var(--muted)}
-.gf-steps span{display:flex;align-items:center;gap:4px}.gf-steps i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-size:12px;font-weight:700}
+.sh-back{align-self:flex-start;margin:0 0 6px}
+.sheet .back{padding:7px 14px 7px 12px;border-radius:999px;color:var(--ink);font-size:15px;border:1px solid var(--line);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 10px rgba(0,0,0,.12)}
+.gf-top{display:flex;align-items:center;min-height:44px;padding-right:54px;margin-bottom:6px}.gf-top .back{margin:0}
+.gf-steps{display:flex;gap:4px;justify-content:space-between;min-height:30px;align-items:center;font-size:12px;color:var(--muted)}
+.gf-steps button.done{display:flex;align-items:center;gap:4px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+.gf-draft{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:16px;background:rgba(46,158,106,.1);border:1.5px solid rgba(46,158,106,.45)}.gf-draft b{font-size:17px}.gf-draft small{color:var(--muted);font-size:14px}
+.gift-sty.has-draft .sty-ring{position:relative}.gift-sty.has-draft .sty-ring::after{content:'';position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#ff6d00;border:2px solid var(--bg)}
+.gf-steps span,.gf-steps button{display:flex;align-items:center;gap:4px}.gf-steps i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-size:12px;font-weight:700}
 .gf-steps .on{color:var(--ink);font-weight:700}.gf-steps .on i{background:var(--ink);color:var(--bg);border-color:var(--ink)}.gf-steps .done i{background:#2e9e5b;color:#fff;border-color:#2e9e5b}
 .gf-ph{gap:8px}.gf-ph input{font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
 .gf-more{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 0;background:none;border:0;color:inherit;text-align:left}
@@ -2043,7 +2049,7 @@ const _cv=document.createElement('canvas').getContext('2d');
 /* 26.10 (владелец): пол в профиле — обращения к гостю в женском роде, если выбран «Женский». Только фразы, которые точно про самого гостя
    (не про друга или другого гостя); работает для любого выведенного текста, как и типографика */
 const S_ = '[\\s\\u00a0]+';
-const SEX_F=[['ты'+S_+'сам'+S_+'не'+S_+'скажешь','ты сама не скажешь'],['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
+const SEX_F=[['Ты'+S_+'остановился','Ты остановилась'],['ты'+S_+'сам'+S_+'не'+S_+'скажешь','ты сама не скажешь'],['ты'+S_+'ещё'+S_+'не'+S_+'был','ты ещё не была'],['ты'+S_+'не'+S_+'был','ты не была'],['ты'+S_+'был','ты была'],['Пропустил'+S_+'день','Пропустила день'],['пропустил'+S_+'день','пропустила день'],
   ['не'+S_+'приходил','не приходила'],['ты'+S_+'зашёл','ты зашла'],['красавчик!','красотка!'],['Красавчик!','Красотка!'],['капитальный!','капитальная!'],['Ты'+S_+'лучший','Ты лучшая'],['заплатил'+S_+'бы','заплатила бы'],['приложением'+S_+'заплатил','приложением заплатила'],
   ['сэкономил','сэкономила'],['Ты'+S_+'уже'+S_+'дарил','Ты уже дарила'],['Ты'+S_+'подарил','Ты подарила'],['ты'+S_+'уже'+S_+'включил','ты уже включила'],['Что'+S_+'покупал','Что покупала']].map(([a,b])=>[new RegExp('(^|[^А-Яа-яё])'+a+'(?![А-Яа-яё])','g'),'$1'+b]);
 SEX_F.push([/^(\s*(?:ещё[\s\u00a0]+)?не[\s\u00a0]+)был(\s*)$/,'$1была$2']);   // «ты ещё <b>не был</b>» — фраза разбита тегом
@@ -2540,7 +2546,7 @@ function topUpSum(sum){ if(!S.plus) return premGate('Депозит — толь
   sum=Math.round(+sum||0); if(sum<100) return; tp={sum,card:(mainCard()||{}).id||null}; tpCheck(); }
 const tpCardName=()=>'карты '+cardLbl(cardById(tp.card));
 function tpCheck(){ const g=giftFor(tp.sum);
-  sheet(`<div class="tp"><h2>Проверь пополнение</h2>
+  sheet(`<div class="tp"><button class="back sh-back" onclick="closeSheet()">← Назад</button><h2>Проверь пополнение</h2>
     <div class="panel tp-sum"><div class="row between"><span>Пополнение</span><b class="money">${rub(tp.sum)}</b></div>
       <div class="row between"><span>Кэшбэк ${g?giftPct(tp.sum)+'%':''}</span><b class="money tp-g">${g?'+'+rub(g):'нет'}</b></div>
       ${g?`<span class="tp-eq">${cbEq(g)}</span>`:`<span class="small muted">Кэшбэк начинается от 3 000 ₽</span>`}
@@ -2548,8 +2554,7 @@ function tpCheck(){ const g=giftFor(tp.sum);
     <span class="label">С какой карты</span>
     ${cardPick('tp')}
     <button class="plus-cta tp-go" id="tpgo" onclick="tpPay()">Оплатить ${rub(tp.sum)}</button>
-    <span class="small muted" style="text-align:center">Деньги спишутся с карты сразу</span>
-    <button class="link" style="align-self:center" onclick="openTopup()">Изменить сумму</button></div>`); tpOk(); }
+    <span class="small muted" style="text-align:center">Деньги спишутся с карты сразу</span></div>`); tpOk(); }
 function tpOk(){ const b=document.getElementById('tpgo'); if(b) b.disabled=!cardById(tp.card); }
 function tpPay(){ const b=document.getElementById('tpgo'); if(!b||b.disabled) return; b.disabled=true; b.innerHTML='<span class="cp-spin"></span><span>Связываемся с банком…</span>';
   setTimeout(tpCode,1100); }
@@ -2978,7 +2983,7 @@ function storyRow(perks){ const it=perks.filter(k=>!k.power&&k.n!==13).map(k=>`<
   it.splice(1,0,giftStory());   // 26.10 (владелец): «Подарить другу» — вторым, сразу после дня рождения
   return `<div class="stories">${it.join('')}${refCounter()}</div>`; }
 /* 26.10 (владелец): вход в «Кому подарить?» — таким же кружком в сторис */
-const giftStory=()=>`<button class="sty gift-sty" onclick="openGift()" aria-label="Подарить другу"><span class="sty-ring"><span class="sty-in" style="background:#fef2e9"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="17" width="26" height="17" rx="2.5" fill="#d6264f"/><rect x="5" y="12" width="30" height="7" rx="2" fill="#ff4f6d"/><rect x="18" y="12" width="4" height="22" fill="#f2c230"/><path d="M20 12c-3-6-10-6-9-2 .6 2.4 5 2 9 2zM20 12c3-6 10-6 9-2-.6 2.4-5 2-9 2z" fill="#f2c230"/></svg></span></span><span class="sty-t">Подарить<br>другу</span></button>`;
+const giftStory=()=>`<button class="sty gift-sty${giftDraft()?' has-draft':''}" onclick="openGift()" aria-label="Подарить другу"><span class="sty-ring"><span class="sty-in" style="background:#fef2e9"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="17" width="26" height="17" rx="2.5" fill="#d6264f"/><rect x="5" y="12" width="30" height="7" rx="2" fill="#ff4f6d"/><rect x="18" y="12" width="4" height="22" fill="#f2c230"/><path d="M20 12c-3-6-10-6-9-2 .6 2.4 5 2 9 2zM20 12c3-6 10-6 9-2-.6 2.4-5 2-9 2z" fill="#f2c230"/></svg></span></span><span class="sty-t">Подарить<br>другу</span></button>`;
 /* Счётчик приглашённых друзей (владелец 25.10) — кружок как сторис: та же градиентная обводка, внутри ч/б композиция и крупная цифра;
    0 — серо-белое и тихое, есть друзья — цифра яркая; новое число набегает от прошлого показанного (S.refShown) */
 function refCounter(){ const done=S.ref.friends.filter(f=>!f.blocked&&f.paid).length, from=Math.min(S.refShown??done,done);   // приглашённый = условия выполнены, бонус пришёл (как на экране друзей)
@@ -4306,8 +4311,23 @@ function giftBPart(inp){ const mx=Math.min(Math.floor(S.bonus||0),gf.amt||0); le
 let gf=null;
 function openGift(pre={}){
   if(!S.plus) return premGate('Дарить подарки — с ★ Кофейная+','Дари бонусы и блюда друзьям и близким — им подписка не нужна');
-  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, dep:true, bAmt:null, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:''};
+  const d=pre.to?null:giftDraft();
+  gf={step:pre.to?2:1, to:pre.to||null, kind:pre.kind||null, amt:null, item:null, bon:true, dep:true, bAmt:null, rest:walletTotal()>0?'dep':'card', phone:'', nm:'', dq:'', msg:'', offer:d};
   drawGift(); }
+/* 4.11 (владелец + критик): «Назад» на каждом шаге, всё введённое сохраняется; черновик подарка — в памяти телефона 7 дней,
+   при новом открытии сверху «Продолжить подарок Артёму?» (молча не подставляем); стирается после отправки или «Начать заново» */
+const GIFT_DRAFT=KEY+'-giftdraft', GIFT_DRAFT_DAYS=7;
+function giftDraft(){ try{ const d=JSON.parse(localStorage.getItem(GIFT_DRAFT)||'null'); if(!d||!d.gf||!d.gf.to||Date.now()-d.t>GIFT_DRAFT_DAYS*864e5) return null; return d.gf; }catch(e){ return null; } }
+function giftDraftSave(){ if(!gf||gf.sent) return; const {offer,_card,...g}=gf; if(!g.to&&!(g.phone||g.nm)) return; try{ localStorage.setItem(GIFT_DRAFT,JSON.stringify({t:Date.now(),gf:g})); }catch(e){} }
+function giftDraftDrop(){ try{ localStorage.removeItem(GIFT_DRAFT); }catch(e){} }
+function giftDraftUse(){ const d=gf.offer; gf={...d, offer:null}; drawGift(); }
+function giftDraftNew(){ giftDraftDrop(); gf.offer=null; drawGift(); }
+function giftDraftCard(){ const d=gf&&gf.offer; if(!d) return '';
+  const what=d.kind==='bonus'&&d.amt?`${d.amt.toLocaleString('ru-RU')} ${plural(d.amt,'бонус','бонуса','бонусов')}`:d.kind==='dish'&&d.item?byId(d.item).n:'Подарок';
+  return `<div class="gf-draft"><b>Продолжить подарок?</b><small>Получит ${esc(d.to.short||d.to.n)} · ${what}<br>Ты остановился на шаге «${GSTEP[(d.step||1)-1]}»</small>
+    <div class="row" style="gap:8px"><button class="btn" style="flex:1" onclick="giftDraftUse()">Продолжить</button><button class="btn ghost" style="flex:1" onclick="giftDraftNew()">Начать заново</button></div></div>`; }
+function giftStep(n){ gf.step=n; drawGift(); }
+function giftBack(){ if(gf.step===2&&gf.kind==='dish'){ gf.kind=null; return drawGift(); } if(gf.step===4&&gf.kind==='dish'&&!gf.item){ gf.step=2; return drawGift(); } if(gf.step>1){ gf.step--; drawGift(); } }
 function giftTo(to){ gf.to=to; gf.step=2; if(to.via==='sms'&&to.ph){ gf.phone=ph9(to.ph); gf.nm=to.nm||''; } drawGift(); }
 function giftGuest(id){ const g=GUESTS.find(x=>x.id===id); giftTo({key:id, n:g.n, short:g.n.split(' ')[0], gi:GUESTS.indexOf(g), via:'app'}); }
 /* 29.10 (владелец): номер пишем как принято — «+7 (911) 177-07-77». «+7 (9» стоит всегда и не стирается (номера только мобильные),
@@ -4346,11 +4366,12 @@ function giftMsg(v,typed){ gf.msg=String(v).slice(0,GIFT_MSG_MAX); const ta=docu
   const n=document.getElementById('gnote'); if(n){ n.textContent=gf.msg.trim(); n.hidden=!gf.msg.trim(); }
   const c=document.getElementById('gmsg-n'); if(c) c.textContent=gf.msg.length+'/'+GIFT_MSG_MAX; }
 function drawGift(){ const s=gf.step, t=gf.to;
-  const head=`<div class="gf-steps">${GSTEP.map((x,i)=>`<span class="${i+1<s?'done':i+1===s?'on':''}"><i>${i+1<s?'✓':i+1}</i>${x}</span>`).join('')}</div>`;
+  const head=`<div class="gf-top"><button class="back gf-back"${s>1||gf.kind==='dish'&&s===2?'':' style="visibility:hidden" tabindex="-1" aria-hidden="true"'} onclick="giftBack()">← Назад</button></div>
+    <div class="gf-steps">${GSTEP.map((x,i)=>i+1<s?`<button class="done" onclick="giftStep(${i+1})"><i>✓</i>${x}</button>`:`<span class="${i+1===s?'on':''}"><i>${i+1}</i>${x}</span>`).join('')}</div>`;
   const toLine=t?`<button class="gf-to" onclick="gf.step=1;drawGift()">${giftWho()}<span class="tx"><small>Кому</small><b>${t.n}</b></span><span class="link small">Изменить</span></button>`:'';
   let body='';
   if(s===1){ const rec=S.gft.recent||[];
-    body=`<h2>Кому подарить?</h2>
+    body=`${giftDraftCard()}<h2>Кому подарить?</h2>
       ${rec.length?`<span class="label">Ты уже дарил · ${rec.length}</span><div class="gf-people">${rec.map(r=>`<button onclick='giftTo(${JSON.stringify(r).replace(/'/g,'&#39;')})'>${r.via==='app'?ava(r.gi,52):`<span class="gf-av big">${giftLetter(r)}</span>`}<span>${esc(giftShort(r))}</span></button>`).join('')}</div>
       <span class="label">Новому человеку</span>`:''}
       <div class="panel gf-ph"><label class="label" for="gph">По номеру телефона</label>${phField('gph',ph9(gf.phone),'gf.phone=this.dataset.v')}
@@ -4414,7 +4435,8 @@ function drawGift(){ const s=gf.step, t=gf.to;
         <div class="gc-bub gc-txt" id="gnote"${gf.msg.trim()?'':' hidden'}>${esc(gf.msg)}</div><span class="gc-time">${new Date().toTimeString().slice(0,5)}</span></div></div></div>
       ${giftTerms(m,until)}
       ${m?`<p class="hint">Не заберёт за ${GIFT_DISH_DAYS} дней — деньги вернутся тебе на депозит</p>`:''}
-      <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button><button class="link" onclick="gf.step=3;drawGift()">← Назад</button>`; }
+      <button class="btn block gf-go" onclick="giftSend()">🎁 Отправить подарок</button>`; }
+  giftDraftSave();
   sheet(`<div class="gift">${s<5?head:''}${body}</div>`,1);
   if(drawGift.last!==s){ const sh=document.querySelector('.sheet'); if(sh) sh.scrollTop=0; drawGift.last=s; }   // новый шаг — с начала; переключатели на том же шаге — без прыжка
   if(s===1) setTimeout(()=>document.getElementById('gph')?.focus(),60); }
@@ -4446,7 +4468,7 @@ function giftSend(){ const p=giftPrice(), t=gf.to, m=gf.kind==='dish'?byId(gf.it
   S.bonus-=p.bonus;
   if(p.dep){ const fromM=Math.min(S.wallet.money,p.dep); S.wallet.money-=fromM; S.wallet.gift-=p.dep-fromM; (S.wallet.ops=S.wallet.ops||[]).push({day:S.day,k:'pay',t:`Подарок · ${m?m.n:'подарочные бонусы'} для ${t.short}`,sum:-p.dep}); }
   const g={day:S.day, to:{key:t.key,n:t.n,short:t.short,via:t.via,gi:t.gi}, kind:gf.kind, item:m?m.id:null, price:m?m.p:0, amt:m?0:p.total, pay:{bonus:p.bonus,dep:p.dep,card:p.card}, until:m?S.day+GIFT_DISH_DAYS:null, st:m?'wait':'done', msg:(gf.msg||'').trim(), sign:giftSign()};
-  S.gft.sent.push(g);
+  S.gft.sent.push(g); gf.sent=1; giftDraftDrop();
   if(t.via!=='link'){ S.gft.recent=[t,...(S.gft.recent||[]).filter(r=>r.key!==t.key)].slice(0,50); }
   save(); render();
   sheet(`<div class="gift gf-done"><span class="gf-bow big">🎁</span><h2>${t.via==='link'?'Подарок готов!':'Подарок отправлен!'}</h2>
@@ -4800,7 +4822,7 @@ let sheetY=0;
 function lockScroll(){ const h=document.documentElement; if(h.classList.contains('sheet-open')) return; sheetY=scrollY; h.classList.add('sheet-open'); document.body.style.top=-sheetY+'px'; }
 function unlockScroll(){ const h=document.documentElement; if(!h.classList.contains('sheet-open')) return; h.classList.remove('sheet-open'); document.body.style.top=''; scrollTo(0,sheetY); }
 function escClose(e){ if(e.key==='Escape') closeSheet() }
-function closeSheet(){ supOpenNow=false; document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); unlockScroll(); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
+function closeSheet(){ if(gf&&!gf.sent&&!cardSel&&gf.step>1&&document.querySelector('.sheet .gift:not(.gf-done)')) setTimeout(()=>toast('Подарок сохранён<br>Продолжишь, когда захочешь'),50); supOpenNow=false; document.querySelectorAll('.sheet-bg').forEach(x=>x.remove()); unlockScroll(); clearInterval(qrTimer); document.removeEventListener('keydown',escClose); }
 function openQR(){
   const o=S.offer, bd=bdInfo();
   sheet(`<h2>Покажите кассиру</h2>
