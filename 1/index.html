@@ -1585,6 +1585,20 @@ img.ava{object-fit:cover}
 .gf-card-row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.gf-card-row .tx b{font-size:16px}.gf-card-row .tx small{font-size:14px;color:var(--muted)}.gf-card-row .link{flex:none}
 .gf-card-row.bad{border-color:rgba(229,57,53,.6)}.gf-card-row .cm-plus{display:grid;place-items:center;width:44px;height:30px;border-radius:6px;border:1.5px dashed var(--line);font-size:18px}
 .card-row.on{border-color:#2e9e6a}.cs-note{margin:0 0 4px}
+.gf-signc{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:18px;background:#2a2421;box-shadow:0 6px 16px -8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gf-signc{background:#fef2e9;box-shadow:0 6px 16px -10px rgba(56,45,43,.35)}}
+:root[data-theme="light"] .gf-signc{background:#fef2e9;box-shadow:0 6px 16px -10px rgba(56,45,43,.35)}
+.gf-signc .label{margin:0}
+.gf-seg{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr) minmax(0,1.15fr);gap:3px;padding:3px;border-radius:999px;background:rgba(0,0,0,.28)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gf-seg{background:rgba(56,45,43,.1)}}
+:root[data-theme="light"] .gf-seg{background:rgba(56,45,43,.1)}
+.gf-seg button{min-width:0;padding:10px 4px;border:0;border-radius:999px;background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gf-seg button.on{background:#f9f9f9;color:#212221;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .gf-seg button.on{background:#212221;color:#f9f9f9}}
+:root[data-theme="light"] .gf-seg button.on{background:#212221;color:#f9f9f9}
+.gf-sign-h{margin:0;font-size:15px;line-height:1.35;color:var(--ink);min-height:2.7em}.gf-sign-h b{font-weight:700}
+@media (max-width:360px){.gf-seg button{font-size:13px;padding:10px 2px}.gf-seg button i{display:none}}
+.gf-seg button i{font-style:normal}
 .gf-sign{flex-wrap:wrap;gap:8px}.gf-sign .optbtn{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gf-sign-h{margin:2px 0 0;min-height:2.6em}
 .gc-ava.anon{background:#2b2b33;font-size:20px}
 .gf-ta-w{position:relative;display:flex;align-items:flex-start;gap:8px;padding:12px 14px 22px;border-radius:16px;background:var(--surface);border:1.5px solid rgba(46,158,106,.7);box-shadow:0 0 0 3px rgba(46,158,106,.12);cursor:text;transition:border-color .15s,box-shadow .15s}
@@ -4444,12 +4458,16 @@ function drawGift(){ const s=gf.step, t=gf.to;
    🕶 Инкогнито (получатель видит «Тайный даритель»), только имя, имя и фамилия; без фамилии третий вариант ведёт её добавить */
 const giftSign=()=>gf.sign||(S.last?'full':'name');
 const giftSignName=()=>({anon:'Тайный даритель',name:S.name||'Гость',full:fullName()})[giftSign()];
+/* 4.11 (владелец + критик): «Как подписать» — своя тёплая выпуклая карточка (здесь выбирают; поле выше — заполняют, показ ниже — смотрят),
+   внутри одна капсула из трёх равных частей «🕶 Инкогнито · 🙂 Имя · 🪪 Имя и фамилия» (длинное имя не ломает ряд), настоящее имя — в подписи, у каждой подписи свой смайл */
 function giftSignBox(t){ const who=t.via==='app'?t.short:'получатель', g=giftSign();
-  const opt=(k,lbl)=>`<button class="optbtn${g===k?' on':''}" onclick="gf.sign='${k}';drawGift()">${lbl}</button>`;
-  const cap={anon:`${who} не узнает, от кого подарок<br>Пока ты сам не скажешь 😉`,name:`${who} увидит только имя<br>Без фамилии`,full:`${who} точно поймёт, от кого подарок<br>Имя и фамилия`}[g];
-  return `<span class="label">Как подписать подарок</span>
-    <div class="optrow gf-sign">${opt('anon','🕶 Инкогнито')}${opt('name',esc(S.name||'Имя'))}${S.last?opt('full',esc(fullName())):`<button class="optbtn" onclick="closeSheet();go('me')">＋ С фамилией</button>`}</div>
-    <p class="hint gf-sign-h">${cap}</p>`; }
+  const opt=(k,lbl)=>`<button class="${g===k?'on':''}" onclick="gf.sign='${k}';drawGift()">${lbl}</button>`;
+  const cap={anon:`${esc(who)} не узнает, от кого подарок<br>Пока ты сам не скажешь 😉`,
+    name:`${esc(who)} увидит подпись: <b>${esc(S.name||'Гость')}</b><br>Свои и так догадаются 🤗`,
+    full:`${esc(who)} точно поймёт, что это ты<br>Подпись: <b>${esc(fullName())}</b> 😊`}[g];
+  return `<div class="gf-signc"><span class="label">Как подписать подарок</span>
+    <div class="gf-seg">${opt('anon','<i>🕶</i> Инкогнито')}${opt('name','<i>🙂</i> Имя')}${S.last?opt('full','<i>🪪</i> С фамилией'):`<button onclick="closeSheet();go('me')">＋ Фамилия</button>`}</div>
+    <p class="gf-sign-h">${cap}</p></div>`; }
 /* 4.11 (владелец + критик): оплата картой в подарке — строка-кнопка с мини-картой и «Сменить ›»; «Весь подарок — картой», если
    бонусы и депозит ничего не покрыли, иначе «Остальное — картой»; нажатие — тот же экран «Банковские карты» в режиме выбора
    (без меню «Основная/Удалить»), выбор — только для этого подарка, возврат на тот же шаг; карт нет / все просрочены — «Дальше» серая */
