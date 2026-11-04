@@ -3162,7 +3162,7 @@ function drawProduct(){
   /* 26.10 (владелец + критик): выгода на ОДНУ штуку (шестое, подарок) — без «− 1 +»: одна кнопка «В корзину · цена», вторая штука — ссылкой «Ещё один — за 190 ₽» */
   const gPerk=!readyOk&&giftsLive().find(g=>gk(g).fit(m)&&!giftInCart(g)), perkOff=readyOk?Math.round(m.p*SOFF):gPerk?Math.round(m.p*gk(gPerk).off):0, perk=perkOff>0;
   if(perk) pd.qty=1;
-  const perkPrice=unit-perkOff;
+  const perkPrice=unit-perkOff; pd.perkFree=perk&&!perkPrice;
   /* 5.11 (владелец + критик: «баннер того же цвета, что кнопка, подвал его режет — кажется, страница обрезана»): праздник — наклейкой на фото, цена — строкой под названием,
      кнопка — обычная фирменная зелёная; один цвет — один смысл: праздничный градиент на кнопку не ставим */
   const perkTag=readyOk?'🎉 Ура, это твоё шестое!':gPerk?(gPerk.kind==='friend'?gPerk.why.replace(/^От:\s*/,'🎁 Подарок · '):'🎁 Подарок за посещения'):'';
@@ -3180,7 +3180,7 @@ function drawProduct(){
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
     ${perk?`<div class="sheet-foot pd-perk"><button class="btn btn-brand block" onclick="addFromPd()">${perkPrice?`В корзину · ${rub(perkPrice)}`:'Забрать в корзину · бесплатно'}</button>
-      <button class="link" onclick="addFromPd(1)">Взять 2 — вторая за ${rub(unit)} ›</button></div>`
+      <button class="link" onclick="addFromPd(1)">Взять 2&nbsp;шт. — ${perkPrice?rub(perkPrice):'бесплатно'} и ${rub(unit)} ›</button></div>`
     :`<div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
       <button class="btn" style="flex:1" onclick="addFromPd()">В корзину · ${rub(unit*pd.qty)}</button></div>`}</div>`;
   const was=!!document.querySelector('.sheet .pd'); sheet(html); if(!was&&readyOk) confetti();   // 26.10: перерисовка — через sheet(), без прыжков
@@ -3195,7 +3195,7 @@ function pickOpt(gi,i){
 }
 function addFromPd(extra){ const id0=pd.id, psl=sixReady(id0)&&!sixInCart(id0)?sixReady(id0):null; const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), party=!!psl;
   closeSheet(); refreshBasket(id);
-  if(extra){ if(party) confetti(); toast(`${m.n} — 2 шт. в корзине<br>Одна со скидкой, вторая по обычной цене`,4000); return; }
+  if(extra){ if(party) confetti(); toast(`${m.n} — 2&nbsp;шт. в корзине<br>1&nbsp;шт. ${pd.perkFree?'в подарок':'со скидкой'}, 1&nbsp;шт. по обычной цене`,4000); return; }
   if(party){ confetti(); toast(`🎉 Шестое в корзине<br>${m.n} — на ${Math.round(sixOff(psl)*100)}% дешевле`,4000); } else toast(`${m.n} — в корзине`); }
 /* Конфетти — праздник на 6-й позиции */
 function confetti(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
