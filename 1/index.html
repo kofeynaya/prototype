@@ -1613,6 +1613,8 @@ img.ava{object-fit:cover}
 .gf-ta-w:focus-within{border-color:#2e9e6a;box-shadow:0 0 0 3px rgba(46,158,106,.24)}
 .gf-ta-ic{font-size:16px;line-height:24px;opacity:.75}
 .gf-ta-n{position:absolute;right:14px;bottom:6px;font-size:12px;color:var(--muted)}
+.gc-me{justify-content:flex-end;margin-top:6px}.gc-me .gc-col{align-items:flex-end}.gc-bub.gc-mine{background:linear-gradient(135deg,#2e9e6a,#1f7a55)!important;color:#fff!important}
+.gin-thx{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px;border-radius:999px;background:rgba(46,158,106,.14);color:#2e9e6a;font-weight:700;font-size:17px}.gin-thx small{color:var(--muted);font-weight:400;font-size:13px}
 .gc-row{display:flex;align-items:flex-end;gap:8px}.gc-ava{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(140deg,#d6264f,#ff6d00);color:#fff;font-weight:800}
 .gc-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}.gc-who{font-size:12px;color:var(--muted);margin-left:12px}
 .gc-bub{max-width:88%;padding:9px 13px;border-radius:18px 18px 18px 18px;background:#e9e9eb;color:#111;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
@@ -2639,23 +2641,26 @@ if(!S.gin) S.gin=[];
 const giftTerms=(m,until)=>`<div class="gift-terms">${m?`<span>⏳ Забери до ${fmtShort(until)}</span><span>В любой кофейной по QR или в заказе</span>`:`<span>Бонусы придут сразу</span><span>Потратить можно в любой кофейной, хоть на весь заказ</span>`}</div>`;
 function giftInShow(i){ const g=S.gin[i]; if(!g) return; const m=g.kind==='dish'?byId(g.item):null, gi=g.anon?-1:GUESTS.findIndex(x=>x.n===g.from);
   const until=g.day+GIFT_DISH_DAYS-1, nm=g.from.split(' ')[0];
-  S.notes.forEach(n=>{ if(n.k==='gin'&&n.gi===i) n.read=1; }); save();
+  S.notes.forEach(n=>{ if(n.k==='gin'&&n.gi===i) n.read=1; }); save(); if(!g.took) setTimeout(confetti,60);
   // 26.10 (владелец): от кого — крупно, это главное: аватар + имя под заголовком, а не мелкая подпись над пузырём
-  sheet(`<div class="gift gin"><span class="gf-bow big">🎁</span><h2>Тебе подарок!</h2>
+  /* 5.11 (владелец + критик): не две равные кнопки, а два шага в одном окне — сначала «Забрать», потом «Сказать спасибо ❤️» (или «Не сейчас»);
+     после спасибо — мой пузырь «Спасибо! ❤️» в переписке и неактивная зелёная плашка «✓ Спасибо отправлено» */
+  const who=g.anon?'Тайный даритель':esc(nm), done=m?`Готово! ${esc(m.n)} ждёт в «Моих подарках»`:`Готово! ${g.bonus.toLocaleString('ru-RU')}&nbsp;${plural(g.bonus,'бонус','бонуса','бонусов')} у тебя`;
+  sheet(`<div class="gift gin"><span class="gf-bow big">${g.took?'🎉':'🎁'}</span><h2>${g.took?done:'Тебе подарок!'}</h2>
     <div class="gin-from">${g.anon?'<span class="gc-ava big anon">🕶</span>':gi>=0?ava(gi,56):`<span class="gc-ava big">${esc(nm[0])}</span>`}<span><small>${g.anon?'Кто-то хочет тебя порадовать':'Дарит тебе'}</small><b>${g.anon?'Тайный даритель':esc(g.from)}</b></span></div>
     <div class="gf-chat"><div class="gc-row">${g.anon?'<span class="gc-ava anon">🕶</span>':gi>=0?ava(gi,40):`<span class="gc-ava">${esc(nm[0])}</span>`}<div class="gc-col">
       <div class="gc-bub gc-gift">${m?photo(m,'gc-ph'):''}<b>${m?m.n:`<span class="gc-cn">${COIN}</span>${g.bonus.toLocaleString('ru-RU')}&nbsp;${plural(g.bonus,'бонус','бонуса','бонусов')}`} — тебе в подарок</b></div>
-      ${g.msg?`<div class="gc-bub gc-txt">${esc(g.msg)}</div>`:''}<span class="gc-time">${g.tm}</span></div></div></div>
-    ${giftTerms(m,until)}
-    ${g.took?`<p class="hint">${m?'Подарок уже у тебя — в «Моих подарках» в «Турбо»':'Бонусы уже на твоём счёте'} ✓</p><button class="btn block" onclick="closeSheet()">Хорошо</button>`
-      :`<button class="btn block gf-go" onclick="giftInTake(${i})">${m?'Забрать подарок':'Забрать бонусы'}</button><button class="btn ghost block" onclick="giftInThanks(${i})">Сказать спасибо ❤️</button>`}</div>`);
-  if(!g.took) confetti(); }
+      ${g.msg?`<div class="gc-bub gc-txt">${esc(g.msg)}</div>`:''}<span class="gc-time">${g.tm}</span></div></div>
+      ${g.thx?`<div class="gc-row gc-me"><div class="gc-col"><div class="gc-bub gc-mine">Спасибо! ❤️</div><span class="gc-time">${g.thxTm||supTime()}</span></div></div>`:''}</div>
+    ${g.took?`<p class="hint gin-h">${m?`Забери до ${fmtShort(until)}<br>В любой кофейной по QR или в заказе`:'Потратить можно в любой кофейной, хоть на весь заказ'}</p>`:giftTerms(m,until)}
+    ${!g.took?`<button class="btn block gf-go" onclick="giftInTake(${i})">${m?'Забрать подарок':'Забрать бонусы'}</button>`
+      :!g.thx?`<button class="btn block gf-go" onclick="giftInThanks(${i})">Сказать спасибо ❤️</button><button class="link" style="align-self:center" onclick="closeSheet()">Не сейчас</button>`
+      :`<div class="gin-thx">✓ Спасибо отправлено<small>${who} увидит его</small></div><button class="btn block" onclick="closeSheet()">Отлично</button>`}</div>`); }
 function giftInTake(i){ const g=S.gin[i]; if(!g||g.took) return; g.took=S.day;
   if(g.kind==='dish'){ const r=giveGift('friend',`От: ${g.from}`); r.item=g.item; r.until=S.day+GIFT_DISH_DAYS-1; }
   else S.gbon=(S.gbon||0)+g.bonus;   // 4.11: подарок — в «подарочные бонусы», тратятся хоть на весь заказ
-  save(); closeSheet(); render();
-  toast(g.kind==='dish'?`Подарок у тебя ✓<br>${byId(g.item).n} станет бесплатным в заказе или на кассе по QR`:`+${g.bonus.toLocaleString('ru-RU')} подарочных ${plural(g.bonus,'бонус','бонуса','бонусов')} ✓<br>Ими можно оплатить хоть весь заказ`); }
-function giftInThanks(i){ const g=S.gin[i]; if(!g) return; g.thx=1; save(); toast(`Спасибо отправлено ❤️<br>${g.anon?'Тайный даритель':esc(g.from.split(' ')[0])} увидит\u00a0его в\u00a0приложении`); }
+  save(); render(); giftInShow(i); confetti(); }
+function giftInThanks(i){ const g=S.gin[i]; if(!g||g.thx) return; g.thx=1; g.thxTm=supTime(); save(); giftInShow(i); }
 function labGiftIn(kind,anon){ const gs=GUESTS.slice(0,8), who=gs[Math.floor(Math.random()*gs.length)].n, dish=KASSA[Math.floor(Math.random()*6)];
   const g={from:who,anon:!!anon,kind,item:kind==='dish'?dish:null,bonus:kind==='bonus'?300:0,msg:GIFT_MSGS[Math.floor(Math.random()*GIFT_MSGS.length)],day:S.day,tm:supTime()};
   S.gin.push(g); const i=S.gin.length-1;
