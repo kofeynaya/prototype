@@ -2419,7 +2419,7 @@ const offerInCart=()=>{ const o=S.offer; if(!o) return false; return o.mech==='c
 function offerToCart(){ const o=S.offer; if(offerInCart()) return go('cart');   // 1.11 (владелец): по акции — один раз, повторное нажатие просто открывает корзину
   activate(); if(o.mech==='combo') o.combo.forEach(id=>addLine(id,null,true)); else addLine(o.item,null,true); render();
   const it=byId(o.item), other=basketCount()>1;
-  if(offerPrice(o)!=null&&!other) toast(`✓ ${it.n} в корзине<br>Добавь вторую позицию — и будет ${rub(offerPrice(o))}`,4000);
+  if(offerPrice(o)!=null&&!other) toast(`✓ ${it.n} в корзине<br>Добавь ещё любое блюдо или напиток — и будет ${rub(offerPrice(o))}`,4000);
   else toast(`✓ ${o.mech==='combo'?'Комбо':it.n} в корзине по акции`); }
 function openOffer(){ if(S.plus && !S.offer.opened){ S.offer.opened=true; S.funnel.opened++; save(); } }
 function nextDay(){
@@ -3257,11 +3257,11 @@ function cart(){
       /* 3.11 (владелец + критик): пока акция ждёт второй позиции — строка, подсказка и лента «Добавить к заказу?» в одной оранжевой рамке;
          подсказка конкретная: «Добавь вторую позицию в заказ / и X будет за N ₽»; сработало — зелёная строка под блюдом */
       const isOf=S.offer&&l.id===S.offer.item;
-      if(isOf&&qt.offerWait) return `<div class="of-grp">${row}<p class="of-hint">👉 Добавь вторую позицию в заказ<br>и ${m.n} будет за&nbsp;${rub(offerPrice(S.offer))}</p>${upsRow(true)}</div>`;
+      if(isOf&&qt.offerWait) return `<div class="of-grp">${row}<p class="of-hint">👉 Добавь ещё любое блюдо или напиток<br>и сработает предложение дня</p></div>`;
       const ofl=isOf&&ls.find(x=>x.why==='предложение дня');
       return ofl?`<div class="of-grp ok">${row}<p class="of-ok">✓ Предложение дня сработало — минус&nbsp;${rub(ofl.regular-ofl.price)}</p></div>`:row; }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
-    ${qt.offerWait&&S.basket.some(l=>S.offer&&l.id===S.offer.item)?'':upsRow(false)}
+    ${upsRow(false)}
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
       ${(S.gbon||0)>0?gbonCard(qt):''}
