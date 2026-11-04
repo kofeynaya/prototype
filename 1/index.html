@@ -717,6 +717,10 @@ body:has(.app.glass) .sheet-x{background:var(--glass-bg);border:1px solid var(--
 .cartline .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
 .cartline small{color:var(--muted);font-size:13px}
 .cartline .why{color:var(--ok);font-size:13px;font-weight:600}
+.six-pair .cartline+.cartline{border-top:1px dashed var(--line)}
+.six-pair .six-line{border-bottom:0}
+.cartline .six-more{color:var(--muted)}
+.hint-chip.six-one{display:block}
 .minbar{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14px}
 .minbar .goalbar{height:6px}
 .paym{display:flex;flex-direction:column;gap:8px}
@@ -2359,8 +2363,10 @@ function quote(lines, opt={}){
   const comboOk = comboLeft && comboLeft.every(c=>units.some(u=>u.id===c));
   const bd=bdInfo(), bdOn=prem&&bd.active&&(S.birth.verified||opt.doc||opt.online); let bdLeft=bdOn?bd.capLeft:0;
   /* 5.11 (владелец + критик): каждая купленная штука = отметка (сколько угодно в один чек и в один день); шестая штука — со скидкой сразу в этом же чеке;
-     купил 12 — две скидки; −50% «за новое» только на первый круг, дальше блюдо привычное (−20%); остаток уходит в новый круг */
-  const sixSt={}; if(prem) S.six.slots.forEach(sl=>{ if(sl) sixSt[sl.id]={n:Math.min(5,sl.n),isNew:!!sl.isNew,six:0,add:0} });
+     −50% «за новое» только на первый круг, дальше блюдо привычное (−20%); остаток уходит в новый круг.
+     5.11 позже (владелец + критик, «по скидке можно добавить ещё 10 капучино — баг»): шестое со скидкой — ОДНА штука на блюдо в день (корзина и касса вместе);
+     сама шестая отметкой не считается; отметки сверх 5 не теряются — готовое шестое ждёт следующего дня (sl.n может быть больше 5) */
+  const sixSt={}; if(prem) S.six.slots.forEach(sl=>{ if(sl) sixSt[sl.id]={n:sl.n,isNew:!!sl.isNew,six:0,add:0,can:sl.sixDay!==S.day} });
   const gLeft=giftsLive().map(g=>({...g})), giftsUsed=[];   // подарки за посещения: каждый — на одну позицию
   const out=[];
   for(const u of units){
@@ -2370,13 +2376,14 @@ function quote(lines, opt={}){
     const cand=(p,why,k)=>{ if(p<best.price) best={price:p,why,k} };
     const pp=myPrice(u.id); if(pp!=null) cand(pp+u.sur,'★ цена недели','pp');
     if(singleLeft && u.id===o.item) cand(o.mech==='pct'?Math.round(full*(1-o.pct/100)):o.newPrice+u.sur,'предложение дня','offer');
-    const ss=sixSt[u.id]; if(ss){ ss.add++; if(ss.n>=5){ const off=ss.isNew?SIX_NEW:SIX_OLD; cand(full-Math.round(m.p*off),'6-й −'+Math.round(off*100)+'%','six'); ss.n=0; ss.isNew=false; ss.six++; } else ss.n++; }   // скидка — от цены стандартной порции
+    const ss=sixSt[u.id]; if(ss&&ss.can&&!ss.six&&ss.n>=5){ const off=ss.isNew?SIX_NEW:SIX_OLD; cand(full-Math.round(m.p*off),'шестое со скидкой −'+Math.round(off*100)+'%','six'); }   // скидка — от цены стандартной порции
     if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
     if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
     let gPick=null; for(const g of gLeft){ if(g.left===0||!gk(g).fit(m)) continue; const p=Math.round(full*(1-gk(g).off)); if(p<best.price){ cand(p,'🎁 '+gk(g).t.toLowerCase(),'rw'); gPick=g; } }
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
-    if(best.k==='six') sixthUsed.push(u.id);
+    if(best.k==='six'){ sixthUsed.push(u.id); ss.n-=5; ss.isNew=false; ss.six=1; }
+    else if(ss){ ss.n++; ss.add++; }
     if(best.k==='rw'){ gPick.left=0; giftsUsed.push(gPick.id); }
     if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
     out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why,k:best.k==='gift'?'offer':best.k});
@@ -2415,8 +2422,9 @@ function applyPurchase(q, channel, doc){
   const bought=new Set(q.lines.map(l=>l.id));
   let sixMsg='';
   S.six.slots.forEach((sl,i)=>{ const st=q.sixSt&&q.sixSt[sl&&sl.id]; if(!sl||!bought.has(sl.id)||!S.plus||!st) return;
-    sl.n=st.n; sl.last=S.day; if(st.six) sl.isNew=false; sl.ready=sl.n>=5?S.day:null;
-    sixMsg+=`<br>☕ ${byId(sl.id).n}: +${st.add} ${plural(st.add,'отметка','отметки','отметок')}${st.six?` · шест${st.six>1?'ых':'ое'} со скидкой: ${st.six}`:''} · ${sl.n>=5?'следующее — со скидкой':`сейчас ${sl.n} из 5`}`; });
+    sl.n=st.n; sl.last=S.day; if(st.six){ sl.isNew=false; sl.sixDay=S.day; } sl.ready=sl.n>=5?(st.six||sl.ready==null?S.day:sl.ready):null;
+    const cnt=Math.floor(sl.n/5), rest=sl.n%5;
+    sixMsg+=`<br>☕ ${byId(sl.id).n}: ${st.six?'шестое со скидкой ✓ · ':''}+${st.add} ${plural(st.add,'отметка','отметки','отметок')} · ${cnt?`${cnt>1?`ждут ${cnt} шестых со скидкой — по одному в день`:`следующее шестое со скидкой — ${st.six?'завтра':'в следующий раз'}`}${rest?` · и ещё ${rest} из 5`:''}`:`сейчас ${sl.n} из 5`}`; });
   if(q.bdOn){ if(doc) S.birth.verified=true; S.bdUsed[S.day]=(S.bdUsed[S.day]||0)+q.bdDisc; }
   q.lines.forEach(l=>{ const c=LCAT(byId(l.id)); S.w.cat[c]=+(S.w.cat[c]+0.1).toFixed(2) });
   const got=checkAch();
@@ -2699,7 +2707,9 @@ function addLine(id,opts,silent){
 }
 function changeLine(k,d){ const l=S.basket.find(x=>x.k===k); if(!l) return; l.qty+=d; if(l.qty<=0) S.basket=S.basket.filter(x=>x!==l); save(); }
 /* Корзина: + и − по номеру строки (в ключе строки есть кавычки — в onclick его передавать нельзя) */
-function cartPlus(i){ const l=S.basket[i]; if(!l) return; l.qty++; save(); render(); }
+function cartPlus(i){ const l=S.basket[i]; if(!l) return; const st0=(basketQuote().sixSt||{})[l.id]; l.qty++; save(); render();
+  /* 5.11 (владелец + критик): второе шестое со скидкой в тот же день не даём — говорим, что оно подождёт */
+  const st1=(basketQuote().sixSt||{})[l.id]; if(st0&&st1&&st0.n<5&&st1.n>=5&&(st1.six||!st1.can)) toast(`🏷️ Следующее шестое со скидкой — завтра<br>Оно тебя подождёт`); }
 function cartMinus(i){ const l=S.basket[i]; if(!l) return;
   if(l.qty>1){ l.qty--; save(); render(); return; }
   sheet(`<h2>Удалить из корзины?</h2><p class="muted">«${byId(l.id).n}» полностью уберём из заказа.</p>
@@ -2800,7 +2810,7 @@ const minPrice = m => { const pp=myPrice(m.id); return pp!=null && pp<m.p ? pp :
 function loyalTag(m){
   const o=S.offer, bd=bdInfo();
   if(o && o.status!=='used' && (o.item===m.id || o.combo?.includes(m.id))) return `<span class="ltag lo">Предложение дня</span>`;
-  { const sl=sixReady(m.id); if(sl) return `<span class="ltag six">6-й −${Math.round(sixOff(sl)*100)}%</span>`; }
+  { const sl=sixReady(m.id); if(sl&&!sixInCart(m.id)) return `<span class="ltag six">6-й −${Math.round(sixOff(sl)*100)}%</span>`; }
   const pp=myPrice(m.id); if(pp!=null) return `<span class="ltag pp">${STAR_Y}Цена недели</span>`;
   if(bd.active && S.plus) return '';
   return '';
@@ -2884,7 +2894,9 @@ const sixKind=id=>{ const c=LCAT(byId(id)); return id===ID.croissant?'bake':c===
 const stampIc=(k,cls)=>`<svg class="sic ${cls}" viewBox="0 0 32 32" aria-hidden="true">${STAMP_IC[k]}</svg>`;
 const sixOff=sl=>sl.isNew?SIX_NEW:SIX_OLD;
 const sixSlotOf=id=>S.six.slots.find(sl=>sl&&sl.id===id);
-const sixReady=id=>{ const sl=S.plus&&sixSlotOf(id); return sl&&sl.n>=5?sl:null; };
+const sixReady=id=>{ const sl=S.plus&&sixSlotOf(id); return sl&&sl.n>=5&&sl.sixDay!==S.day?sl:null; };
+const sixExtra=sl=>{ const c=Math.floor(sl.n/5)-1, r=sl.n%5; return c>0?`<br>Потом ещё ${c} — по одному в день${r?` · и ${r} из 5`:''}`:r&&sl.n>5?`<br>И ещё ${r} из 5 к следующему`:''; };
+const sixInCart=id=>S.basket.length&&basketQuote().sixthUsed.includes(id);   // шестое со скидкой уже лежит в корзине — второе не даём
 const boughtWithin=(id,days)=>S.orders.some(o=>o.day>S.day-days&&o.day<=S.day&&(o.items||[]).includes(id));
 const visitDaysTotal=()=>new Set([...(S.histPast||[]),...S.visits].filter(d=>d<=S.day)).size;
 // ИИ-подсказка: после 8 разных дней с покупкой, только при свободной ячейке, раз в неделю; после «Не надо» блюдо не предлагаем 30 дней
@@ -2957,7 +2969,7 @@ function stampsBlock(){
         <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
         <span class="six-badge ${sl.isNew?'nw':''}">${sl.isNew?'Новое':'Привычное'} −${pct}%</span>
         <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button></div>
-        <span class="hint">${ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
+        <span class="hint">${ready&&sl.sixDay===S.day?`Следующее шестое со скидкой — завтра<br>Оно тебя подождёт${sixExtra(sl)}`:ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}${sixExtra(sl)}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
         ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки сгорят':''}</button>`}</div></div>`; }).join('')}
     ${S.six.slots.some(Boolean)?'<p class="sw-tip">← Смахни блюдо влево — поменять или убрать</p>':''}</div>`;
 }
@@ -3131,7 +3143,7 @@ let pd=null;
 function openProduct(id){ const m=byId(id); pd={id, opts:defOpts(m), qty:1, more:{}}; drawProduct(); }
 function drawProduct(){
   const m=byId(pd.id), x=m.vars[pd.opts.v], pp=myPrice(m.id), base=unitPrice(m,pd.opts), unit=pp!=null&&pd.opts.v===0? base-(m.p-pp) : base;
-  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, readyOk=six&&st>=5;
+  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, sixIn=six&&st>=5&&sixInCart(m.id), sixToday=six&&sixSl.sixDay===S.day, readyOk=six&&st>=5&&!sixIn&&!sixToday;
   /* 26.10 (владелец + критик): выгода на ОДНУ штуку (шестое, подарок) — без «− 1 +»: одна кнопка «В корзину · цена», вторая штука — ссылкой «Ещё один — за 190 ₽» */
   const gPerk=!readyOk&&giftsLive().find(g=>gk(g).fit(m)&&!giftInCart(g)), perkOff=readyOk?Math.round(m.p*SOFF):gPerk?Math.round(m.p*gk(gPerk).off):0, perk=perkOff>0;
   if(perk) pd.qty=1;
@@ -3145,7 +3157,9 @@ function drawProduct(){
       ${g.v.length>6&&!pd.more[gi]?`<button class="link" style="align-self:flex-start" onclick="pd.more[${gi}]=1;drawProduct()">Показать ещё ${g.v.length-6}</button>`:''}</div>` }).join('');
   const html=`<div class="pd stack"${F(18)} style="gap:16px">${photo(m)}${perkBanner}
     <div class="stack" style="gap:4px"><h2>${m.n}</h2><span class="muted small">${wt(m,pd.opts.v)}${m.b?` · ${{new:'Новое',hit:'Хит! :)',chef:'Выбор шефа'}[m.b]}`:''}</span>${m.c?`<p class="small muted">Состав: ${m.c}</p>`:''}</div>
-    ${six&&st<5?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'раз','раза','раз')} — и шестое на ${Math.round(SOFF*100)}% дешевле.`}</span></div>`:''}
+    ${six&&st<5?`<div class="hint-chip">${tiles(Math.min(st,5))}<span>${st>=5?'':`Отметок: ${st} из 5. Ещё ${5-st} ${plural(5-st,'раз','раза','раз')} — и шестое на ${Math.round(SOFF*100)}% дешевле.`}</span></div>`
+      :sixIn?`<div class="hint-chip six-one"><span>🏷️ <b>Шестое со скидкой уже в корзине</b><br>Остальные — по обычной цене, и каждое идёт в отметки</span></div>`
+      :six&&st>=5&&sixToday?`<div class="hint-chip six-one"><span>🏷️ <b>Следующее шестое со скидкой — завтра</b><br>Оно тебя подождёт</span></div>`:''}
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
     ${perk?`<div class="sheet-foot pd-perk"><button class="btn btn-party block" onclick="addFromPd()">${perkPrice?`<span class="pp-col"><s>${rub(unit)}</s><span>В корзину · ${rub(perkPrice)}</span></span>`:'Забрать в корзину · бесплатно'}</button>
@@ -3162,7 +3176,7 @@ function pickOpt(gi,i){
   else pd.opts.s[gi]=[...a,i];
   drawProduct();
 }
-function addFromPd(extra){ const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), psl=sixReady(id), party=!!psl;
+function addFromPd(extra){ const id0=pd.id, psl=sixReady(id0)&&!sixInCart(id0)?sixReady(id0):null; const n=extra?2:pd.qty; for(let i=0;i<n;i++) addLine(pd.id,JSON.parse(JSON.stringify(pd.opts)),true); const id=pd.id, m=byId(id), party=!!psl;
   closeSheet(); refreshBasket(id);
   if(extra){ if(party) confetti(); toast(`${m.n} — 2 шт. в корзине<br>Одна со скидкой, вторая по обычной цене`,4000); return; }
   if(party){ confetti(); toast(`🎉 Шестое в корзине<br>${m.n} — на ${Math.round(sixOff(psl)*100)}% дешевле`,4000); } else toast(`${m.n} — в корзине`); }
@@ -3283,10 +3297,14 @@ function cart(){
     <div class="row between"${F(19)}><h1>Корзина</h1><button class="link" onclick="S.basket=[];save();render()">Очистить</button></div>
     ${repNote()}
     <button class="li" style="border:1px solid var(--line);border-radius:14px;padding:12px" onclick="openMode()">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx"><strong>${MODES[S.mode]}</strong><small>${modeLine()}</small></span><span class="chev">Изменить</span></button>
-    <div>${S.basket.map((l,i)=>{ const m=byId(l.id), ls=(per[l.id]||[]).splice(0,l.qty), sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
-      const row=`<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}
+    <div>${S.basket.map((l,i)=>{ const m=byId(l.id), ls0=(per[l.id]||[]).splice(0,l.qty);
+      /* 5.11 (владелец + критик): шестое со скидкой — отдельной строкой «1 шт» без «− +», остальные штуки — обычной строкой со счётчиком и «+N к следующему шестому» */
+      const sixL=l.qty>1&&ls0.find(x=>x.k==='six'), ls=sixL?ls0.filter(x=>x!==sixL):ls0, q=ls.length, sum=ls.reduce((a,x)=>a+x.price,0), reg=ls.reduce((a,x)=>a+x.regular,0), whys=[...new Set(ls.map(x=>x.why).filter(Boolean))];
+      const sixRow=sixL?`<div class="cartline six-line">${photo(m)}<div class="tx"><span>${m.n} <span class="muted">· 1&nbsp;шт</span></span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}<span class="why">${sixL.why}</span><span class="money"><s class="muted">${rub(sixL.regular)}</s> ${rub(sixL.price)}</span></div></div>`:'';
+      const row=`<div class="cartline">${photo(m)}<div class="tx"><span>${m.n}</span>${optLabel(m,l.opts)?`<small>${optLabel(m,l.opts)}</small>`:''}${whys.length?`<span class="why">${whys.join(' · ')}</span>`:''}${sixL?`<small class="six-more">+${q} к следующему шестому</small>`:''}
         ${qt.offerWait&&S.offer&&l.id===S.offer.item?`<span class="why">предложение дня</span><span class="money"><s class="muted">${rub(reg)}</s> ${rub(sum-reg/l.qty+offerPrice(S.offer))}</span>`:`<span class="money">${sum<reg?`<s class="muted">${rub(reg)}</s> `:''}${rub(sum)}</span>`}</div>
-        <div class="qty"><button aria-label="Меньше" onclick="cartMinus(${i})">−</button><span>${l.qty}</span><button aria-label="Больше" onclick="cartPlus(${i})">+</button></div></div>`;
+        <div class="qty"><button aria-label="Меньше" onclick="cartMinus(${i})">−</button><span>${q}</span><button aria-label="Больше" onclick="cartPlus(${i})">+</button></div></div>`;
+      if(sixL) return `<div class="six-pair">${sixRow}${row}</div>`;
       /* 3.11 (владелец + критик): пока акция ждёт второй позиции — строка, подсказка и лента «Добавить к заказу?» в одной оранжевой рамке;
          подсказка конкретная: «Добавь вторую позицию в заказ / и X будет за N ₽»; сработало — зелёная строка под блюдом */
       const isOf=S.offer&&l.id===S.offer.item;
@@ -4181,7 +4199,7 @@ const RULES=[
     </ul>`],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
-  ['Каждый 6-й','Выбери до 3 блюд и купи каждое 5 раз — шестое дешевле: новое для тебя −50%, привычное −20%. Каждая купленная штука — отметка, сколько бы ни взял за раз. Шестая штука — со скидкой сразу в том же чеке, остальное уходит в новый круг. После первого круга блюдо уже привычное — дальше −20%. Шестое и отметки ждут 30 дней с последней покупки. Поменять блюдо можно, но отметки обнулятся. После 8 дней с покупками приложение раз в неделю подсказывает новое — ставить его или нет, решаешь ты.'],
+  ['Каждый 6-й','Выбери до 3 блюд и купи каждое 5 раз — шестое дешевле: новое для тебя −50%, привычное −20%. Каждая купленная штука — отметка, сколько бы ни взял за раз. Шестая штука — со скидкой сразу в том же чеке, но только одна в день: остальные штуки идут в отметки, а следующее готовое шестое ждёт до завтра. После первого круга блюдо уже привычное — дальше −20%. Шестое и отметки ждут 30 дней с последней покупки. Поменять блюдо можно, но отметки обнулятся. После 8 дней с покупками приложение раз в неделю подсказывает новое — ставить его или нет, решаешь ты.'],
   ['День рождения','Скидка в процентах, равная возрасту (с подпиской) — ±7 дней от даты.'],
   ['Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу.'],
   ['Депозит','Пополняете депозит — получаете кэшбэк: 3% с любой суммы, 5% от 3 000 ₽, 8% от 5 000 ₽, 10% от 10 000 ₽. При оплате депозит списывается сам — на кассе и в заказе, выключить можно переключателем.'],
@@ -4951,7 +4969,7 @@ function drawKassa(){
   const html=`<div class="stack" style="gap:4px"><span class="label">Покупка в кофейне</span><h2>Ты показал QR на кассе</h2>
     ${o.status==='used'?'<p class="small muted">Предложение дня уже использовано</p>':qt.offerWait?`<div class="of-kassa"><b>${byId(o.item).n} — ${rub(byId(o.item).p)}</b><br>За ${rub(offerPrice(o))} — если взять что-то ещё</div>`:qt.offerUsed?`<div class="of-kassa ok"><b>Предложение дня сработало ✓</b><br>${o.title}</div>`:`<p class="small muted">Предложение дня: ${o.title}<br>С любой второй позицией</p>`}</div>
     <div class="menu">${ids.map(id=>{ const m=byId(id), pp=myPrice(id), six=sixReady(id);
-      return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.n}</span><span class="pr">${pp!=null?`<s>${rub(m.p)}</s> <span class="pp">${rub(pp)}</span>`:rub(m.p)}${six?` · <span class="pp">6-й −${Math.round(sixOff(six)*100)}%</span>`:''}</span></div>
+      return `<div class="mi"><div class="stack" style="gap:0"><span class="nm">${m.n}</span><span class="pr">${pp!=null?`<s>${rub(m.p)}</s> <span class="pp">${rub(pp)}</span>`:rub(m.p)}${six?` · <span class="pp">шестое −${Math.round(sixOff(six)*100)}%, 1&nbsp;шт</span>`:''}</span></div>
       <div class="qty"><button aria-label="Убрать" onclick="kc['${id}']=Math.max(0,(kc['${id}']||0)-1);if(!kc['${id}'])delete kc['${id}'];drawKassa()">−</button><span>${kc[id]||0}</span><button aria-label="Добавить" onclick="kc['${id}']=(kc['${id}']||0)+1;drawKassa()">+</button></div></div>` }).join('')}</div>
     ${opts.length?`<div class="panel" style="gap:0">${opts.join('')}</div>`:''}
     <div class="sum panel">
@@ -5171,7 +5189,7 @@ function labSixReady(isNew,on){ const sl=S.six.slots, k=sl.findIndex(x=>x&&x.n>=
   if(k<0){ const taken=new Set(sl.filter(Boolean).map(x=>x.id)), all=SIX_POOL.flatMap(g=>g.ids);
     const id=isNew?all.find(x=>!taken.has(x)&&!boughtWithin(x,SIX_NEW_WINDOW)):(!taken.has(ID.cap)?ID.cap:all.find(x=>!taken.has(x)&&boughtWithin(x,SIX_NEW_WINDOW)))||all.find(x=>!taken.has(x));
     let i=sl.findIndex(x=>!x); if(i<0) i=sl.findIndex(x=>!(x.n>=5)); if(i<0) i=isNew?1:0;
-    sl[i]={id,n:5,isNew,last:S.day,ready:S.day}; }
+    sl[i]={id,n:5,isNew,last:S.day,ready:S.day}; } else sl[k].sixDay=null;
   S.six.usedDay=null; labSixD=null; save(); toast(S.plus?`Шестое ждёт: −${isNew?50:20}%<br>Вот как это выглядит`:'Готово, но без ★ Кофейная+ «Каждый 6-й» под замком'); goTo('progress','#pr-six'); }
 const labSixNew=on=>labSixReady(true,on), labSixOld=on=>labSixReady(false,on);
 function labSixBox(){ if(!labSixD) labSixD=S.six.slots.map(sl=>sl?{id:sl.id,n:Math.min(5,sl.n)}:{id:'',n:0});
@@ -5185,7 +5203,7 @@ function labSixDirty(){ const b=document.getElementById('lab-six-go'), t=documen
 function labSixApply(){ const ids=labSixD.map(d=>d.id).filter(Boolean); if(new Set(ids).size<ids.length) return toast('Одно блюдо выбрано дважды<br>Выбери разные');
   S.six.slots=labSixD.map(d=>d.id?{id:d.id,n:d.n,isNew:!boughtWithin(d.id,SIX_NEW_WINDOW),last:S.day,ready:d.n>=5?S.day:null}:null);
   S.six.usedDay=null; labSixD=null; save(); toast(S.plus?'Применено ✓<br>Вот как это выглядит':'Применено ✓<br>Но без ★ Кофейная+ «Каждый 6-й» под замком — включи подписку в пульте'); goTo('progress','#pr-six'); }
-function labStamp(v){ labDo(()=>{ const sl=S.six.slots[0]||(S.six.slots[0]={id:ID.cap,n:0,isNew:false,last:S.day}); sl.n=v; sl.last=S.day; sl.ready=v>=5?S.day:null; }); }
+function labStamp(v){ labDo(()=>{ const sl=S.six.slots[0]||(S.six.slots[0]={id:ID.cap,n:0,isNew:false,last:S.day}); sl.n=v; sl.last=S.day; sl.ready=v>=5?S.day:null; sl.sixDay=null; }); }
 
 /* ===================== Рендер ===================== */
 /* 26.10: строка «крупная цифра + картинка» (.fit-row) — если не влезает, уменьшаем цифру ([data-fit]) до влезания; так при любой ширине экрана */
