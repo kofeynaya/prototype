@@ -321,6 +321,11 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .stamp .hint{font-size:13px;color:var(--muted)}
 .stamp.ready .sl.six{border-style:solid;border-color:#f2c230;box-shadow:0 0 0 3px rgba(242,194,48,.35)}
 .stamp.ready .hint{color:var(--ink);font-weight:600}
+/* 5.11 (владелец): шестое уже в корзине — плитка «✓ В корзине» (зелёная, без мигания), отметки остаются заполненными до оплаты */
+.stamp.in-cart .sl.six{background:linear-gradient(160deg,#3f9a72,#0d553f);border:2px solid #7cc9a2;box-shadow:none;animation:none!important;padding:4px 2px 18px}
+.stamp.in-cart .sl.six .six-ok{display:grid;place-items:center;width:30px;height:30px;margin:2px auto 0;border-radius:50%;background:#f9f9f9;color:#0d553f;font-size:20px;font-weight:900;line-height:1}
+.stamp.in-cart .sl.six i{font-family:inherit;font-weight:700;font-size:11px;line-height:1.05}
+.stamp .six-open{align-self:flex-start;margin-top:2px;font-weight:700}
 @media (prefers-reduced-motion:no-preference){.stamp.ready .sl.six{animation:sixglow 1.4s ease-in-out infinite}}
 @keyframes sixglow{50%{box-shadow:0 0 0 7px rgba(242,194,48,.15);transform:scale(1.05)}}
 .bday{border-radius:var(--r);padding:18px;background:var(--blue);color:#f9f9f9;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
@@ -2086,7 +2091,7 @@ const sexFix=t=>S&&S.sex==='f'?SEX_F.reduce((x,[rx,to])=>x.replace(rx,to),t):t;
 function typo(str){ let t=sexFix(str); for(let i=0;i<2;i++) for(const [rx,to] of TYPO_RX) t=t.replace(rx,to); return t; }
 /* 1.11 (владелец, правило для всего приложения): галочка «✓» в тексте — всегда зелёная и чуть крупнее (.ok-tick.big), а не цвета текста.
    Ставится автоматически для любого выведенного текста; кроме мест, где галочка уже на цветном фоне (зелёные таблетки, ступени, всплывашки) */
-const TICK_SKIP='.ok-tick,.h-rep,.gu-pill,.ld,.toast,.of-done,.od-ic,svg,.pw-ok,.stc-chip,.ostat,.btn:not(.ghost),.pill';
+const TICK_SKIP='.ok-tick,.six-ok,.h-rep,.gu-pill,.ld,.toast,.of-done,.od-ic,svg,.pw-ok,.stc-chip,.ostat,.btn:not(.ghost),.pill';
 function tickWrap(t){ const p=t.parentNode; if(!p||p.nodeType!==1||!t.nodeValue.includes('✓')||p.closest(TICK_SKIP)) return false;
   const frag=document.createDocumentFragment(); t.nodeValue.split('✓').forEach((part,i)=>{ if(i){ const k=document.createElement('i'); k.className='ok-tick big'; k.textContent='✓'; frag.appendChild(k); } if(part) frag.appendChild(document.createTextNode(part)); });
   p.replaceChild(frag,t); return true; }
@@ -2963,13 +2968,13 @@ function stampsBlock(){
     ${ai?`<div class="six-ai"><span class="pi">💡</span><span class="tx"><b>Попробуй: ${byId(ai).n}</b><small>Для тебя это новое — копи на −50%</small></span><span class="bt"><button class="btn" onclick="sixYes('${ai}')">Хочу</button><button class="btn ghost" onclick="sixNo('${ai}')">Не надо</button></span></div>`:''}
     ${[0,1,2].map(i=>{ const sl=S.six.slots[i];
       if(!sl) return `<button class="stamp empty" onclick="openSixPick(${i})"><span class="six-plus">+</span><span class="tx"><b>Выбрать блюдо</b><small>Новое −50%, привычное −20%</small></span></button>`;
-      const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+SIX_BURN-S.day:0;
+      const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, inC=ready&&sixInCart(sl.id), pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+SIX_BURN-S.day:0;
       // как в референсе владельца (24.10): под плашкой две большие кнопки во всю высоту — оранжевая «Поменять» и красная «Убрать» (у готового шестого — только «Убрать»)
-      return `<div class="sw-wrap" data-i="${i}" data-w="${ready?110:220}"><div class="sw-acts">${ready?'':`<button class="sw-chg" onclick="swClose();openSixPick(${i})" aria-label="Поменять ${m.n}"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Поменять</button>`}<button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button></div><div class="stamp k-${k}${ready?' ready':''}">
+      return `<div class="sw-wrap" data-i="${i}" data-w="${ready?110:220}"><div class="sw-acts">${ready?'':`<button class="sw-chg" onclick="swClose();openSixPick(${i})" aria-label="Поменять ${m.n}"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Поменять</button>`}<button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button></div><div class="stamp k-${k}${ready?' ready':''}${inC?' in-cart':''}">
         <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
         <span class="six-badge ${sl.isNew?'nw':''}">${sl.isNew?'Новое':'Привычное'} −${pct}%</span>
-        <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button></div>
-        <span class="hint">${ready&&sl.sixDay===S.day?`Следующее шестое со скидкой — завтра<br>Оно тебя подождёт${sixExtra(sl)}`:ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}${sixExtra(sl)}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
+        <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}${inC?`<button class="sl six" onclick="go('cart')" aria-label="Шестое в корзине — открыть корзину"><span class="six-ok">✓</span><i>В корзине</i></button>`:`<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button>`}</div>
+        <span class="hint">${inC?`Шестое уже в корзине ✓<br>Оплати заказ — и начнётся новый круг${sixExtra(sl)}</span><button class="link six-open" onclick="go('cart')">Открыть корзину ›</button><span hidden>`:ready&&sl.sixDay===S.day?`Следующее шестое со скидкой — завтра<br>Оно тебя подождёт${sixExtra(sl)}`:ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}${sixExtra(sl)}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
         ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки сгорят':''}</button>`}</div></div>`; }).join('')}
     ${S.six.slots.some(Boolean)?'<p class="sw-tip">← Смахни блюдо влево — поменять или убрать</p>':''}</div>`;
 }
