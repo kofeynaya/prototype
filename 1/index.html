@@ -3180,7 +3180,7 @@ function drawProduct(){
     ${pp!=null?`<div class="hint-chip" style="background:var(--blue);color:#f9f9f9">★ Ваша цена недели: ${rub(pp)} вместо ${rub(m.p)}</div>`:''}
     ${sizes}${groups}
     ${perk?`<div class="sheet-foot pd-perk"><button class="btn btn-brand block" onclick="addFromPd()">${perkPrice?`В корзину · ${rub(perkPrice)}`:'Забрать в корзину · бесплатно'}</button>
-      <button class="link" onclick="addFromPd(1)">Взять 2&nbsp;шт. — ${perkPrice?rub(perkPrice):'бесплатно'} и ${rub(unit)} ›</button></div>`
+      <button class="link" onclick="addFromPd(1)">Взять 2 — вторая штука за ${rub(unit)} ›</button></div>`
     :`<div class="qtyrow sheet-foot"><div class="qty"><button aria-label="Меньше" onclick="pd.qty=Math.max(1,pd.qty-1);drawProduct()">−</button><span>${pd.qty}</span><button aria-label="Больше" onclick="pd.qty++;drawProduct()">+</button></div>
       <button class="btn" style="flex:1" onclick="addFromPd()">В корзину · ${rub(unit*pd.qty)}</button></div>`}</div>`;
   const was=!!document.querySelector('.sheet .pd'); sheet(html); if(!was&&readyOk) confetti();   // 26.10: перерисовка — через sheet(), без прыжков
