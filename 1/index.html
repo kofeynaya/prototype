@@ -169,6 +169,8 @@ p{margin:0}
 .hist .h .d{font-size:13px;color:var(--muted);grid-column:1/-1}
 .h-rep{grid-column:1/-1;justify-self:start;margin-top:8px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:700}
 .h-rep.in{border-color:transparent;background:linear-gradient(135deg,#2e9e6a,#1f7a55);color:#fff}
+.cart-menu{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 16px}.cart-menu b{font-size:17px}.cart-menu small{font-size:13px;color:var(--muted);font-weight:400}
+.menu-add-h{margin:0;font-size:18px;font-weight:700;line-height:1.3}.menu-add-h small{font-size:14px;font-weight:400;color:var(--muted)}
 .rep-note{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:14px}.rep-note p{margin:0}
 .save{color:var(--ok)}
 
@@ -2693,9 +2695,10 @@ function cartMinus(i){ const l=S.basket[i]; if(!l) return;
     <div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" onclick="closeSheet()">Оставить</button><button class="btn" style="flex:1;background:#e53935;border-color:#e53935;color:#fff" onclick="S.basket.splice(${i},1);save();closeSheet();render()">Удалить</button></div>`); }
 function qtyOf(id){ return S.basket.filter(l=>l.id===id).reduce((a,l)=>a+l.qty,0); }
 // 31.10 (владелец): кнопка с ценой сразу кладёт блюдо в корзину — обычная порция, без добавок; выбрать размер и добавки — нажать на саму карточку
-function tapAdd(id){ const m=byId(id), o=hasOpts(m);
+function tapAdd(id){ const m=byId(id), o=hasOpts(m), w0=S.basket.length&&basketQuote().offerWait;
   const v=Math.max(0,m.vars.findIndex((x,i)=>unitPrice(m,defOpts(m,i))===m.p));   // порция ровно за ту цену, что на кнопке (у капучино — «Маленький» за 190 ₽)
-  addLine(id,defOpts(m,v)); if(o&&qtyOf(id)===1) toast(`✓ ${m.n}${m.vars.length>1&&m.vars[v].l?` (${m.vars[v].l.toLowerCase()})`:''} в корзине<br>Другой размер или добавки — нажми на карточку`); }
+  addLine(id,defOpts(m,v)); if(w0&&!basketQuote().offerWait&&offerWorks()) return toast(`✓ ${m.n} в корзине<br>Предложение дня сработало — минус ${rub(offerWorks())}`);
+  if(o&&qtyOf(id)===1) toast(`✓ ${m.n}${m.vars.length>1&&m.vars[v].l?` (${m.vars[v].l.toLowerCase()})`:''} в корзине<br>Другой размер или добавки — нажми на карточку`); }
 function tapMinus(id){ const ls=S.basket.filter(l=>l.id===id); if(!ls.length) return; changeLine(ls[ls.length-1].k,-1); refreshBasket(id); }
 function basketCount(){ return S.basket.reduce((a,l)=>a+l.qty,0); }
 function basketQuote(extra={}){
@@ -3060,6 +3063,7 @@ function menu(){
   const ok = m => (!f.length || f.includes(m.b)) && (!q || m.n.toLowerCase().includes(q.toLowerCase()));
   const secs = CATS.map(c=>({c, items:MENU.filter(m=>m.cat===c.id && ok(m))})).filter(s=>s.items.length);
   return `<section class="screen" style="gap:16px">
+    ${addFrom?`${back()}<p class="menu-add-h">Выбери, что добавить к заказу<br><small>Нажми на цену — блюдо сразу ляжет в корзину</small></p>`:''}
     <div class="topbar">${modeChip()}<button class="iconbtn" onclick="openConditions()" aria-label="Условия">${IC.info}</button></div>
     <button class="srch-bar" onclick="openSearch()">${IC.search}<span>Найти блюдо, скидку или ответ</span></button>
     <div class="panel privi"${F(8)}>
@@ -3280,6 +3284,7 @@ function cart(){
       return ofl?`<div class="of-grp ok">${row}<p class="of-ok">✓ Предложение дня сработало — минус&nbsp;${rub(ofl.regular-ofl.price)}</p></div>`:row; }).join('')}</div>
     ${del?`<div class="minbar">${minLeft?`<span>До минимального заказа ещё <b>${rub(minLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.min*100}%"></i></div>`: freeLeft?`<span>Доставка ${rub(qt.fee)}. До бесплатной ещё <b>${rub(freeLeft)}</b></span><div class="goalbar"><i style="width:${qt.paid/DELIVERY.z.free*100}%"></i></div>`:'<span class="save"><b>Доставка бесплатно</b></span>'}</div>`:''}
     ${upsRow(false)}
+    <button class="btn ghost block cart-menu" onclick="goMenuAdd()"><b>＋ Добавить из меню</b><small>Всё, что есть в кофейной</small></button>
     <div class="stack"><span class="label">${S.mode==='delivery'?'Когда доставить':'Когда приготовить'}</span><div class="optrow when-row"><button class="optbtn ${co.when==='asap'?'on':''}" onclick="co.when='asap';render()">Как можно скорее · ${S.mode==='delivery'?DELIVERY.eta:S.mode==='pickup'?SHOPS[S.shop].eta:'10–20 мин'}</button><button class="optbtn ${co.when==='at'?'on':''}" onclick="openWhen()">${co.when==='at'&&co.at?`🕒 ${atLbl(co.at)} <small>· изменить</small>`:'🕒 Ко времени'}</button></div></div>
     <div class="panel" style="gap:0">
       ${(S.gbon||0)>0?gbonCard(qt):''}
@@ -4755,13 +4760,19 @@ const curSec=()=>TOP_TABS.includes(tab)?secOf(tab):(secRoot||TAB_OF[tab]||'home'
 function navClear(){ const n=navStack.length; navStack=[]; if(n){ navSkip++; try{ history.go(-n); }catch(e){ navSkip--; } } }   // navAnim: 'fwd' — экран въезжает справа (провалился внутрь), 'back' — слева
 // с критиком 25.10: цикл A→B→A→B не растит историю (обрезаем до экрана, если он уже был); не больше 10 шагов;
 // системный «назад» телефона/браузера (свайп в Safari) — тот же стек; если открыта шторка — сначала закрывает её
-function go(t,replace){ if(t==='qr'){ openQR(); return; } if(t!=='cards') cardSel=null;
+function go(t,replace){ if(t==='qr'){ openQR(); return; } if(t!=='cards') cardSel=null; addFrom=false;
   if(t==='lab'&&tab!=='lab') labSixD=null;   // черновик «Каждого 6-го» в пульте — заново при входе
   if(TOP_TABS.includes(t)){ navClear(); setRoot(t); }
   else if(t!==tab && !replace){ const k=navStack.findIndex(x=>x.t===t);
     if(k>=0){ const d=navStack.length-k; navStack=navStack.slice(0,k); navSkip++; try{ history.go(-d); }catch(e){ navSkip--; } } else { navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); } }
   tab=t; render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',t)}catch(e){} }
-function navPop(fallback){ const fromGift=tab==='cards'&&gf&&(cardSel==='gift'||gf._card); cardSel=null; if(gf) gf._card=0; if(fromGift) giftResume(); const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
+/* 4.11 (владелец + критик): «＋ Добавить из меню» в корзине — меню открывается сверху как шаг вглубь: «← Назад» и строка
+   «Выбери, что добавить к заказу»; плашка корзины и «Назад» возвращают в ту же корзину (шагом назад, без второй корзины в истории);
+   вкладка «Меню» — обычное меню без подсказки; добавленное второе блюдо, включившее предложение дня, — одна всплывашка */
+let addFrom=false;
+function offerWorks(){ const l=basketQuote().lines.find(x=>x.why==='предложение дня'); return l?l.regular-l.price:0; }
+function goMenuAdd(){ navStack.push({t:tab,y:scrollY}); if(navStack.length>10) navStack.shift(); histPush(); tab='menu'; addFrom=true; render(false); scrollTo(0,0); }
+function navPop(fallback){ addFrom=false; const fromGift=tab==='cards'&&gf&&(cardSel==='gift'||gf._card); cardSel=null; if(gf) gf._card=0; if(fromGift) giftResume(); const p=navStack.pop(); if(!p){ go(fallback||TAB_OF[tab]||'home'); return; }
   tab=p.t; if(TOP_TABS.includes(tab)) setRoot(tab); render(false); scrollTo(0,Math.min(p.y||0,document.documentElement.scrollHeight)); try{localStorage.setItem(KEY+'-tab',p.t)}catch(e){} }
 let navSkip=0, pendPush=0;
 // пока браузер ещё отматывает историю (history.go/back — не сразу), новые записи откладываем: иначе отмотка снесёт и их
@@ -4773,7 +4784,7 @@ function goHome(){ closeSheet(); const r=curSec();
   navClear(); tab=r; setRoot(r); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 /* Повторное нажатие на вкладку нижнего меню (владелец 25.10, как в iPhone): уже в этом разделе — в его начало, наверх страницы
    (в начале раздела — плавная прокрутка; на внутреннем экране — назад, в корень раздела); другой раздел — обычный переход */
-function tabTap(id){ if(curSec()!==id){ go(id); return; } closeSheet();
+function tabTap(id){ if(id==='menu'&&addFrom){ closeSheet(); addFrom=false; navClear(); tab='menu'; setRoot('menu'); render(false); scrollTo(0,0); return; } if(curSec()!==id){ go(id); return; } closeSheet();
   if(TOP_TABS.includes(tab)){ scrollTo({top:0,behavior:'smooth'}); return; }
   navClear(); tab=id; setRoot(id); render(false); scrollTo(0,0); try{localStorage.setItem(KEY+'-tab',tab)}catch(e){} }
 function goBack(fallback){ if(navStack.length){ navSkip++; try{ history.back(); }catch(e){ navSkip--; } } navPop(fallback); }
