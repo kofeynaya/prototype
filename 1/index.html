@@ -1962,7 +1962,7 @@ const SWATCH = {coffee:'var(--cream)', tea:'var(--sage)', pastry:'var(--pink)', 
 const OFFER_BG = ['var(--sage)','var(--pink)','var(--cream)','var(--aqua)'];
 const ID = {cap:findN('Капучино'), latte:findN('Латте'), flat:findN('Флет Уайт'), caesar:findN('Цезарь с курицей'), croissant:'x01', muffin:findN('Апельсиновый маффин'), cookie:findN('Печенье шоколадное')};
 /* «Каждый 6-й» v2 (решение владельца 22.10): гость САМ выбирает до 3 блюд из подборки; купил 5 раз — шестое дешевле.
-   Новое для гостя (не брал 60 дней) — −50%, привычное — −20%. Отметка — одна на блюдо в день; шестое со скидкой живёт 3 дня;
+   Новое для гостя (не брал 60 дней) — −50%, привычное — −20%. Каждая штука — отметка (5.11, владелец: «сколько купил — столько засчитывается»); шестое ждёт 30 дней;
    отметки сгорают через 30 дней без покупки этого блюда; не больше одной скидки «6-го» в день; скидка — от цены стандартной порции.
    ИИ подключается после 8 разных дней с покупкой: подсказывает одно новое блюдо раз в неделю, сам ничего не ставит. */
 const SIX_NEW = 0.5, SIX_OLD = 0.2, SIX_SLOTS = 3, SIX_BURN = 30, SIX_NEW_WINDOW = 60, SIX_AI_DAYS = 8;
@@ -2358,10 +2358,10 @@ function quote(lines, opt={}){
   let giftLeft = o&&o.mech==='gift'&&units.some(u=>LCAT(byId(u.id))==='coffee') ? 1 : 0;
   const comboOk = comboLeft && comboLeft.every(c=>units.some(u=>u.id===c));
   const bd=bdInfo(), bdOn=prem&&bd.active&&(S.birth.verified||opt.doc||opt.online); let bdLeft=bdOn?bd.capLeft:0;
-  const sixLeft={}; let sixOne=1; if(prem && S.six.usedDay!==S.day) S.six.slots.forEach(sl=>{ if(sl&&sl.n>=5) sixLeft[sl.id]=sixOff(sl) });   // не больше одной скидки «6-го» в день
+  /* 5.11 (владелец + критик): каждая купленная штука = отметка (сколько угодно в один чек и в один день); шестая штука — со скидкой сразу в этом же чеке;
+     купил 12 — две скидки; −50% «за новое» только на первый круг, дальше блюдо привычное (−20%); остаток уходит в новый круг */
+  const sixSt={}; if(prem) S.six.slots.forEach(sl=>{ if(sl) sixSt[sl.id]={n:Math.min(5,sl.n),isNew:!!sl.isNew,six:0,add:0} });
   const gLeft=giftsLive().map(g=>({...g})), giftsUsed=[];   // подарки за посещения: каждый — на одну позицию
-  { const best=Object.keys(sixLeft).filter(id=>units.some(u=>u.id===id)).sort((x,y)=>byId(y).p*sixLeft[y]-byId(x).p*sixLeft[x])[0];   // одна скидка «6-го» в день — самая выгодная для гостя
-    for(const id in sixLeft) if(id!==best) delete sixLeft[id]; }
   const out=[];
   for(const u of units){
     const m=byId(u.id), full=m.p+u.sur; regular+=full;
@@ -2370,13 +2370,13 @@ function quote(lines, opt={}){
     const cand=(p,why,k)=>{ if(p<best.price) best={price:p,why,k} };
     const pp=myPrice(u.id); if(pp!=null) cand(pp+u.sur,'★ цена недели','pp');
     if(singleLeft && u.id===o.item) cand(o.mech==='pct'?Math.round(full*(1-o.pct/100)):o.newPrice+u.sur,'предложение дня','offer');
-    if(sixLeft[u.id]&&sixOne) cand(full-Math.round(m.p*sixLeft[u.id]),'6-й −'+Math.round(sixLeft[u.id]*100)+'%','six');   // скидка — от цены стандартной порции
+    const ss=sixSt[u.id]; if(ss){ ss.add++; if(ss.n>=5){ const off=ss.isNew?SIX_NEW:SIX_OLD; cand(full-Math.round(m.p*off),'6-й −'+Math.round(off*100)+'%','six'); ss.n=0; ss.isNew=false; ss.six++; } else ss.n++; }   // скидка — от цены стандартной порции
     if(bdLeft>0) cand(full-Math.min(bdLeft,Math.round(full*bd.pct/100)),`день рождения −${bd.pct}%`,'bd');
     if(giftLeft && u.id===ID.cookie) cand(0,'подарок','gift');
     let gPick=null; for(const g of gLeft){ if(g.left===0||!gk(g).fit(m)) continue; const p=Math.round(full*(1-gk(g).off)); if(p<best.price){ cand(p,'🎁 '+gk(g).t.toLowerCase(),'rw'); gPick=g; } }
     if(best.k==='offer'){ singleLeft=0; offerUsed=true; }
     if(best.k==='gift'){ giftLeft=0; offerUsed=true; }
-    if(best.k==='six'){ sixLeft[u.id]=0; sixOne=0; sixthUsed.push(u.id); }
+    if(best.k==='six') sixthUsed.push(u.id);
     if(best.k==='rw'){ gPick.left=0; giftsUsed.push(gPick.id); }
     if(best.k==='bd'){ bdLeft-=full-best.price; bdDisc+=full-best.price; }
     out.push({id:u.id,name:m.n,regular:full,price:best.price,why:best.why,k:best.k==='gift'?'offer':best.k});
@@ -2392,7 +2392,7 @@ function quote(lines, opt={}){
   const bonusSpend = opt.bonus&&prem ? Math.max(0,Math.min(S.bonus, Math.floor(paid*BONUS_MAX_SHARE), paid-gbonSpend)) : 0;
   const after = paid-gbonSpend-bonusSpend+fee;
   const walletSpend = opt.wallet&&prem ? Math.min(walletTotal(), after) : 0;
-  return {lines:out, regular, paid, saved:regular-paid, offerUsed, offerWait, sixthUsed, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
+  return {lines:out, regular, paid, saved:regular-paid, offerUsed, offerWait, sixthUsed, sixSt, giftsUsed, bdDisc, bdOn, bdNeedsDoc: bd.active&&!S.birth.verified,
           bonusSpend, gbonSpend, walletSpend, fee, card:after-walletSpend, bonus:Math.floor((paid-bonusSpend)*rateAll()/100)};
 }
 /* Общая «покупка»: засчитывает день, бонусы, отметки 6-го, ДР, обучение. channel: Касса/Доставка/Самовывоз/За столиком */
@@ -2413,9 +2413,10 @@ function applyPurchase(q, channel, doc){
   S.pastryCount+=q.lines.filter(l=>LCAT(byId(l.id))==='pastry').length;
   if(q.offerUsed){ S.offer.status='used'; S.funnel.used++; S.offerLast=S.day; S.mechTried[S.offer.mech]=1; learn(S.offer,'used'); }
   const bought=new Set(q.lines.map(l=>l.id));
-  S.six.slots.forEach((sl,i)=>{ if(!sl||!bought.has(sl.id)||!S.plus) return;
-    if(q.sixthUsed.includes(sl.id)){ S.six.usedDay=S.day; S.six.slots[i]=null; }   // круг закрыт — ячейка свободна, можно выбрать новое
-    else if(sl.stampDay!==S.day && sl.n<5){ sl.n++; sl.stampDay=S.day; sl.last=S.day; if(sl.n>=5) sl.ready=S.day; } });
+  let sixMsg='';
+  S.six.slots.forEach((sl,i)=>{ const st=q.sixSt&&q.sixSt[sl&&sl.id]; if(!sl||!bought.has(sl.id)||!S.plus||!st) return;
+    sl.n=st.n; sl.last=S.day; if(st.six) sl.isNew=false; sl.ready=sl.n>=5?S.day:null;
+    sixMsg+=`<br>☕ ${byId(sl.id).n}: +${st.add} ${plural(st.add,'отметка','отметки','отметок')}${st.six?` · шест${st.six>1?'ых':'ое'} со скидкой: ${st.six}`:''} · ${sl.n>=5?'следующее — со скидкой':`сейчас ${sl.n} из 5`}`; });
   if(q.bdOn){ if(doc) S.birth.verified=true; S.bdUsed[S.day]=(S.bdUsed[S.day]||0)+q.bdDisc; }
   q.lines.forEach(l=>{ const c=LCAT(byId(l.id)); S.w.cat[c]=+(S.w.cat[c]+0.1).toFixed(2) });
   const got=checkAch();
@@ -2423,6 +2424,7 @@ function applyPurchase(q, channel, doc){
   let msg = first ? `<b>🔥 ${S.ser.n}! День засчитан: ${wd} ${plural(wd,'день','дня','дней')}</b> на этой неделе → на следующей ${Math.min(wd,rateCap())}% бонусов.` : counted ? `<b>Покупка сохранена.</b> Этот день уже был засчитан.` : `<b>Покупка сохранена.</b> День засчитается, когда покупок за сегодня наберётся на ${MIN_DAY} ₽ (сейчас ${rub(dayTotal)}).`;
   if(q.saved) msg+=` Экономия ${rub(q.saved)}.`;
   msg+=` Бонусы +${q.bonus} (${rateWhy()})${q.bonusSpend?`, списано ${q.bonusSpend}`:''}.`;
+  if(sixMsg) msg+=sixMsg;
   return msg;
 }
 
@@ -2467,9 +2469,9 @@ function nextDay(){
   const gone=S.rw.gifts.filter(g=>!g.used&&!g.gone&&g.until<S.day); gone.forEach(g=>g.gone=true);
   if(gone.length&&S.plus) msg+=` 😢 Сгорел подарок: ${gone.map(g=>gk(g).t.toLowerCase()).join(', ')}.`;
   if(S.rw.chest&&!S.rw.chest.open&&S.rw.chest.week<weekOf(S.day)-1) S.rw.chest.open='gone';
-  // «Каждый 6-й»: шестое со скидкой живёт 3 дня; отметки сгорают через 30 дней без покупки этого блюда
+  // «Каждый 6-й»: шестое со скидкой ждёт 30 дней; отметки сгорают через 30 дней без покупки этого блюда
   S.six.slots.forEach(sl=>{ if(!sl) return; const nm=byId(sl.id).n.toLowerCase();
-    if(sl.n>=5 && sl.ready!=null && S.day>sl.ready+GIFT_DAYS-1){ sl.n=0; sl.ready=null; if(S.plus) msg+=` 😢 Не успел забрать шестое: ${nm} — отметки сгорели.`; }
+    if(sl.n>=5 && sl.ready!=null && S.day>sl.ready+SIX_BURN-1){ sl.n=0; sl.ready=null; if(S.plus) msg+=` 😢 Не успел забрать шестое: ${nm} — отметки сгорели.`; }
     else if(sl.n>0 && sl.n<5 && S.day-sl.last>SIX_BURN){ sl.n=0; if(S.plus) msg+=` 😢 ${byId(sl.id).n}: 30 дней без покупки — отметки сгорели.`; } });
   for(const f of S.ref.friends){ if(f.hold!=null && !f.paid && S.day>=f.hold) refPay(f); }
   msg+=giftDay();
@@ -2882,7 +2884,7 @@ const sixKind=id=>{ const c=LCAT(byId(id)); return id===ID.croissant?'bake':c===
 const stampIc=(k,cls)=>`<svg class="sic ${cls}" viewBox="0 0 32 32" aria-hidden="true">${STAMP_IC[k]}</svg>`;
 const sixOff=sl=>sl.isNew?SIX_NEW:SIX_OLD;
 const sixSlotOf=id=>S.six.slots.find(sl=>sl&&sl.id===id);
-const sixReady=id=>{ const sl=S.plus&&sixSlotOf(id); return sl&&sl.n>=5&&S.six.usedDay!==S.day?sl:null; };
+const sixReady=id=>{ const sl=S.plus&&sixSlotOf(id); return sl&&sl.n>=5?sl:null; };
 const boughtWithin=(id,days)=>S.orders.some(o=>o.day>S.day-days&&o.day<=S.day&&(o.items||[]).includes(id));
 const visitDaysTotal=()=>new Set([...(S.histPast||[]),...S.visits].filter(d=>d<=S.day)).size;
 // ИИ-подсказка: после 8 разных дней с покупкой, только при свободной ячейке, раз в неделю; после «Не надо» блюдо не предлагаем 30 дней
@@ -2949,7 +2951,7 @@ function stampsBlock(){
     ${ai?`<div class="six-ai"><span class="pi">💡</span><span class="tx"><b>Попробуй: ${byId(ai).n}</b><small>Для тебя это новое — копи на −50%</small></span><span class="bt"><button class="btn" onclick="sixYes('${ai}')">Хочу</button><button class="btn ghost" onclick="sixNo('${ai}')">Не надо</button></span></div>`:''}
     ${[0,1,2].map(i=>{ const sl=S.six.slots[i];
       if(!sl) return `<button class="stamp empty" onclick="openSixPick(${i})"><span class="six-plus">+</span><span class="tx"><b>Выбрать блюдо</b><small>Новое −50%, привычное −20%</small></span></button>`;
-      const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+GIFT_DAYS-S.day:0;
+      const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+SIX_BURN-S.day:0;
       // как в референсе владельца (24.10): под плашкой две большие кнопки во всю высоту — оранжевая «Поменять» и красная «Убрать» (у готового шестого — только «Убрать»)
       return `<div class="sw-wrap" data-i="${i}" data-w="${ready?110:220}"><div class="sw-acts">${ready?'':`<button class="sw-chg" onclick="swClose();openSixPick(${i})" aria-label="Поменять ${m.n}"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Поменять</button>`}<button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button></div><div class="stamp k-${k}${ready?' ready':''}">
         <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
@@ -3129,7 +3131,7 @@ let pd=null;
 function openProduct(id){ const m=byId(id); pd={id, opts:defOpts(m), qty:1, more:{}}; drawProduct(); }
 function drawProduct(){
   const m=byId(pd.id), x=m.vars[pd.opts.v], pp=myPrice(m.id), base=unitPrice(m,pd.opts), unit=pp!=null&&pd.opts.v===0? base-(m.p-pp) : base;
-  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, readyOk=six&&st>=5&&S.six.usedDay!==S.day;
+  const sixSl=S.plus&&sixSlotOf(m.id), six=!!sixSl, st=sixSl?sixSl.n:0, SOFF=sixSl?sixOff(sixSl):0, readyOk=six&&st>=5;
   /* 26.10 (владелец + критик): выгода на ОДНУ штуку (шестое, подарок) — без «− 1 +»: одна кнопка «В корзину · цена», вторая штука — ссылкой «Ещё один — за 190 ₽» */
   const gPerk=!readyOk&&giftsLive().find(g=>gk(g).fit(m)&&!giftInCart(g)), perkOff=readyOk?Math.round(m.p*SOFF):gPerk?Math.round(m.p*gk(gPerk).off):0, perk=perkOff>0;
   if(perk) pd.qty=1;
@@ -4179,7 +4181,7 @@ const RULES=[
     </ul>`],
   ['Предложение дня','Каждый день — своё персональное предложение. Подбирается под то, что вы любите.'],
   ['Цены недели','Персональные цены на блюда, держатся всю неделю.'],
-  ['Каждый 6-й','Выбери до 3 блюд и купи каждое 5 раз — шестое дешевле: новое для тебя −50%, привычное −20%. Одна отметка на блюдо в день. Шестое со скидкой живёт 3 дня, отметки сгорают, если 30 дней не покупать это блюдо. Поменять блюдо можно, но отметки обнулятся. После 8 дней с покупками приложение раз в неделю подсказывает новое — ставить его или нет, решаешь ты.'],
+  ['Каждый 6-й','Выбери до 3 блюд и купи каждое 5 раз — шестое дешевле: новое для тебя −50%, привычное −20%. Каждая купленная штука — отметка, сколько бы ни взял за раз. Шестая штука — со скидкой сразу в том же чеке, остальное уходит в новый круг. После первого круга блюдо уже привычное — дальше −20%. Шестое и отметки ждут 30 дней с последней покупки. Поменять блюдо можно, но отметки обнулятся. После 8 дней с покупками приложение раз в неделю подсказывает новое — ставить его или нет, решаешь ты.'],
   ['День рождения','Скидка в процентах, равная возрасту (с подпиской) — ±7 дней от даты.'],
   ['Пригласи друга','По '+REF_T+' ₽ бонусами вам и другу.'],
   ['Депозит','Пополняете депозит — получаете кэшбэк: 3% с любой суммы, 5% от 3 000 ₽, 8% от 5 000 ₽, 10% от 10 000 ₽. При оплате депозит списывается сам — на кассе и в заказе, выключить можно переключателем.'],
