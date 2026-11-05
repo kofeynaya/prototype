@@ -789,7 +789,7 @@ main.nav-fwd,main.nav-back{animation:none}
 .badge-n,.tab-dot{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e53935;color:#fff;font-size:12px;font-weight:700;font-style:normal}
 .tabs button{position:relative}.tab-dot{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;font-size:11px}
 .sup{display:flex;flex-direction:column;gap:12px;min-height:100%}
-.sup-h{display:flex;align-items:center;gap:12px;padding-right:48px}.sup-h span{display:flex;flex-direction:column}.sup-h b{font-size:20px}.sup-h small{color:var(--muted);font-size:13px;line-height:1.3}
+.sup-h{display:flex;align-items:center;gap:12px;padding-right:48px}.sup-h span:not(.sup-ava){display:flex;flex-direction:column}.sup-h b{font-size:20px}.sup-h small{color:var(--muted);font-size:13px;line-height:1.3}
 .sup-ava{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0d553f,#00657f);display:grid;place-items:center;font-size:20px;flex:none}
 .sup-ava svg{width:56%;height:56%;fill:none;stroke:#f9f9f9;stroke-width:1.9;stroke-linecap:round;display:block}
 .sup-topics .sup-star{width:24px;height:24px}.smsg .sb .star-y{width:15px;height:15px;vertical-align:-2px;margin-right:2px}
@@ -811,8 +811,8 @@ main.nav-fwd,main.nav-back{animation:none}
 .sup-topics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sup-topics button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);font-weight:700;font-size:15px;text-align:left}
 .sup-topics button span{font-size:24px;line-height:1}
-/* тема «Ошибка в приложении или идея» — во всю ширину, последней: седьмая плитка не висит одна */
-.sup-topics button:last-child:nth-child(odd){grid-column:1/-1;flex-direction:row;align-items:center;gap:10px}
+.sup-topics .sup-app{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px;background:#a7d2b9;border-color:#a7d2b9;color:#212221}
+.sup-topics .sup-app b{display:flex;flex-direction:column;gap:2px;font-size:16px}.sup-topics .sup-app small{font-weight:500;font-size:13px;color:#2f4a3f}
 .sup-orders{display:flex;flex-wrap:wrap;gap:8px;padding-left:38px}
 .sup-orders button{display:flex;flex-direction:column;padding:9px 12px;border-radius:12px;border:1.5px solid #2e9e5b;text-align:left}.sup-orders small{color:var(--muted);font-size:12px}
 .sup-note{align-self:center;text-align:center;font-size:14px;color:var(--muted);padding:6px 12px}
@@ -3866,7 +3866,7 @@ function openSupport(topic){ supOpenNow=true; S.sup.newQ=0; if(S.sup.unread){ S.
   const k=SUP_TOPIC_OF[topic]||topic, last=S.sup.msgs.slice().reverse().find(x=>x.me);
   if(topic && !(last && S.sup.topic===k && last.t===SUP_T.find(x=>x[0]===k).slice(1).join(' '))) supPick(k,true); else drawSup();
   const d=SUP_DRAFT[topic]; if(d) setTimeout(()=>{ const i=document.getElementById('supin'); if(!i) return; i.value=d; supGrow(i); document.getElementById('supgo').disabled=false; i.focus(); i.setSelectionRange(d.length,d.length); },80); }
-function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup-topics">${SUP_T.map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${supIc(ic)}</span>${t}</button>`).join('')}</div>`;
+function drawSup(){ const m=S.sup.msgs, empty=!m.length, topics=`<div class="sup-topics"><button class="sup-app" onclick="supPick('app')"><span>📱</span><b>Помоги сделать приложение лучше<small>Что-то не работает или есть идея — напиши</small></b></button>${SUP_T.filter(x=>x[0]!=='app').map(([k,ic,t])=>`<button onclick="supPick('${k}')"><span>${supIc(ic)}</span>${t}</button>`).join('')}</div>`;   // 5.11 (владелец + критик): обратная связь о приложении — первой, мятной плиткой во всю ширину
   const msgs=m.map((x,i)=>x.k==='orders'?supOrders():x.k==='rate'?supRate(x,i):x.k==='div'?`<div class="sup-div"><span>Новый вопрос</span></div>`:`<div class="smsg ${x.me?'me':''}${x.st==='fail'?' fail':''}">${x.me?'':supAva()}<div class="sb"><span>${(x.me?x.t.replace(/^★/,STAR_Y):x.t).split('|').join('<br>')}</span><small>${x.tm||''}${x.me?(x.st==='fail'?'':' · Отправлено ✓'):''}</small>${x.st==='fail'?`<button class="sup-retry" onclick="supRetry(${i})">Не отправилось<br>Нажми, чтобы отправить ещё раз</button>`:''}</div></div>`).join('');
   sheet(`<div class="sup"><div class="sup-h">${supAva()}<span><b>Поддержка</b><small>Отвечаем за 5 минут<br>Каждый день с 8:30 до 22:30</small></span></div>
     <div class="sup-list" id="suplist">${msgs}${supTyping?`<div class="smsg">${supAva()}<div class="sb typing">Анна печатает<i></i><i></i><i></i></div></div>`:''}
