@@ -1071,6 +1071,7 @@ img.ava{object-fit:cover}
 .stmt{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
 .op{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .op .oi{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--line)}
+.op .oi svg{width:16px;height:16px;display:block}   /* 5.11 (владелец + критик): плюс и минус — рисунком одной толщины, минус больше не похож на дефис */
 .op .oi.top{background:#3fae79;color:#fff}.op .oi.gift{background:#f2c230;color:#212221}.op .oi.pay{background:var(--surface);border:1px solid var(--line)}
 .op .tx{display:flex;flex-direction:column;min-width:0;font-size:15px}
 .op .tx small{color:var(--muted);font-size:12px}
@@ -4661,7 +4662,7 @@ function openStatement(){
   const ops=(S.wallet.ops||[]).slice().reverse(), byDay={};
   ops.forEach(o=>(byDay[o.day]=byDay[o.day]||[]).push(o));
   sheet(`<h2>Выписка</h2><p class="small muted">Все операции по депозиту: пополнения, кэшбэк и оплаты.</p>
-    <div class="stack">${ops.length?Object.keys(byDay).sort((a,b)=>b-a).map(d=>`<div class="stmt"><span class="label">${fmt(+d)}</span>${byDay[d].map(o=>`<div class="op"><span class="oi ${o.k}">${o.k==='pay'?'−':o.k==='gift'?'★':'+'}</span><span class="tx">${o.t}<small>${o.k==='gift'?'кэшбэк':o.k==='pay'?'оплата':'пополнение'}</small></span><strong class="money ${o.sum>0?'save':''}">${o.sum>0?'+':'−'}${rubk(Math.abs(o.sum))}</strong></div>`).join('')}</div>`).join(''):'<p class="empty-note">Операций пока нет.</p>'}</div>`);
+    <div class="stack">${ops.length?Object.keys(byDay).sort((a,b)=>b-a).map(d=>`<div class="stmt"><span class="label">${fmt(+d)}</span>${byDay[d].map(o=>`<div class="op"><span class="oi ${o.k}">${o.k==='gift'?'★':`<svg viewBox="0 0 18 18" aria-hidden="true"><path d="${o.k==='pay'?'M3 9h12':'M3 9h12M9 3v12'}" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`}</span><span class="tx">${o.t}<small>${o.k==='gift'?'кэшбэк':o.k==='pay'?'оплата':'пополнение'}</small></span><strong class="money ${o.sum>0?'save':''}">${o.sum>0?'+':'−'}${rubk(Math.abs(o.sum))}</strong></div>`).join('')}</div>`).join(''):'<p class="empty-note">Операций пока нет.</p>'}</div>`);
 }
 function wallet(){
   return `<section class="screen">${back()}
