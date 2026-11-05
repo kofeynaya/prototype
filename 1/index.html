@@ -259,6 +259,9 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 
 /* вход */
 .auth{flex:1;display:flex;flex-direction:column;gap:24px;padding:40px 16px 24px}
+.reg .me-sex{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reg .field{gap:6px}
+.reg-bd{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(236,64,122,.16),rgba(255,145,0,.12));border:1px solid rgba(236,64,122,.3)}
+.reg-bd .rb-h{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.35}.reg-bd .rb-ic{font-size:28px;line-height:1}
 .auth .hero{background:var(--green);color:#f9f9f9;border-radius:20px;padding:28px 20px;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden;min-height:250px}
 .auth .hero .logo{width:200px;color:#f9f9f9}
 .auth .hero p{font-size:19px;line-height:1.3;max-width:80%;position:relative}
@@ -3786,8 +3789,8 @@ function me(){ const bd=bdInfo(), b=S.birth;
   </section>`; }
 // пол сохраняется сразу, без «Сохранить»: переключаем кнопки на месте, страницу не перерисовываем (ничего не прыгает)
 function setSex(x,el){ S.sex=x; save(); el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('me-last'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; toast(x==='f'?'Будем обращаться к тебе в женском роде':'Будем обращаться к тебе в мужском роде'); }
-function meDirty(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(), b=document.getElementById('me-save'); if(b) b.disabled=!n||(n===S.name&&l===(S.last||'')); }
-function meSave(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(); if(!n) return; const had=S.last; S.name=n; S.last=l; save(); render(); toast(l&&!had?'Сохранено ✓<br>Теперь тебя узнают по фамилии':'Сохранено ✓'); }
+function meDirty(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(), b=document.getElementById('me-save'); if(b) b.disabled=!n||!l||(n===S.name&&l===(S.last||'')); }
+function meSave(){ const n=(document.getElementById('me-name')?.value||'').trim(), l=(document.getElementById('me-last')?.value||'').trim(); if(!n||!l) return toast('Имя и фамилия обязательны'); const had=S.last; S.name=n; S.last=l; save(); render(); toast(l&&!had?'Сохранено ✓<br>Теперь тебя узнают по фамилии':'Сохранено ✓'); }
 function myPhoto(){ return S.photo
   ? `<button class="myph has" onclick="openPhotoMenu()" aria-label="Фото профиля"><img src="${S.photo}" alt=""></button>`
   : `<label class="myph" aria-label="Добавить фото"><span class="pl">+</span><input type="file" accept="image/*" onchange="setPhoto(this)" hidden></label>`; }
@@ -4856,8 +4859,8 @@ addEventListener('popstate',()=>{
 let authStep='phone';
 function auth(){
   return `<div class="auth">
-    <div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>
-    ${authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
+    ${authStep==='me'?'':`<div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная"></span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>`}
+    ${authStep==='me' ? regForm() : authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
         <div class="field"><label class="label" for="phone">Номер телефона</label>${phField('phone',S.phone?ph9(S.phone):'')}</div>
         <button class="btn block" type="submit">Получить код по СМС</button></form>`
     : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
@@ -4868,7 +4871,31 @@ function auth(){
 }
 function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.length<9){ toast('Проверь номер — не хватает цифр'); return; } S.phone=phFull(d); authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
+/* 5.11 (владелец): при регистрации обязательны имя, фамилия и пол («25 Ань и 30 Кать — не круто, в системе надо различать»);
+   день рождения — по желанию, но рядом объясняем выгоду: скидка = возраст. Шаг после кода из СМС, один раз (S.regDone) */
+let rg={n:'',l:'',sex:'',bd:''};
+function regForm(){ const mx=dateOf(S.day), y=mx.getFullYear()-14, maxD=`${y}-${String(mx.getMonth()+1).padStart(2,'0')}-${String(mx.getDate()).padStart(2,'0')}`;
+  return `<form class="stack reg" style="gap:14px" onsubmit="event.preventDefault();regDone()">
+    <div class="stack" style="gap:4px"><h2 style="margin:0">Давай познакомимся</h2><span class="muted small">Так бариста и друзья узнают, что это ты</span></div>
+    <div class="field"><label class="label" for="rg-n">Имя</label><input id="rg-n" class="cp-in" maxlength="24" autocomplete="given-name" placeholder="Например, Аня" value="${esc(rg.n)}" oninput="rg.n=this.value;regDirty()"></div>
+    <div class="field"><label class="label" for="rg-l">Фамилия</label><input id="rg-l" class="cp-in" maxlength="30" autocomplete="family-name" placeholder="${rg.sex==='f'?'Например, Иванова':rg.sex==='m'?'Например, Иванов':'Например, Иванова'}" value="${esc(rg.l)}" oninput="rg.l=this.value;regDirty()"></div>
+    <div class="field"><span class="label">Пол</span><div class="me-sex"><button type="button" class="optbtn ${rg.sex==='m'?'on':''}" onclick="regSex('m',this)">Мужской</button><button type="button" class="optbtn ${rg.sex==='f'?'on':''}" onclick="regSex('f',this)">Женский</button></div></div>
+    <div class="reg-bd"><div class="rb-h"><span class="rb-ic">🎂</span><span><b>Скидка в день рождения = твой возраст</b><br>33 года — минус 33%, неделю до и неделю после</span></div>
+      <label class="label" for="rg-bd">День рождения <span class="muted" style="text-transform:none;letter-spacing:0">· по желанию</span></label>
+      <input id="rg-bd" type="date" class="cp-in" max="${maxD}" value="${rg.bd}" oninput="rg.bd=this.value">
+      <span class="small muted">Дату можно указать один раз — потом только через поддержку</span></div>
+    <button class="btn block" id="rg-go" type="submit" ${regOk()?'':'disabled'}>Готово</button>
+    <span class="small muted" id="rg-tip" style="text-align:center">${regOk()?'':'Заполни имя, фамилию и пол'}</span>
+  </form>`; }
+const regOk=()=>rg.n.trim()&&rg.l.trim()&&rg.sex;
+function regDirty(){ const b=document.getElementById('rg-go'), t=document.getElementById('rg-tip'); if(b) b.disabled=!regOk(); if(t) t.textContent=regOk()?'':'Заполни имя, фамилию и пол'; }
+function regSex(x,el){ rg.sex=x; el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('rg-l'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; regDirty(); }
+function regDone(){ if(!regOk()) return regDirty();
+  S.name=rg.n.trim(); S.last=rg.l.trim(); S.sex=rg.sex; S.regDone=1;
+  if(rg.bd){ const [y,m,d]=rg.bd.split('-').map(Number); S.birth={y,m:m-1,d,verified:false,setDay:S.day}; } else S.birth={};
+  rg={n:'',l:'',sex:'',bd:''}; authStep='phone'; enterApp(); }
+function enterApp(){ S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(`Добро пожаловать, ${S.name}! 👋`); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } if(!S.regDone){ authStep='me'; save(); render(); setTimeout(()=>document.getElementById('rg-n')?.focus(),50); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
 
 
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
