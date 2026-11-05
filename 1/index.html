@@ -259,6 +259,8 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 
 /* вход */
 .auth{flex:1;display:flex;flex-direction:column;gap:24px;padding:40px 16px 24px}
+.reg .rg-ph{margin-top:2px}.rg-err{font-size:13px;color:#e53935}.rg-err:empty{display:none}
+.onb-card{margin:-4px 0 0}.onb-later{align-self:center;margin-top:4px;font-size:15px}
 .reg .me-sex{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reg .field{gap:6px}
 .reg-bd{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(236,64,122,.16),rgba(255,145,0,.12));border:1px solid rgba(236,64,122,.3)}
 .reg-bd .rb-h{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.35}.reg-bd .rb-ic{font-size:28px;line-height:1}
@@ -2558,7 +2560,7 @@ function cards(){ syncCard(); const m=S.cards.find(c=>c.main), expMain=S.cards.f
     ${expMain?`<div class="notice warn">Карта ${cardLbl(expMain)} больше не работает<br>Добавь новую</div>`:''}
     ${S.cards.length?`<div class="cards-list">${S.cards.map(c=>`<button class="card-row${cardExpired(c)?' exp':''}" onclick="openCardMenu('${c.id}')">${cardMini(c)}<span class="tx"><b>${cardSys(c)} ${cardLbl(c)}</b><small>${cardExpired(c)?'<span class="bad">Срок истёк</span>':`до ${c.exp}`}</small></span>${c.main&&!cardExpired(c)?'<span class="main-tag">Основная</span>':''}<span class="chev">›</span></button>`).join('')}</div>
       ${m&&S.plus?`<p class="small muted" style="margin:0">Подписка спишется с ${cardLbl(m)} с ${FREE_UNTIL}</p>`:''}`
-    :`<div class="learn-empty"><span>💳</span><p class="small">Карт пока нет<br>Добавь — платить будет быстрее</p></div>`}
+    :`<div class="learn-empty"><span>💳</span><p class="small">Карт пока нет<br>Без карты не подключить Кофейная+ и не оплатить заказ онлайн</p></div>`}
     <button class="btn block" onclick="openAddCard()">＋ Добавить карту</button>
     <p class="small muted" style="margin:0">Можно привязать до ${CARD_MAX} карт. Основной платим по умолчанию — в заказах, за подписку и пополнение</p>
   </section>`; }
@@ -3782,7 +3784,7 @@ function me(){ const bd=bdInfo(), b=S.birth;
     <div class="list">
       ${r('phone','Телефон',S.phone||'+7 (900) 000-00-00',"toast('Номер меняем через поддержку — так безопаснее');setTimeout(()=>openSupport('phone'),900)")}
       ${r('cake','Дата рождения',b&&b.d?`${b.d} ${MON[b.m]} ${b.y}`:'не указана',"go('birthday')")}
-      ${r('card','Банковские карты',S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить',"go('cards')")}
+      ${r('card','Банковские карты',S.cards.length?cardLbl(mainCard())||'Срок истёк':'Не привязана',"go('cards')")}
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
@@ -4630,7 +4632,7 @@ function profile(){
       ${row('bag','Мои заказы',"go('myorders')",S.myOrders.length?`<small class="muted">${S.myOrders.length}</small>`:'',23)}
       ${row('pin','Мои адреса',"openMode('delivery')")}
       ${row('user','Мои данные',"go('me')",`<small class="muted">${S.birth&&S.birth.d?`ДР ${S.birth.d} ${MON[S.birth.m]}`:'ДР не указан'}</small>`,12)}
-      ${row('card','Банковские карты',"go('cards')",`<small class="muted">${S.cards.length?cardLbl(mainCard())||'Срок истёк':'Добавить'}</small>`)}
+      ${row('card','Банковские карты',"go('cards')",`<small class="muted">${S.cards.length?cardLbl(mainCard())||'Срок истёк':'Не привязана'}</small>`)}
       ${row('gift','Пригласить друга',"go('invite')",`<small class="muted">+${REF_T} ₽</small>`,15)}
       ${row('info','Как всё устроено',"openRules()",'<small>акции и бонусы</small>',0,'hl')}
       ${row('chat','Поддержка',"openSupport()",S.sup.unread?`<span class="badge-n">${S.sup.unread}</span>`:'')}
@@ -4876,22 +4878,28 @@ function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value
 let rg={n:'',l:'',sex:'',bd:''};
 function regForm(){ const mx=dateOf(S.day), y=mx.getFullYear()-14, maxD=`${y}-${String(mx.getMonth()+1).padStart(2,'0')}-${String(mx.getDate()).padStart(2,'0')}`;
   return `<form class="stack reg" style="gap:14px" onsubmit="event.preventDefault();regDone()">
-    <div class="stack" style="gap:4px"><h2 style="margin:0">Давай познакомимся</h2><span class="muted small">Так бариста и друзья узнают, что это ты</span></div>
-    <div class="field"><label class="label" for="rg-n">Имя</label><input id="rg-n" class="cp-in" maxlength="24" autocomplete="given-name" placeholder="Например, Аня" value="${esc(rg.n)}" oninput="rg.n=this.value;regDirty()"></div>
-    <div class="field"><label class="label" for="rg-l">Фамилия</label><input id="rg-l" class="cp-in" maxlength="30" autocomplete="family-name" placeholder="${rg.sex==='f'?'Например, Иванова':rg.sex==='m'?'Например, Иванов':'Например, Иванова'}" value="${esc(rg.l)}" oninput="rg.l=this.value;regDirty()"></div>
+    <div class="stack" style="gap:4px"><h2 style="margin:0">Давай познакомимся</h2><span class="muted small">Так бариста и друзья узнают, что это ты</span><span class="small muted rg-ph">Твой номер <span class="nowrap">${S.phone}</span> ✓</span></div>
+    <div class="field"><label class="label" for="rg-n">Имя</label><input id="rg-n" class="cp-in" maxlength="24" autocomplete="given-name" placeholder="Например, Аня" value="${esc(rg.n)}" oninput="rg.n=this.value;regDirty()"><span class="rg-err" id="rg-n-e"></span></div>
+    <div class="field"><label class="label" for="rg-l">Фамилия</label><input id="rg-l" class="cp-in" maxlength="30" autocomplete="family-name" placeholder="${rg.sex==='f'?'Например, Иванова':rg.sex==='m'?'Например, Иванов':'Например, Иванова'}" value="${esc(rg.l)}" oninput="rg.l=this.value;regDirty()"><span class="rg-err" id="rg-l-e"></span></div>
     <div class="field"><span class="label">Пол</span><div class="me-sex"><button type="button" class="optbtn ${rg.sex==='m'?'on':''}" onclick="regSex('m',this)">Мужской</button><button type="button" class="optbtn ${rg.sex==='f'?'on':''}" onclick="regSex('f',this)">Женский</button></div></div>
-    <div class="reg-bd"><div class="rb-h"><span class="rb-ic">🎂</span><span><b>Скидка в день рождения = твой возраст</b><br>33 года — минус 33%, неделю до и неделю после</span></div>
+    <div class="reg-bd"><div class="rb-h"><span class="rb-ic">🎂</span><span><b>Скидка в день рождения = твой возраст</b><br>Например, 33 года — минус 33%<br>Неделю до и неделю после</span></div>
       <label class="label" for="rg-bd">День рождения <span class="muted" style="text-transform:none;letter-spacing:0">· по желанию</span></label>
       <input id="rg-bd" type="date" class="cp-in" max="${maxD}" value="${rg.bd}" oninput="rg.bd=this.value">
       <span class="small muted">Дату можно указать один раз — потом только через поддержку</span></div>
     <button class="btn block" id="rg-go" type="submit" ${regOk()?'':'disabled'}>Готово</button>
     <span class="small muted" id="rg-tip" style="text-align:center">${regOk()?'':'Заполни имя, фамилию и пол'}</span>
   </form>`; }
-const regOk=()=>rg.n.trim()&&rg.l.trim()&&rg.sex;
-function regDirty(){ const b=document.getElementById('rg-go'), t=document.getElementById('rg-tip'); if(b) b.disabled=!regOk(); if(t) t.textContent=regOk()?'':'Заполни имя, фамилию и пол'; }
+/* 5.11 (критик): имя и фамилия — только буквы, дефис и пробел, от 2 букв; заглавную ставим сами и молча */
+const NM_RX=/^[A-Za-zА-Яа-яЁё]+(?:[ -][A-Za-zА-Яа-яЁё]+)*$/;
+const nmOk=v=>{ v=v.trim(); return v.replace(/[^A-Za-zА-Яа-яЁё]/g,'').length>=2&&NM_RX.test(v); };
+const nmBad=v=>/[^A-Za-zА-Яа-яЁё \-]/.test(v);
+const nmCap=v=>v.trim().replace(/\s+/g,' ').split(/([ -])/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join('');
+const regOk=()=>nmOk(rg.n)&&nmOk(rg.l)&&rg.sex;
+function regDirty(){ const b=document.getElementById('rg-go'), t=document.getElementById('rg-tip'); if(b) b.disabled=!regOk(); if(t) t.textContent=regOk()?'':'Заполни имя, фамилию и пол';
+  [['n','rg-n-e'],['l','rg-l-e']].forEach(([k,id])=>{ const e=document.getElementById(id); if(e) e.textContent=nmBad(rg[k])?'Только буквы — без цифр и знаков':''; }); }
 function regSex(x,el){ rg.sex=x; el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('rg-l'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; regDirty(); }
 function regDone(){ if(!regOk()) return regDirty();
-  S.name=rg.n.trim(); S.last=rg.l.trim(); S.sex=rg.sex; S.regDone=1;
+  S.name=nmCap(rg.n); S.last=nmCap(rg.l); S.sex=rg.sex; S.regDone=1; S.cards=[]; S.plus=false; S.tariff='m'; syncCard();   // новый гость: карты и подписки ещё нет — их предложим в конце знакомства
   if(rg.bd){ const [y,m,d]=rg.bd.split('-').map(Number); S.birth={y,m:m-1,d,verified:false,setDay:S.day}; } else S.birth={};
   rg={n:'',l:'',sex:'',bd:''}; authStep='phone'; enterApp(); }
 function enterApp(){ S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(`Добро пожаловать, ${S.name}! 👋`); }
@@ -5076,7 +5084,7 @@ const ONB=[
   // 22.10: «в чём выгода?» — статусы и подарки, а не просто счётчик
   {t:'Не прерывайся — получай больше', s:'Чем больше посещений подряд, тем выше уровень и тем больше выгода. На 30, 50 и 100 посещений — подарок. Главное — хотя бы 3 дня в неделю', prem:1,
    art:()=>`<div class="ob-tiers">${[['silver','🥈','Серебряный','бонусы с каждой покупки','старт'],['gold','🥇','Золотой','+1% к бонусам','🔥 30'],['plat','💎','Платиновый','+2% и напиток −50% каждую неделю','🔥 100']].map(([k,ic,n,v,f])=>`<div class="ob-t t-${k}"><span class="ob-ti">${ic}</span><span class="tx"><b>${n}</b><small>${v}</small></span><span class="ob-tf">${f}</span></div>`).join('')}</div>`},
-  {t:`Всё это — бесплатно до ${FREE_UNTIL}`, s:'Потом 99 ₽ в месяц. Отменить можно в любой момент', last:1,
+  {t:`Всё это — бесплатно до ${FREE_UNTIL}`, s:'Потом 99 ₽ в месяц. Отменить можно в любой момент', last:1, tNo:'Все выгоды — с Кофейная+', sNo:`Бесплатно до ${FREE_UNTIL}<br>Потом 99 ₽ в месяц`,
    art:()=>`<div class="ob-star">${STAR_Y.replace('star-y','star-y ob-big')}<b>Кофейная+</b></div>`},
 ];
 let onbI=0;
@@ -5085,9 +5093,9 @@ function drawOnb(){ const o=ONB[onbI], d=document.getElementById('onb'); if(!d) 
   d.innerHTML=`<div class="onb-in">
     <div class="onb-top"><span class="onb-dots">${ONB.map((_,i)=>`<i class="${i===onbI?'on':''}"></i>`).join('')}</span>${o.last?'':`<button class="onb-skip" onclick="endOnb()">Пропустить</button>`}</div>
     <div class="onb-art">${o.art()}</div>
-    <h2>${o.t}</h2><p>${o.s}</p>
+    ${o.last&&!S.plus?`<h2>${o.tNo}</h2><p>${o.sNo}</p><p class="small muted onb-card">Для подписки нужна карта<br>Сегодня спишем 0 ₽</p>`:`<h2>${o.t}</h2><p>${o.s}</p>`}
     ${o.prem?`<span class="onb-prem">${STAR_Y} С Кофейная+</span>`:''}
-    <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>
+    <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}${o.last&&!S.plus?`<button class="btn" onclick="endOnb();setTimeout(openCardPay,350)">Подключить</button></div><button class="link onb-later" onclick="endOnb()">Позже</button>`:`<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>`}
   </div>`; }
 function closeOnb(){ document.getElementById('onb')?.remove(); document.documentElement.classList.remove('onb-open'); }
 function endOnb(){ S.onb=1; save(); closeOnb(); setTimeout(refCheck,400); }
