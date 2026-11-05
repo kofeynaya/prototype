@@ -306,9 +306,12 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .stamp{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:var(--tint);border:1px solid var(--line)}
 .stamp.k-drink{--tint:rgba(155,217,217,.14);--acc:#00657f}.stamp.k-food{--tint:rgba(167,210,185,.14);--acc:#0d553f}
 .stamp.k-bake{--tint:rgba(242,177,90,.14);--acc:#b26a00}.stamp.k-cake{--tint:rgba(236,204,206,.16);--acc:#c2185b}
-.stamp .sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.stamp .sn{font-size:15px;font-weight:700;color:var(--ink);background:none;border:0;padding:0;text-align:left;display:inline-flex;align-items:center;gap:4px}
-.stamp .sn .chev{color:var(--muted);font-size:18px;line-height:1}
+.stamp .sh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+/* 5.11 (владелец: «непонятно, что на название можно нажать»): название блюда — кнопка-таблетка с рамкой и кружком-стрелкой, как привычная кнопка «открыть» */
+.stamp .sn{font-size:15px;font-weight:700;color:var(--ink);background:rgba(23,47,40,.06);border:1.5px solid rgba(23,47,40,.22);border-radius:18px;padding:5px 5px 5px 12px;text-align:left;display:inline-flex;align-items:center;gap:8px;min-height:36px;max-width:calc(100% - 52px);box-shadow:0 2px 6px -3px rgba(0,0,0,.25);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.stamp .sn:active{transform:scale(.96)}
+.stamp .sn .sn-t{min-width:0;overflow-wrap:anywhere}
+.stamp .sn .chev{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#212221;color:#f9f9f9;font-size:15px;line-height:1;font-weight:700}
 .stamp .sl.six{cursor:pointer;font:inherit}.stamp .sc{font-family:var(--f-num);font-size:14px;color:var(--muted)}
 .stamp .srow{display:grid;grid-template-columns:repeat(5,1fr) 1.35fr;gap:4px;align-items:center}
 .stamp .sl{display:grid;place-items:center;aspect-ratio:1;border-radius:12px}
@@ -320,8 +323,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 .stamp .sl.six i{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-style:normal;font-family:var(--f-num);font-size:11px;color:#f9f9f9}
 .stamp .hint{font-size:13px;color:var(--muted)}
 .six-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}.six-foot .hint{flex:1;min-width:0}.six-foot.col{flex-direction:column;align-items:flex-start;gap:2px}
-.six-add{flex:none;display:inline-flex;flex-direction:column;align-items:center;line-height:1.05;white-space:nowrap}.six-add s{font-size:11px;opacity:.7;font-weight:400}
-.six-add.rdy{background:linear-gradient(135deg,#ff8a00,#e65100)!important;color:#fff!important;border-color:transparent!important}
+
 .stamp.ready .sl.six{border-style:solid;border-color:#f2c230;box-shadow:0 0 0 3px rgba(242,194,48,.35)}
 .stamp.ready .hint{color:var(--ink);font-weight:600}
 /* 5.11 (владелец): шестое уже в корзине — плитка «✓ В корзине» (зелёная, без мигания), отметки остаются заполненными до оплаты */
@@ -2979,14 +2981,6 @@ const sixHow = t => `<div class="six-how"><p class="six-rule">${t}</p>
       <div class="sx-offs"><span class="sx-off new"><b>−50%</b>на новое</span><span class="sx-off old"><b>−20%</b>на привычное</span></div>
       <p class="sx-note">Новое — то, что ты не брал 2 месяца</p></div>`;
 // Блок «Каждый 6-й»: 3 ячейки, у новичка — пустые («Выбрать блюдо»), чужих блюд нет
-/* 5.11 (владелец + критик: «непонятно, что отсюда можно положить в корзину»): в каждой ячейке — та же кнопка с ценой, что в меню, «190 ₽ +»;
-   кладёт обычную порцию сразу; шестое готово — оранжевая «152 ₽ +» с зачёркнутой обычной ценой; шестое в корзине — кнопки нет (плитка «✓ В корзине» и «Открыть корзину ›») */
-function sixBtn(i,m,sl,ready){ const ok=ready&&sixWould(m.id), p=ok?m.p-Math.round(m.p*sixOff(sl)):m.p;
-  return `<button class="pill six-add${ok?' rdy':''}" onclick="event.stopPropagation();sixAdd(${i})" aria-label="${m.n} — в корзину">${ok?`<s>${rub(m.p)}</s>`:''}<span>${rub(p)} +</span></button>`; }
-function sixAdd(i){ const sl=S.six.slots[i]; if(!sl) return; const id=sl.id, m=byId(id), was=!!(sixReady(id)&&!sixInCart(id)&&sixWould(id));
-  const v=Math.max(0,m.vars.findIndex((x,j)=>unitPrice(m,defOpts(m,j))===m.p)); addLine(id,defOpts(m,v));
-  if(was&&sixInCart(id)){ confetti(); toast(`🎉 Шестое в корзине<br>${m.n} — ${rub(m.p-Math.round(m.p*sixOff(sl)))} вместо ${rub(m.p)}`,4000); }
-  else toast(`✅ ${m.n} в корзине<br>Отметка будет после покупки`); }
 function stampsBlock(){
   const ai=sixAI();
   return `<div class="stamps">${sixHow('Выбери 3 блюда и купи каждое 5 раз')}
@@ -2996,11 +2990,11 @@ function stampsBlock(){
       const m=byId(sl.id), k=sixKind(sl.id), n=Math.min(5,sl.n), ready=n>=5, inC=ready&&sixInCart(sl.id), pct=Math.round(sixOff(sl)*100), left=ready?sl.ready+SIX_BURN-S.day:0;
       // как в референсе владельца (24.10): под плашкой две большие кнопки во всю высоту — оранжевая «Поменять» и красная «Убрать» (у готового шестого — только «Убрать»)
       return `<div class="sw-wrap" data-i="${i}" data-w="${ready?110:220}"><div class="sw-acts">${ready?'':`<button class="sw-chg" onclick="swClose();openSixPick(${i})" aria-label="Поменять ${m.n}"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>Поменять</button>`}<button class="sw-del" onclick="removeSix(${i})" aria-label="Убрать ${m.n}"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V4h6v3"/></svg>Убрать</button></div><div class="stamp k-${k}${ready?' ready':''}${inC?' in-cart':''}">
-        <div class="sh"><button class="sn" onclick="openProduct('${m.id}')">${m.n} <span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
+        <div class="sh"><button class="sn" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть"><span class="sn-t">${m.n}</span><span class="chev">›</span></button><span class="sc money">${n}/5</span></div>
         <span class="six-badge ${sl.isNew?'nw':''}">${sl.isNew?'Новое':'Привычное'} −${pct}%</span>
         <div class="srow">${[0,1,2,3,4].map(j=>`<span class="sl ${j<n?'f':''}">${stampIc(k,j<n?'':'e')}</span>`).join('')}${inC?`<button class="sl six" onclick="go('cart')" aria-label="Шестое в корзине — открыть корзину"><span class="six-ok">✓</span><em class="six-lbl">В корзине</em></button>`:`<button class="sl six" onclick="openProduct('${m.id}')" aria-label="${m.n} — открыть">${stampIc(k,'')}<i>−${pct}%</i></button>`}</div>
         <div class="six-foot${inC?' col':''}"><span class="hint">${inC?`Шестое уже в корзине ✓<br>Оплати заказ — и начнётся новый круг${sixExtra(sl)}</span><button class="link six-open" onclick="go('cart')">Открыть корзину ›</button><span hidden>`:ready&&sl.sixDay===S.day?`Следующее шестое со скидкой — завтра<br>Оно тебя подождёт${sixExtra(sl)}`:ready?`Шестое — на ${pct}% дешевле: <b>${rub(m.p-Math.round(m.p*sixOff(sl)))}</b><br>Успей: ${left<=1?'сегодня последний день':`ещё ${left} ${plural(left,'день','дня','дней')}`}${sixExtra(sl)}`:`Ещё ${5-n} ${plural(5-n,'раз','раза','раз')} — и шестое на ${pct}% дешевле`}</span>
-        ${inC?'':sixBtn(i,m,sl,ready)}</div>
+        </div>
         ${ready?'':`<button class="link six-chg" onclick="openSixPick(${i})">Поменять блюдо${n?' — отметки сгорят':''}</button>`}</div></div>`; }).join('')}
     ${S.six.slots.some(Boolean)?'<p class="sw-tip">← Смахни блюдо влево — поменять или убрать</p>':''}</div>`;
 }
