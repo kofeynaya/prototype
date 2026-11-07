@@ -4826,13 +4826,19 @@ function plus(){
     ${S.plus?`<button class="btn block" onclick="togglePlus()">Отключить подписку (демо)</button>`:`<button class="plus-cta" onclick="openCardPay()">${STAR_Y}<span>Подключить<small>бесплатно до ${FREE_UNTIL}</small></span></button>`}
     ${S.plus?'':'<p class="small muted" style="text-align:center;margin:-8px 0 0">Отменить можно в любой момент</p>'}
     ${S.plus&&plusLeft()>SOON?'<p class="hint" style="text-align:center"><button class="link" onclick="soonPlus()">Демо: до конца 3 дня</button></p>':''}
-    ${S.plus?'':`<button class="plus-float" id="plusFloat" onclick="toTariffs()"><span class="star-y-w">${STAR_Y}</span>Тарифы и подключение <span aria-hidden="true">↓</span></button>`}
+    ${S.plus?'':`<button class="plus-float hide" id="plusFloat" onclick="toTariffs()"><span class="star-y-w">${STAR_Y}</span>Тарифы и подключение <span aria-hidden="true">↓</span></button>`}
   </section>`;
 }
 // Тарифы внизу экрана: кнопка в шапке и плавающая плашка ведут к ним; плашка прячется, когда тарифы уже на экране (владелец 22.10)
 function toTariffs(){ const el=document.getElementById('tariffs'); if(!el) return; scrollTo({top:el.getBoundingClientRect().top+scrollY-90,behavior:'smooth'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600); }
+let _plusIO=null;
 function plusFloatWatch(){ const t=document.getElementById('tariffs'), f=document.getElementById('plusFloat'); if(!t||!f||!('IntersectionObserver' in window)) return;
-  new IntersectionObserver(([e])=>f.classList.toggle('hide', e.isIntersecting || e.boundingClientRect.top<0)).observe(t); }
+  /* 7.11 (владелец + критик): кнопка рождается скрытой и показывается, только если тарифы правда ниже экрана —
+     раньше после каждой перерисовки (выбор тарифа) она на долю секунды появлялась «призраком», пока наблюдатель не скрыл её */
+  // первый кадр — без перехода (иначе кнопка заново «въезжает» после каждой перерисовки); старый наблюдатель отключаем
+  f.style.transition='none'; f.classList.toggle('hide', t.getBoundingClientRect().top<innerHeight); f.offsetWidth; f.style.transition='';
+  if(_plusIO) _plusIO.disconnect();
+  _plusIO=new IntersectionObserver(([e])=>f.classList.toggle('hide', e.isIntersecting || e.boundingClientRect.top<0)); _plusIO.observe(t); }
 function setTariff(k){ if(S.tariff!==k){ S.tariff=k; S.ser.vacUsed=0; } save(); render(); }
 function plusBanner(){
   const bd=bdInfo(), bdt=bd.set?'−'+bd.age+'%':'= возраст';
