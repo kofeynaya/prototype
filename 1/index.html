@@ -221,6 +221,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto �
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
 .sheet-x{position:sticky;top:0;align-self:flex-end;z-index:5;width:44px;height:44px;margin:-6px -4px -50px 0;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.mode-h{margin:2px 52px 0 0;min-height:36px;display:flex;align-items:center}   /* 5.11 (владелец + критик): ✕ встаёт справа от заголовка, а не на «За столиком» */
 .sheet-x svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2.4;fill:none}
 .menu{display:flex;flex-direction:column}
 .mi{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -3250,14 +3251,14 @@ function drawMode(){
     body = `<button class="btn block"${F(22)} onclick="scanTable()">${IC.qr.replace('<svg','<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"')} Сканировать QR-код на столе</button>
       <div class="stack" style="gap:2px"><h3>или выберите кофейню</h3><span class="muted small">Номер столика укажете после выбора.</span></div>${shopList('pickShop')}`;
   }
-  const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" onclick="modeTab='${k}';addrInput=null;drawMode()">${v}</button>`).join('')}</div>${mapHtml()}${body}`;
+  const html=`<h2 class="mode-h">Как получить заказ?</h2><div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${t===k?'on':''}" role="tab" aria-selected="${t===k}" onclick="modeTab='${k}';addrInput=null;drawMode()">${v}</button>`).join('')}</div>${mapHtml()}${body}`;
   sheet(html);
 }
 function shopList(fn){ const need=modeTab==='table'?'table':'pickup';
   return `<div class="list"${F(need==='table'?22:21)}>${SHOPS.map((s,i)=>s.t.includes(need)?`<button class="li" onclick="${fn}(${i})"><img class="th" src="${s.img}" alt=""><span class="tx"><strong>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</strong><small>${s.d}</small><small>Будни ${s.wd} · сб–вс ${s.we}</small>${s.closed?`<small style="color:var(--warn)">${s.closed}</small>`:''}</span><span class="chev">›</span></button>`:'').join('')}</div>`; }
 let shopView=null;
 function pickShop(i){ shopView=i; const s=SHOPS[i], tbl=modeTab==='table';
-  const ex=document.querySelector('.sheet'); const html=`<div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${modeTab===k?'on':''}" onclick="modeTab='${k}';drawMode()">${v}</button>`).join('')}</div>${mapHtml()}
+  const ex=document.querySelector('.sheet'); const html=`<h2 class="mode-h">Как получить заказ?</h2><div class="seg" role="tablist">${Object.entries(MODES).map(([k,v])=>`<button class="${modeTab===k?'on':''}" onclick="modeTab='${k}';drawMode()">${v}</button>`).join('')}</div>${mapHtml()}
     <img src="${s.img}" alt="${s.n}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px">
     <div class="stack" style="gap:4px"><h2>${s.n}, ${s.a.replace(/^(ул\.|бул\.)\s*/,'')}</h2><span class="muted">${s.d}</span></div>
     <div class="list"><div class="li">${IC.pin.replace('<svg','<svg class="ic"')}<span class="tx">${s.a}</span></div>
