@@ -221,6 +221,7 @@ html.sheet-open body{position:fixed;left:0;right:0;width:auto}   /* width:auto �
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.sheet{animation:none}.goalbar i{transition:none}}
 .sheet-x{position:sticky;top:0;align-self:flex-end;z-index:5;width:44px;height:44px;margin:-6px -4px -50px 0;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.rw-bal{display:flex;align-items:center;gap:10px;justify-content:center;padding:12px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);margin-top:4px}.rw-coin{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#5a3d00;background:radial-gradient(circle at 35% 30%,#ffe082,#f2c230 60%,#c99a10)}.rw-bt{font-size:17px}.rw-bt b{font-size:22px}.rw-bt i{font-style:normal;color:#2e9e5b;font-weight:700;margin-left:4px}
 .mode-h{margin:2px 52px 0 0;min-height:36px;display:flex;align-items:center}   /* 5.11 (владелец + критик): ✕ встаёт справа от заголовка, а не на «За столиком» */
 .sheet-x svg{width:20px;height:20px;stroke:var(--ink);stroke-width:2.4;fill:none}
 .menu{display:flex;flex-direction:column}
@@ -2668,12 +2669,18 @@ function refCheck(){ const ns=S.refNew||[]; if(!ns.length||!S.authed) return;
   if(!S.onb||document.querySelector('.sheet-bg')||document.getElementById('onb')){ clearTimeout(refCheck.t); refCheck.t=setTimeout(refCheck,1500); return; }
   S.refNew=[]; S.notes.forEach(n=>{ if(n.k==='ref') n.read=1; }); save();
   const sum=(REF_REWARD*ns.length).toLocaleString('ru-RU'), who=ns.length>1?ns.slice(0,-1).join(', ')+' и '+ns[ns.length-1]:ns[0];
-  sheet(`<div class="ref-win"><div class="rw-ic">👫</div><h2>🎉 +${sum} бонусов!</h2>
-    <p class="rw-t">${who}: ${ns.length>1?'по 3 покупки':'3 покупки'} в разные дни ✓<br>Это твой подарок за ${ns.length>1?'друзей':'друга'}</p>
-    <p class="small muted">${sum} бонусов = ${sum} ₽<br>Можно оплатить до 30% чека</p>
-    <button class="plus-cta rw-go" onclick="closeSheet();go('menu')"><span>Потратить</span></button>
+  /* 5.11 (владелец + критик): видно, что бонусы уже на счёте — новый баланс набегает; кнопка ведёт в начало «Меню», а не на случайный экран из истории */
+  const was=S.bonus-REF_REWARD*ns.length;
+  sheet(`<div class="ref-win"><div class="rw-ic">👫</div><h2>🎉 +${sum} бонусов за ${ns.length>1?'друзей':'друга'}</h2>
+    <p class="rw-t">${who}: ${ns.length>1?'по 3 покупки':'3 покупки'} в разные дни ✓</p>
+    <div class="rw-bal"><span class="rw-coin">Б</span><span class="rw-bt">Бонусы <b class="money" id="rw-n">${was.toLocaleString('ru-RU')}</b> <i>+${sum}</i></span></div>
+    <p class="small muted" style="margin:-4px 0 0">Уже на твоём счёте<br>1 бонус = 1 ₽ · можно оплатить до 30% чека</p>
+    <button class="plus-cta rw-go" onclick="closeSheet();toMenuTop()"><span>Выбрать в меню</span></button>
     <button class="btn ghost block" onclick="closeSheet();render()">Отлично</button></div>`);
-  render(); setTimeout(confetti,150); }
+  render(); setTimeout(confetti,150);
+  const el=document.getElementById('rw-n'), to=S.bonus, t0=performance.now();
+  if(el&&!matchMedia('(prefers-reduced-motion: reduce)').matches){ (function tk(t){ const k=Math.min(1,Math.max(0,(t-t0-400)/900)); el.textContent=Math.round(was+(to-was)*(1-Math.pow(1-k,3))).toLocaleString('ru-RU'); if(k<1) requestAnimationFrame(tk); })(t0); } else if(el) el.textContent=to.toLocaleString('ru-RU'); }
+function toMenuTop(){ navClear(); tab='menu'; setRoot('menu'); render(false); scrollTo(0,0); try{ localStorage.setItem(KEY+'-tab','menu'); }catch(e){} }
 /* 26.10 (владелец): как выглядит, когда подарок дарят МНЕ — окно-переписка от дарителя, «Забрать подарок»;
    блюдо попадает в «Мои подарки» и само становится бесплатным в заказе или на кассе (30 дней), бонусы — сразу на счёт */
 if(!S.gin) S.gin=[];
