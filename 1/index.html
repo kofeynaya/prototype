@@ -62,6 +62,8 @@ p{margin:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;font-size:16px}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
 .btn.block{width:100%}
+.cart-go{display:flex;flex-direction:column;gap:8px;text-align:center}.cart-go .btn{padding:16px 18px;font-size:17px}.cart-go p{margin:0}
+.sum .r.tot.ok span:first-child{color:var(--ok)}
 .btn:disabled{opacity:.4;cursor:default}
 .link{color:var(--teal);text-decoration:underline;text-underline-offset:3px;font-size:14px}
 
@@ -3400,15 +3402,32 @@ function cart(){
       ${del?`<div class="r"><span>Доставка</span><span class="money">${qt.fee?rub(qt.fee):'бесплатно'}</span></div>`:''}
       ${qt.walletSpend?`<div class="r"><span>С депозита</span><span class="money">−${rub(qt.walletSpend)}</span></div>`:''}
       <div class="r"><span>Начислим бонусов (${rateWhy()})</span><span class="money">+${qt.bonus}</span></div>
-      <div class="r tot"><span>К оплате${qt.card>0&&S.pay==='cash'?' наличными':''}</span><span class="money">${rub(qt.card)}</span></div>
+      ${qt.card>0||!(qt.walletSpend||qt.bonusSpend||qt.gbonSpend)?`<div class="r tot"><span>К оплате${qt.card>0&&S.pay==='cash'?' наличными':''}</span><span class="money">${rub(qt.card)}</span></div>`:`<div class="r tot ok"><span>Всё оплачено ${qt.walletSpend?'депозитом':'бонусами'} ✓</span><span class="money">${rub(0)}</span></div>`}
     </div>
-    <div class="row between" style="position:sticky;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg);padding:10px 0;border-top:1px solid var(--line)"><div class="stack" style="gap:0"><span class="small muted">К оплате</span><strong style="font-size:22px" class="money">${rub(qt.card)}</strong></div><button class="btn" ${minLeft||(S.mode==='table'&&!S.table)?'disabled':''} onclick="checkout()">${minLeft?`Минимум ${rub(DELIVERY.min)}`:co.when==='asap'?'Оформить заказ':'Оформить предзаказ'}</button></div>
+    ${cartGo(qt,minLeft)}
   </section>`;
+}
+/* 7.11 (владелец + критик): «Оформить заказ» — одна кнопка в самом низу корзины, не прилипает к экрану:
+   до неё гость проходит время, оплату, бонусы и депозит. Текст говорит, чем платим; если оформить нельзя — кнопка серая, причина строкой под ней */
+const cardLive=()=>S.cards.some(c=>!cardExpired(c));
+function cartGo(qt,minLeft){
+  const pre=co.when==='at', what=pre?`Оформить предзаказ · к ${hm(co.at.t)}`:'Оформить заказ';
+  let why='';
+  if(minLeft) why=`Добавь ещё на ${rub(minLeft)} — минимум доставки ${rub(DELIVERY.min)}`;
+  else if(S.mode==='table'&&!S.table) why='Отсканируй QR на столе';
+  else if(pre&&!atOk(co.at)) why='Это время уже близко — выбери другое';
+  if(why) return `<div class="cart-go"><button class="btn block" disabled>${what}</button><p class="small muted">${why}</p></div>`;
+  if(!qt.regular) return `<div class="cart-go"><button class="btn block" onclick="checkout()">Забрать бесплатно</button></div>`;
+  if(qt.card>0&&S.pay==='card'&&!cardLive()) return `<div class="cart-go"><button class="btn block" onclick="openAddCard()">Привязать карту и оплатить · ${rub(qt.card)}</button><p class="small muted">Или выбери выше SberPay или наличные</p></div>`;
+  const tail=qt.card>0?`${rub(qt.card)}${S.pay==='cash'?' наличными':qt.walletSpend?(S.pay==='sberpay'?' через SberPay':' картой'):''}`
+    :qt.walletSpend?`${rub(qt.walletSpend)} с депозита`:(qt.bonusSpend||qt.gbonSpend)?'бонусами':'бесплатно';
+  return `<div class="cart-go"><button class="btn block" onclick="checkout()">${what} · ${tail}</button></div>`;
 }
 function checkout(){
   const qt=basketQuote({bonus:co.bonus,wallet:co.wallet});
   const ch = S.mode==='delivery'?'Доставка':S.mode==='pickup'?'Самовывоз':'За столиком';
   if(co.when==='at'&&!atOk(co.at)){ toast('Это время уже слишком близко<br>Выбери другое — не раньше чем через час'); openWhen(); return; }
+  if(qt.card>0&&S.pay==='card'&&!cardLive()) return openAddCard();
   const msg=applyPurchase(qt, ch, false); S.orders[S.orders.length-1].bk=S.basket.map(l=>({id:l.id,opts:l.opts,qty:l.qty})); S.rep=null;
   const id='K-'+(2500+S.myOrders.length*7+Math.floor(Math.random()*7));
   S.myOrders.unshift({id, day:S.day, mode:S.mode, place:modeLine(), lines:S.basket.map(l=>({id:l.id,qty:l.qty,opts:l.opts,unit:byId(l.id).p+l.sur})), total:qt.card+qt.walletSpend, dep:qt.walletSpend, rest:qt.card, pay:S.pay, status:0, when:co.when==='at'?atLbl(co.at):'asap', code:String(10+Math.floor(Math.random()*89))});
