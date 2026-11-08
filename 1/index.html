@@ -835,6 +835,8 @@ main.nav-fwd,main.nav-back{animation:none}
 .note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
 /* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
 .sheet-bg.full{background:var(--bg)}
+.ben-empty{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:14px;line-height:1.35;color:var(--muted)}
+.ben-empty b{font-size:16px;color:var(--ink)}.ben-empty .link{margin-top:6px;font-weight:600}
 .cp-tf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .cp-t{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);color:var(--ink);font:inherit;text-align:center;min-width:0}
 .cp-t span{font-size:14px;font-weight:600}.cp-t b{font-size:18px}.cp-t small{font-size:12px;color:var(--muted);line-height:1.2}
@@ -4119,14 +4121,23 @@ const shortD=day=>{ const x=dateOf(day); return x.getDate()+' '+MON[x.getMonth()
    Кнопки периода, которые дают то же, что «Всё время», не показываем; под суммой — настоящий отрезок дат */
 const benSince=()=>Math.min(S.day, S.regDay??S.day);
 function benRange(){ const t=S.day, d=dateOf(t), since=benSince();
-  let lo= benPer==='today'?t : benPer==='week'?weekOf(t)*7 : benPer==='month'?dayOff(new Date(d.getFullYear(),d.getMonth(),1)) : benPer==='custom'?Math.min(benFrom??t,benTo??t) : since;
+  let lo= benPer==='today'?t : benPer==='week'?weekOf(t)*7 : benPer==='month'?dayOff(new Date(d.getFullYear(),d.getMonth(),1)) : benPer==='custom'?Math.min(benFrom??t,benTo??t) : Math.min(t,...benOrders().map(x=>x.day),t);
   let hi= benPer==='custom'?Math.max(benFrom??t,benTo??t):t;
   lo=Math.max(lo,since); hi=Math.min(Math.max(hi,lo),t);
   const fullD=x=>{ const y=dateOf(x); return y.getDate()+' '+MON[y.getMonth()]+(y.getFullYear()!==d.getFullYear()?' '+y.getFullYear():''); };
   return [lo,hi, lo===hi?(lo===t?'за сегодня':'за '+fullD(lo)):`с ${fullD(lo)} по ${fullD(hi)}`]; }
-function benChips(){ const t=S.day, d=dateOf(t), since=benSince(), ws=weekOf(t)*7, ms=dayOff(new Date(d.getFullYear(),d.getMonth(),1));
-  return [['today','Сегодня',true],['week','Неделя',since<ws],['month','Месяц',since<ms],['all','Всё время',since<t],['custom','📅 Даты',since<t]].filter(x=>x[2]); }
-function setBenPer(p){ benPer=p; if(p==='custom'&&benFrom==null){ benFrom=Math.max(benSince(),S.day-30); benTo=S.day; } benRefresh(); }
+/* 8.11 (владелец + критик): кнопки периода строим по покупкам, а не по датам. Идём от «Всё время» к узким периодам и
+   показываем узкий, только если в нём есть покупки и их меньше, чем в последнем показанном (иначе цифры те же).
+   «📅 Даты» — если дней с покупкой хотя бы два. Осталась одна «Всё время» — кнопок нет вовсе */
+const benOrders=()=>{ const since=benSince(); return S.orders.filter(o=>o.day>=since&&o.day<=S.day); };
+function benChips(){ const t=S.day, d=dateOf(t), os=benOrders(); if(!os.length) return [];
+  const ws=weekOf(t)*7, ms=dayOff(new Date(d.getFullYear(),d.getMonth(),1)), cnt=lo=>os.filter(o=>o.day>=lo).length;
+  const keep=new Set(['all']); let last=os.length;
+  for(const [k,lo] of [['month',ms],['week',ws],['today',t]]){ const c=cnt(lo); if(c>0&&c<last){ keep.add(k); last=c; } }
+  if(new Set(os.map(o=>o.day)).size>=2) keep.add('custom');
+  if(keep.size===1) return [];
+  return [['today','Сегодня'],['week','Неделя'],['month','Месяц'],['all','Всё время'],['custom','📅 Даты']].filter(([k])=>keep.has(k)); }
+function setBenPer(p){ if(p===benPer&&p!=='custom') return; benPer=p; if(p==='custom'&&benFrom==null){ benFrom=Math.max(benSince(),S.day-30); benTo=S.day; } benRefresh(); }
 /* Свой календарь (владелец 25.10): системный на iPhone даёт нажать дни до регистрации. Здесь дни до регистрации и после сегодня — серые
    и не нажимаются, день регистрации — в розовом кружке «тут ты с нами», сегодня — подчёркнут, выбранный отрезок подсвечен */
 /* 26.10 (владелец): один календарь на оба конца — внутри окна выбираешь и начало, и конец, отрезок подсвечивается сразу,
@@ -4169,20 +4180,22 @@ function benAnimate(){ const el=document.getElementById('ben'); if(!el) return;
   const h=el.querySelector('.ben-v'); h.classList.remove('pop'); void h.offsetWidth; h.classList.add('pop'); }
 function benefit(){
   const [lo,hi,lbl]=benRange(), os=S.orders.filter(o=>o.day>=lo&&o.day<=hi), cap=byId(ID.cap);
-  const chs=benChips(); if(!chs.some(c=>c[0]===benPer)) benPer=chs.some(c=>c[0]==='all')?'all':'today';
+  const chs=benChips(); if(!chs.some(c=>c[0]===benPer)) benPer='all';
   const chips=chs.map(([k,t])=>`<button class="${benPer===k?'on':''}" onclick="setBenPer('${k}')">${t}</button>`).join('');
   const since=benSince(), [blo,bhi]=benPer==='custom'?benRange():[0,0], sd=dateOf(since);
   const fd=x=>{ const y=dateOf(x); return y.getDate()+'\u00a0'+MON[y.getMonth()]; };
   const picker=benPer==='custom'?`<div class="ben-dates"><label>с<button class="bd-pick" onclick="openBenCal('from')">${fd(blo)}</button></label><label>по<button class="bd-pick" onclick="openBenCal('to')">${fd(bhi)}</button></label></div><span class="ben-since"><i class="bc-dot"></i>Ты с нами с ${sd.getDate()} ${MON[sd.getMonth()]} ${sd.getFullYear()}</span>`:'';
   const pct=powerPct(), lv=LV(pct), tip=powerItems().find(x=>!x.on);
   const boost=`<button class="ben-boost lv-${lv.k}" style="--lv:${lv.c};--lv-rgb:${lv.rgb}" onclick="go('power')">${battery(pct)}<span class="tx">${pct<100?`<b>Усиль выгоду — у тебя всего <span class="pcg-${lv.k}">${pct}%</span></b><small>${tip?`Не хватает: ${tip.t}`:''}</small>`:`<b>Выгода на максимуме — 100%</b><small>Ты берёшь от приложения всё 🤩</small>`}</span><span class="go">${pct<100?'Газануть ›':'›'}</span></button>`;
-  const head=`<div class="ben-per">${chips}</div>${picker}`;   // 24.10: заголовок вынесен над карточкой — крупный, как «Мои выгоды»
-  if(!os.length) return `<div class="ben" id="ben">${head}<p class="small muted" style="margin:0">${lbl[0].toUpperCase()+lbl.slice(1)} покупок не было — выбери другой период.</p></div>`;
+  const head=chs.length?`<div class="ben-per">${chips}</div>${picker}`:'';   // 24.10: заголовок вынесен над карточкой — крупный, как «Мои выгоды»
+  if(!benOrders().length) return `<div class="ben" id="ben"><div class="ben-empty"><b>Пока ничего — ${since===S.day?'ты с нами первый день':`ты с нами с ${fd(since)}`}</b><span>Сделай первую покупку — и здесь будет видно, сколько сэкономил</span><button class="link" onclick="toMenuTop()">Выбрать в меню ›</button></div></div>`;
+  if(!os.length) return `<div class="ben" id="ben">${head}<div class="ben-empty"><b>${lbl[0].toUpperCase()+lbl.slice(1)} покупок не было</b><span>Выбери другие даты</span></div></div>`;
   const by={}; let without=0, paid=0;
   for(const o of os){ const sv=o.saved||0, bs=o.bonusSpend||0, gs=o.giftSpend||0; without+=o.sum+sv+bs; paid+=o.sum-gs;
     if(o.src&&Object.keys(o.src).length) for(const k in o.src) by[k]=(by[k]||0)+o.src[k]; else if(sv) by.disc=(by.disc||0)+sv;
     if(bs) by.bonus=(by.bonus||0)+bs; if(gs) by.gift=(by.gift||0)+gs; }
   const gain=without-paid, parts=BEN_SRC.filter(([k])=>by[k]>0), cups=cap?Math.floor(gain/cap.p):0;
+  if(gain<=0) return `<div class="ben" id="ben">${head}<div class="ben-empty">${S.plus?`<b>Пока без выгоды</b><span>Заплатил ${rub(paid)} по обычной цене</span><button class="link" onclick="go('power')">Как сэкономить ›</button>`:`<b>Сколько сэкономил — видно с ★ Кофейная+</b><span>Заплатил ${rub(paid)} по обычной цене</span>`}</div></div>`;
   return `<div class="ben" id="ben">${head}
     <div class="ben-v"><span class="money">+<span data-n="${gain}">${gain.toLocaleString('ru-RU')}</span> ₽</span><small>сэкономил ${lbl}${cups?`<br>Это ${cups} ${plural(cups,'капучино','капучино','капучино')} бесплатно ☕`:''}</small></div>
     <div class="ben-r"><span>Без приложения заплатил бы</span><span class="bar"><i data-w="100" style="width:100%"></i></span><b class="money">${rub(without)}</b></div>
