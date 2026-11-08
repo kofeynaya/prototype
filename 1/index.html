@@ -835,6 +835,14 @@ main.nav-fwd,main.nav-back{animation:none}
 .note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
 /* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
 .sheet-bg.full{background:var(--bg)}
+.cp-tf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cp-t{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);color:var(--ink);font:inherit;text-align:center;min-width:0}
+.cp-t span{font-size:14px;font-weight:600}.cp-t b{font-size:18px}.cp-t small{font-size:12px;color:var(--muted);line-height:1.2}
+.cp-t.on{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--prem) border-box;border-width:2px;box-shadow:0 6px 16px -8px rgba(94,53,177,.7)}
+.cp-t.on span{color:#9d8cf0}
+:root[data-theme="light"] .cp-t.on span{color:#5e35b1}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .cp-t.on span{color:#5e35b1}}
+.cp-vac{margin:0;font-size:14px;color:var(--ok);font-weight:600;min-height:1.35em;line-height:1.35}
 .sheet{--sh-pt:20px}.sheet.full{--sh-pt:calc(16px + env(safe-area-inset-top,0px))}
 .sheet-hd{position:sticky;top:calc(-1 * var(--sh-pt));z-index:6;display:flex;align-items:center;gap:12px;margin:calc(-1 * var(--sh-pt)) -16px 0;padding:var(--sh-pt) 16px 10px;background:var(--bg);border-bottom:1px solid transparent;transition:border-color .15s}
 .sheet-hd.stuck{border-bottom-color:var(--line)}
@@ -2248,7 +2256,7 @@ const weekDays = w => S.visits.filter(v=>weekOf(v)===w).length;
 const SER_MIN = 3, FZ_MONTH = 4, PEND_DAYS = 7;
 /* Тарифы Кофейная+ (решение владельца 21.10): на любом — 4 заморозки в месяц (не копятся), на длинных — ещё отпускные на весь срок */
 const TARIFFS=[{k:'m',n:'1 месяц',p:99,vac:0},{k:'h',n:'6 месяцев',p:490,vac:6},{k:'y',n:'1 год',p:890,vac:12}];
-if(!S.tariff) S.tariff='y';
+if(!S.tariff) S.tariff='m';   // 8.11 (критик): по умолчанию — месяц, как в онбординге «Потом 99 ₽ в месяц»
 const tariff=()=>TARIFFS.find(t=>t.k===S.tariff)||TARIFFS[0];
 const monthKey = d => { const x=dateOf(d); return x.getFullYear()*12+x.getMonth(); };
 const fzDaysIn = w => (S.ser.fzDays||[]).filter(d=>weekOf(d)===w);
@@ -2556,12 +2564,19 @@ function nextDay(){
 let cpCard=null;
 function openCardPay(){ const t=TARIFFS.find(x=>x.k===S.tariff)||TARIFFS[0]; if(!cardById(cpCard)) cpCard=(mainCard()||{}).id||null;
   sheet(`<div class="cp"><h2>${STAR_Y}Кофейная+</h2>
+    <span class="label">Тариф</span>
+    <div class="cp-tf" role="radiogroup">${TARIFFS.map(x=>{ const pm=x.k==='m'?0:Math.round(x.p/(x.k==='h'?6:12));
+      return `<button class="cp-t${x.k===t.k?' on':''}" role="radio" aria-checked="${x.k===t.k}" onclick="cpTariff('${x.k}')"><span>${x.n}</span><b class="money">${rub(x.p)}</b><small>${rub(pm||x.p)} в месяц</small></button>`; }).join('')}</div>
     <div class="panel cp-sum"><div class="row between"><span>Сегодня</span><b class="money">0 ₽</b></div>
-      <div class="row between"><span class="muted">С ${FREE_UNTIL}</span><b class="money">${rub(t.p)} ${t.k==='m'?'в месяц':t.k==='h'?'за 6 месяцев':'за год'}</b></div></div>
+      <div class="row between"><span class="muted">С ${FREE_UNTIL}</span><b class="money">${rub(t.p)} ${t.k==='m'?'в месяц':t.k==='h'?'за 6 месяцев':'за год'}</b></div>
+      <p class="cp-vac">${t.vac?`+${t.vac} дней ❄️ заморозки на отпуск 🏖️`:'&nbsp;'}</p></div>
     <span class="label">С какой карты списывать</span>
     ${cardPick('cp')}
     <button class="plus-cta" id="cpgo" ${cardById(cpCard)?'':'disabled'} onclick="cpPay()">${STAR_Y}<span>Подписаться<small>сегодня 0 ₽</small></span></button>
     <p class="small muted" style="text-align:center;margin:0">Отменить можно в любой момент</p></div>`); }
+/* 8.11 (владелец + критик): тариф выбирается прямо в окне оплаты — раньше из онбординга и замков окно молча брало
+   последний тариф (часто год). Выбор сразу меняет строку «С 1 марта 2027 — …» */
+function cpTariff(k){ if(S.tariff!==k){ S.tariff=k; S.ser.vacUsed=0; } save(); openCardPay(); }
 function cpFmt(el){ const d=el.value.replace(/\D/g,'').slice(0,16); el.value=d.replace(/(.{4})/g,'$1 ').trim();
   const v=document.getElementById('cpv'); if(v) v.textContent=(d+'•'.repeat(16-d.length)).replace(/(.{4})/g,'$1 ').trim(); }
 function cpExp(el){ let d=el.value.replace(/\D/g,'').slice(0,4); if(d.length>2) d=d.slice(0,2)+'/'+d.slice(2); el.value=d; const e=document.getElementById('cpe'); if(e) e.textContent=d||'ММ/ГГ'; }
@@ -5159,7 +5174,7 @@ function drawOnb(){ const o=ONB[onbI], d=document.getElementById('onb'); if(!d) 
     <div class="onb-art">${o.art()}</div>
     ${o.last&&!S.plus?`<h2>${o.tNo}</h2><p>${o.sNo}</p><p class="small muted onb-card">Для подписки нужна карта<br>Сегодня спишем 0 ₽</p>`:`<h2>${o.t}</h2><p>${o.s}</p>`}
     ${o.prem?`<span class="onb-prem">${STAR_Y} С Кофейная+</span>`:''}
-    <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}${o.last&&!S.plus?`<button class="btn" onclick="endOnb();setTimeout(openCardPay,350)">Подключить</button></div><button class="link onb-later" onclick="endOnb()">Позже</button>`:`<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>`}
+    <div class="onb-btns">${onbI?`<button class="btn ghost" onclick="onbI--;drawOnb()">Назад</button>`:''}${o.last&&!S.plus?`<button class="btn" onclick="endOnb();S.tariff='m';save();setTimeout(openCardPay,350)">Подключить</button></div><button class="link onb-later" onclick="endOnb()">Позже</button>`:`<button class="btn" onclick="${o.last?'endOnb()':'onbI++;drawOnb()'}">${o.last?'Начать':'Дальше'}</button></div>`}
   </div>`; }
 function closeOnb(){ document.getElementById('onb')?.remove(); document.documentElement.classList.remove('onb-open'); }
 function endOnb(){ S.onb=1; save(); closeOnb(); setTimeout(refCheck,400); }
