@@ -4950,19 +4950,43 @@ addEventListener('popstate',()=>{
 
 /* ===================== Вход по СМС (имитация) ===================== */
 let authStep='phone';
+/* 8.11 (владелец + критик): «Выйти» — профиль никуда не пропадает. Каждый профиль хранится по номеру телефона
+   (покупки, бонусы, депозит, посещения подряд, отметки 6-го, подарки, любимые блюда). Вход тем же номером и кодом из СМС —
+   сразу домой, без знакомства и онбординга. Другой номер — свой профиль: есть — открываем его, нет — новый гость */
+const ACC_KEY=KEY+'-acc';
+const accAll=()=>{ try{ return JSON.parse(localStorage.getItem(ACC_KEY))||{}; }catch(e){ return {}; } };
+function accStash(){ if(!S.phone||!S.regDone) return; const a=accAll(); let gd=null; try{ gd=localStorage.getItem(KEY+'-giftdraft'); }catch(e){}
+  a[S.phone]=JSON.parse(JSON.stringify({...S,authed:false,_gd:gd})); try{ localStorage.setItem(ACC_KEY,JSON.stringify(a)); }catch(e){} }
+/* смена профиля — всегда через перезагрузку: так в памяти не остаётся ничего от прошлого гостя (окна, черновики, чат, таймеры).
+   Время общее для всех профилей: день не откатывается назад */
+function accSwitch(ph){ const a=accAll()[ph], day=S.day;
+  try{ localStorage.removeItem(KEY+'-giftdraft'); localStorage.removeItem(KEY+'-tab'); localStorage.removeItem(KEY+'-root');
+    if(a){ const gd=a._gd; delete a._gd; if(gd) localStorage.setItem(KEY+'-giftdraft',gd); a.day=Math.max(a.day||0,day); a.authed=false; localStorage.setItem(KEY,JSON.stringify(a)); sessionStorage.setItem('authCode','1'); }
+    else { localStorage.removeItem(KEY); sessionStorage.setItem('newAcc',ph); sessionStorage.setItem('newDay',String(day)); sessionStorage.setItem('labPreset','new'); }
+  }catch(e){} location.reload(); }
+function logout(){ sheet(`<h2>Выйти из приложения?</h2>
+    <p class="muted" style="margin:0">Покупки, бонусы, депозит и посещения подряд сохранятся<br>Вернёшься по номеру ${S.phone?`<span class="nowrap">${S.phone}</span> `:''}и коду из СМС</p>
+    <button class="btn block" onclick="closeSheet()">Остаться</button>
+    <button class="btn ghost block" onclick="doLogout()">Выйти</button>`); }
+function doLogout(){ accStash(); S.authed=false; save(); closeSheet(); navClear&&navClear(); authStep='phone'; tab='home'; setRoot('home'); render(false); scrollTo(0,0); }
+function resetDemo(){ try{ Object.keys(localStorage).filter(k=>k.startsWith(KEY)).forEach(k=>localStorage.removeItem(k)); sessionStorage.clear(); }catch(e){} location.reload(); }
 function auth(){
   return `<div class="auth">
-    ${authStep==='me'?'':`<div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная">${WORD_SVG}</span><p>Заказ, доставка и бонусы — подобранные под вас.</p></div>`}
+    ${authStep==='me'?'':`<div class="hero">${blob('var(--sage)',1)}<span class="logo" role="img" aria-label="кофейная">${WORD_SVG}</span><p>${S.regDone&&S.name&&authStep==='phone'?`С возвращением, ${esc(S.name)}!<br>Всё сохранено —<br>войди по номеру`:'Заказ, доставка и бонусы — подобранные под тебя'}</p></div>`}
     ${authStep==='me' ? regForm() : authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
         <div class="field"><label class="label" for="phone">Номер телефона</label>${phField('phone',S.phone?ph9(S.phone):'')}</div>
-        <button class="btn block" type="submit">Получить код по СМС</button></form>`
+        <button class="btn block" type="submit">Получить код по СМС</button>
+        ${S.regDone&&S.name?`<button type="button" class="link" style="align-self:center" onclick="const e=document.getElementById('phone');e.value='';e.dataset.v='';e.focus()">Не ${esc(S.name)}? Войти с другим номером</button>`:''}</form>`
     : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
         <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
         <div class="field code"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="4" placeholder="····" aria-label="Код из СМС" oninput="codeIn(this)"></div>
         <button class="btn block" type="submit">Войти</button></form>`}
   </div>`;
 }
-function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.length<9){ toast('Проверь номер — не хватает цифр'); return; } S.phone=phFull(d); authStep='code'; save(); render(); $('#code')?.focus(); }
+function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.length<9){ toast('Проверь номер — не хватает цифр'); return; }
+  const ph=phFull(d);
+  if(S.phone&&S.phone!==ph&&(S.regDone||accAll()[ph])){ accStash(); return accSwitch(ph); }
+  S.phone=ph; authStep='code'; save(); render(); $('#code')?.focus(); }
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
 /* 5.11 (владелец): при регистрации обязательны имя, фамилия и пол («25 Ань и 30 Кать — не круто, в системе надо различать»);
    день рождения — по желанию, но рядом объясняем выгоду: скидка = возраст. Шаг после кода из СМС, один раз (S.regDone) */
@@ -4994,7 +5018,7 @@ function regDone(){ if(!regOk()) return regDirty();
   if(rg.bd){ const [y,m,d]=rg.bd.split('-').map(Number); S.birth={y,m:m-1,d,verified:false,setDay:S.day}; } else S.birth={};
   rg={n:'',l:'',sex:'',bd:''}; authStep='phone'; enterApp(); }
 function enterApp(){ S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(`Добро пожаловать, ${S.name}! 👋`); }
-function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введите все 4 цифры кода.'); return; } if(!S.regDone){ authStep='me'; save(); render(); setTimeout(()=>document.getElementById('rg-n')?.focus(),50); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast('Добро пожаловать! 👋'); }
+function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введи все 4 цифры кода'); return; } if(!S.regDone){ authStep='me'; save(); render(); setTimeout(()=>document.getElementById('rg-n')?.focus(),50); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(S.name?`С возвращением, ${esc(S.name)}! 👋<br>Всё на месте`:'Добро пожаловать! 👋'); }
 
 
 /* ===================== ЛЕГЕНДА (временно): цветные рамки с номерами фич ===================== */
@@ -5187,7 +5211,8 @@ const ONB=[
    art:()=>`<div class="ob-star">${STAR_Y.replace('star-y','star-y ob-big')}<b>Кофейная+</b></div>`},
 ];
 let onbI=0;
-function openOnb(){ onbI=0; closeOnb(); const d=document.createElement('div'); d.className='onb'; d.id='onb'; document.body.appendChild(d); document.documentElement.classList.add('onb-open'); drawOnb(); }
+function openOnb(){ if(!S.authed) return;   // 8.11: знакомство — только после входа, не поверх регистрации
+  onbI=0; closeOnb(); const d=document.createElement('div'); d.className='onb'; d.id='onb'; document.body.appendChild(d); document.documentElement.classList.add('onb-open'); drawOnb(); }
 function drawOnb(){ const o=ONB[onbI], d=document.getElementById('onb'); if(!d) return;
   d.innerHTML=`<div class="onb-in">
     <div class="onb-top"><span class="onb-dots">${ONB.map((_,i)=>`<i class="${i===onbI?'on':''}"></i>`).join('')}</span>${o.last?'':`<button class="onb-skip" onclick="endOnb()">Пропустить</button>`}</div>
@@ -5407,7 +5432,10 @@ try{ const t=localStorage.getItem(KEY+'-tab'); if(t && SCREENS[t] && t!=='order'
 try{ const r=localStorage.getItem(KEY+'-root'); secRoot=TOP_TABS.includes(tab)?secOf(tab):(['home','menu','profile'].includes(r)?r:(TAB_OF[tab]||'home')); }catch(e){ secRoot=TAB_OF[tab]||'home'; }
 // после перезагрузки истории приложения нет — убираем старые записи из истории браузера, чтобы свайп «назад» не был «мёртвым»
 try{ const k=history.state&&history.state.nav; if(k>0){ navSkip++; history.go(-k); } }catch(e){}
+try{ const nd=sessionStorage.getItem('newDay'); if(nd){ sessionStorage.removeItem('newDay'); S.day=Math.max(S.day,+nd); } }catch(e){}   // новый гость — в то же «сегодня», что и прошлый профиль
 try{ const k=sessionStorage.getItem('labPreset'); if(k){ sessionStorage.removeItem('labPreset'); labApplyPreset(k); } }catch(e){}
+try{ const ph=sessionStorage.getItem('newAcc'); if(ph){ sessionStorage.removeItem('newAcc'); Object.assign(S,{phone:ph,name:'',last:'',regDone:0,onb:0,authed:false}); authStep='code'; save(); render(false); } }catch(e){}
+try{ if(sessionStorage.getItem('authCode')){ sessionStorage.removeItem('authCode'); S.authed=false; authStep='code'; save(); render(false); } }catch(e){}
 render(false);
 if(S.authed && !S.onb) setTimeout(openOnb,300);
 setTimeout(refCheck,600);   // друг выполнил условия, пока гостя не было — праздник при входе
