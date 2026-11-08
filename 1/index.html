@@ -835,6 +835,11 @@ main.nav-fwd,main.nav-back{animation:none}
 .note .dot{width:10px;height:10px;border-radius:50%;background:#e53935}
 /* 24.10: подарок, профиль гостя и переписка — на весь экран, без кусочка страницы сверху */
 .sheet-bg.full{background:var(--bg)}
+.sheet{--sh-pt:20px}.sheet.full{--sh-pt:calc(16px + env(safe-area-inset-top,0px))}
+.sheet-hd{position:sticky;top:calc(-1 * var(--sh-pt));z-index:6;display:flex;align-items:center;gap:12px;margin:calc(-1 * var(--sh-pt)) -16px 0;padding:var(--sh-pt) 16px 10px;background:var(--bg);border-bottom:1px solid transparent;transition:border-color .15s}
+.sheet-hd.stuck{border-bottom-color:var(--line)}
+.sheet-hd h2{flex:1;min-width:0;margin:0}
+.sheet-hd .sheet-x{position:static;margin:0;flex:none;align-self:center}
 .sheet.full{max-height:100%;height:100%;border-radius:0;padding-top:calc(16px + env(safe-area-inset-top,0px))}
 .offer.me{min-height:250px}
 .offer.me .title,.offer.me .meta,.offer.me .why{max-width:57%;position:relative}
@@ -3724,7 +3729,7 @@ function openTiers(){
     <div class="gift-row"><span class="gi">⏳</span><span class="tx"><b>Приз живёт ${GIFT_DAYS} дня</b><small>Приз из сундука или за посещения — забери за ${GIFT_DAYS} дня, потом сгорит<br>Подарок от друга ждёт 30 дней</small></span></div>
     <div class="gift-row"><span class="gi">❄️</span><span class="tx"><b>Заморозка</b><small>Спасает счётчик посещений<br>А призы — только за настоящие посещения</small></span></div>
     </div>
-    ${cur.k!=='plat'&&S.plus?`<button class="btn ghost block" onclick="demoPlat()">Демо: стать Платиновым</button>`:''}`);
+    ${cur.k!=='plat'&&S.plus?`<button class="btn ghost block" onclick="demoPlat()">Демо: стать Платиновым</button>`:''}`,1);
 }
 const MON_N=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function openVisits(){
@@ -4293,7 +4298,7 @@ function openRules(){
     <div class="rl-cards">${RULES().map(r=>`<${r.go?'button':'div'} class="rl-c"${r.go?` onclick="closeSheet();${r.go}"`:''}>
       <div class="rl-hd"><span class="rl-ic" style="background:${r.c}">${r.ic}</span><b>${r.t}</b>${r.go?'<span class="rl-go">›</span>':''}</div>
       <p class="rl-m">${r.m}</p>${r.x||''}
-      <ul class="rl-f">${r.f.map(x=>`<li>${x}</li>`).join('')}</ul></${r.go?'button':'div'}>`).join('')}</div>`);
+      <ul class="rl-f">${r.f.map(x=>`<li>${x}</li>`).join('')}</ul></${r.go?'button':'div'}>`).join('')}</div>`,1);
 }
 
 /* ---------- Поиск по приложению (владелец 22.10: «очень точный, с полуслова»; модель согласована с критиком) ----------
@@ -5013,10 +5018,14 @@ function openLegend(){
 const SHX='<button class="sheet-x" onclick="closeSheet()" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; // крестик закрытия во всех шторках (вместо свайпа)
 /* 26.10 (владелец: «включаю-выключаю — страницу передёргивает»): если окно уже открыто, новое содержимое ставим В ТО ЖЕ окно —
    без повторного выезда снизу и на том же месте прокрутки. Так любой перерисовщик (drawGift, drawKassa, tpCheck…) не дёргает экран */
+/* 8.11 (владелец + критик): заголовок шторки и ✕ — одной липкой строкой на сплошном фоне: при прокрутке заголовок виден,
+   ✕ не висит поверх содержимого, текст уходит под шапку, а не обрезается краем. Шторки без заголовка в начале — как раньше */
+function shHead(html){ const m=html.match(/^\s*<h2>([\s\S]*?)<\/h2>/); return m?`<div class="sheet-hd"><h2>${m[1]}</h2>${SHX}</div>${html.slice(m[0].length)}`:SHX+html; }
+function shWatch(n){ const hd=n&&n.querySelector(':scope > .sheet-hd'); if(!hd) return; const f=()=>hd.classList.toggle('stuck',n.scrollTop>4); n.addEventListener('scroll',f,{passive:true}); f(); }
 function sheet(html,full){ const old=document.querySelector('.sheet-bg');
   if(old){ supOpenNow=html.includes('id="suplist"'); clearInterval(qrTimer); const sh=old.querySelector('.sheet'), y=sh?sh.scrollTop:0, h=sh?sh.getBoundingClientRect().height:0, sh0=sh?sh.scrollHeight:0, t0=sh?(sh.querySelector('h2')||{}).textContent:'', norm=x=>(x||'').replace(/[\s\u00a0\u2060]+/g,' ').trim();
     old.className='sheet-bg'+(full?' full':'');
-    old.innerHTML=`<div class="sheet${full?' full':''} still" role="dialog" aria-modal="true">${SHX}${html}</div>`; const n=old.querySelector('.sheet');
+    old.innerHTML=`<div class="sheet${full?' full':''} still" role="dialog" aria-modal="true">${shHead(html)}</div>`; const n=old.querySelector('.sheet'); shWatch(n);
     // тот же экран окна (тот же заголовок) — высоту не меняем: окно прижато к низу, и рост/сжатие двигали бы всё содержимое; лишнее прокручивается внутри
     const same=!!t0&&norm((n.querySelector('h2')||{}).textContent)===norm(t0);   // типографика ставит неразрывные пробелы — сравниваем без них
     if(same&&h&&!full) n.style.height=h+'px';
@@ -5024,7 +5033,7 @@ function sheet(html,full){ const old=document.querySelector('.sheet-bg');
     if(same&&n.scrollHeight<sh0){ const pad=document.createElement('div'); pad.style.cssText='flex:none;height:'+(sh0-n.scrollHeight)+'px'; n.appendChild(pad); }
     n.scrollTop=y; return; }
   closeSheet(); supOpenNow=html.includes('id="suplist"'); const bg=document.createElement('div'); bg.className='sheet-bg'+(full?' full':''); bg.onclick=e=>{ if(e.target===bg) closeSheet() };
-  bg.innerHTML=`<div class="sheet${full?' full':''}" role="dialog" aria-modal="true">${SHX}${html}</div>`; document.body.appendChild(bg); lockScroll(); document.addEventListener('keydown',escClose); }
+  bg.innerHTML=`<div class="sheet${full?' full':''}" role="dialog" aria-modal="true">${shHead(html)}</div>`; document.body.appendChild(bg); shWatch(bg.querySelector('.sheet')); lockScroll(); document.addEventListener('keydown',escClose); }
 /* Пока открыта шторка — страница под ней замирает на месте, а после закрытия остаётся там же, где была */
 let sheetY=0;
 function lockScroll(){ const h=document.documentElement; if(h.classList.contains('sheet-open')) return; sheetY=scrollY; h.classList.add('sheet-open'); document.body.style.top=-sheetY+'px'; }
