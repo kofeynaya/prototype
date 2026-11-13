@@ -105,6 +105,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .mk-dl{font-size:11.5px;margin-left:4px}
 .mk-dl.up{color:var(--acc)} .mk-dl.dn{color:var(--red)}
 .mk-qa{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);margin-bottom:10px}
+.mk-wb .seg{display:flex;max-width:100%}.mk-wb .seg button{flex:1 1 auto}
 .mk-back{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;margin-bottom:8px}
 @media (max-width:860px){
   .mk-2{grid-template-columns:1fr}
@@ -563,6 +564,7 @@ PAGES.promos = r => {
       <td class="nowrap" onclick="event.stopPropagation()">${p.arch ? `<button class="btn sm" ${mkDis(ok)} onclick="mkPromoArch('${p.id}')">Вернуть</button>` : `${sw('mkon-' + p.id, p.on, (ok ? '' : 'disabled ') + `onchange="mkPromoToggle('${p.id}')"`)} <button class="btn sm ghost" title="В архив" ${mkDis(ok)} onclick="mkPromoArch('${p.id}')">🗄</button>`}</td></tr>`).join('')}
     </tbody></table></div>` : `<div class="card empty">${mkPT === 'sur' && !mkPQ && !mkPS ? 'Создайте первую надбавку к стоимости заказа — например, за упаковку или ночную доставку' : 'Ничего не нашли'}${ok && !mkPQ ? `<div style="margin-top:12px"><button class="btn pri" onclick="mkOpenPromo('','${mkPT}')">＋ Создать ${name}</button></div>` : ''}</div>`}`;
   }
+  setTimeout(() => { const t = $('#page .tabs button.on'); if (t && t.parentNode.scrollWidth > t.parentNode.clientWidth) t.parentNode.scrollLeft = t.offsetLeft - 16; }, 0);
   return ph('Акции', 'Скидки, промокоды и надбавки — как в Starter: с приоритетом, стопом других скидок, лимитами и ограничениями по времени, меню, кофейням и способу получения. Плюс наши персональные выгоды',
     `<button class="btn" onclick="mkPromoLog()">📜 История изменений</button>`)
   + (ok ? '' : noPerm('offers.edit') + '<div style="height:12px"></div>') + mkTabs(T, mkPT, 'mkPTab') + b;

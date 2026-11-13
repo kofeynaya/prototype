@@ -140,8 +140,7 @@ function cfExport() {
     csv(`klienty-${isoDay()}.csv`, [CF_COLS.map(c => c[1]), ...L.map(g => CF_COLS.map(([k]) => k === 'rfm' ? GS(g.id).code : cfVal(g, k)))]); audit('Экспорт клиентов', `${L.length} строк · ${esc(why)}`); save(); }});
 }
 function cfMail() { const s = {id:'tmp-' + Date.now().toString(36), n:'Фильтр клиентов ' + new Date().toTimeString().slice(0, 5), c:clone(cf.c)};
-  if (cf.c.length) { if (cf.seg) s.id = cf.seg; else { DB.segments.push(s); save(); } pz.aud = 'seg'; pz.seg = s.id; } else pz.aud = 'all';
-  location.hash = PAGES.mailings ? '#/mailings/new' : '#/push'; }
+  if (cf.c.length) { if (cf.seg) s.id = cf.seg; else { DB.segments.push(s); save(); } mailSeg(s.id); } else mailSeg(); }
 let impTab = 'file';
 function cfImport() {
   modal({t:'Импорт сегмента', body:`<p class="small muted" style="margin-top:0">Список телефонов → сегмент для рассылки. Подходят XLSX/CSV с телефонами в первом столбце или список вручную</p>
@@ -239,7 +238,7 @@ function segCl(c, a) {
   return `<div class="btns" style="margin:4px 0 10px"><button class="btn sm" onclick="csv('segment.csv',[['ID','Имя','Телефон','RFM'],...DB.guests.filter(g=>GS(g.id).cl==='${c}').map(g=>[g.id,gName(g),g.ph,GS(g.id).code])]);audit('Экспорт сегмента','${c}');save()">Экспортировать</button>${can('push.send') ? `<button class="btn sm pri" onclick="segMailCl('${c}')">Создать рассылку</button>` : ''}</div>
   <div class="tw"><table><thead><tr><th>Сегмент</th><th class="c">R</th><th class="c">F</th><th class="c">M</th><th>RFM</th><th class="r">Клиентов</th><th class="r">Push</th><th class="r">Принесли денег</th></tr></thead><tbody>${Object.entries(codes).sort().map(([k, L]) => `<tr><td>${esc(RFM_NAME(k))}</td><td class="c">${k[0]}</td><td class="c">${k[1]}</td><td class="c">${k[2]}</td><td><span class="cr-rfm">${k}</span></td><td class="r">${L.length}</td><td class="r">${L.filter(g => g.push).length}</td><td class="r">${rub(L.reduce((x, g) => x + GS(g.id).sum, 0))}</td></tr>`).join('')}</tbody></table></div>`;
 }
-function segMailCl(c) { let s = DB.segments.find(x => x.c.length === 1 && x.c[0].f === 'rfmCl' && x.c[0].v === c); if (!s) { s = {id:'s' + Date.now().toString(36), n:'RFM: ' + c, c:[{f:'rfmCl', v:c}]}; DB.segments.push(s); save(); } pz.aud = 'seg'; pz.seg = s.id; location.hash = PAGES.mailings ? '#/mailings/new' : '#/push'; }
+function segMailCl(c) { let s = DB.segments.find(x => x.c.length === 1 && x.c[0].f === 'rfmCl' && x.c[0].v === c); if (!s) { s = {id:'s' + Date.now().toString(36), n:'RFM: ' + c, c:[{f:'rfmCl', v:c}]}; DB.segments.push(s); save(); } mailSeg(s.id); }
 
 /* ───────── Лояльность — вкладки Starter + наши механики ───────── */
 DB.loy = DB.loy || {

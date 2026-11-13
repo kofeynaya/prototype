@@ -155,7 +155,7 @@ DB.content = DB.content || {
 let ctTab = 'onb';
 PAGES.content = () => {
   const ro = !can('content.edit'), c = DB.content, dis = ro ? 'disabled' : '';
-  const T = [['onb','Онбординг'],['stories','Сторис'],['banners','Баннеры в меню'],['rules','«Как всё устроено»'],['texts','Ключевые тексты']];
+  const T = [['onb','Онбординг'],['banners','Баннеры в меню'],['rules','«Как всё устроено»'],['texts','Ключевые тексты']]; if (ctTab === 'stories') ctTab = 'onb';
   const inp = (path, v, ph_ = '', area) => area ? `<textarea class="inp" ${dis} onchange="ctSet('${path}',this.value)" placeholder="${ph_}">${esc(v)}</textarea>` : `<input class="inp" ${dis} value="${esc(v)}" placeholder="${ph_}" onchange="ctSet('${path}',this.value)">`;
   let b = '';
   if (ctTab === 'onb') b = `<p class="muted">4 экрана после первого входа. На каждом — выгода, а не описание механики. Одна мысль на экран</p>` + c.onb.map((o, i) => `<div class="card"><h3>Экран ${i + 1}</h3><label class="fld" style="margin-top:10px"><span>Заголовок</span>${inp(`onb.${i}.t`, o.t)}</label><label class="fld"><span>Текст</span>${inp(`onb.${i}.s`, o.s, '', 1)}</label>${pzWarn(textCheck(o.t, o.s))}</div>`).join('');
@@ -167,7 +167,7 @@ PAGES.content = () => {
   if (ctTab === 'rules') b = `<div class="note" style="margin-bottom:12px">⚠️ <span>Меняете правило механики — сразу правьте его карточку здесь. Раньше тексты устаревали («7 дней на решение», «рейтинг в Турбо»)</span></div>` + c.rules.map((r, i) => `<div class="card"><div class="row"><label class="fld" style="max-width:80px"><span>Значок</span>${inp(`rules.${i}.ic`, r.ic)}</label><label class="fld"><span>Название</span>${inp(`rules.${i}.t`, r.t)}</label></div>
     <label class="fld"><span>Суть одной строкой</span>${inp(`rules.${i}.m`, r.m)}</label><label class="fld"><span>Факты — через «|», без точек</span>${inp(`rules.${i}.f`, r.f)}</label>${pzWarn(textCheck(r.m, r.f))}</div>`).join('');
   if (ctTab === 'texts') b = `<p class="muted">Тексты, которые встречаются на многих экранах. В продукте — один источник, здесь</p><div class="card">` + c.texts.map((t, i) => `<div class="prm"><div class="l"><b>${esc(t.k)}</b></div><div>${inp(`texts.${i}.v`, t.v)}</div></div>`).join('') + '</div>';
-  return ph('Сторис, баннеры, тексты', 'Всё, что гость читает. Правила: понятно с первого взгляда, без внутренних слов, точка в конце одной фразы не ставится, ₽ и % не отрываются от числа')
+  return ph('Экраны и тексты', 'Онбординг, баннеры, справка и ключевые тексты. Сторис — в <a href="#/stories">«Маркетинг → Сторис»</a>. Правила: понятно с первого взгляда, без внутренних слов, точка в конце одной фразы не ставится, ₽ и % не отрываются от числа')
     + (ro ? noPerm('content.edit') : '') + `<div class="tabs">${T.map(([k, t]) => `<button class="${ctTab === k ? 'on' : ''}" onclick="ctTab='${k}';render()">${t}</button>`).join('')}</div>` + b;
 };
 function ctSet(path, v) { const p = path.split('.'), o = DB.content[p[0]][+p[1]], w = o[p[2]]; o[p[2]] = typeof v === 'string' ? nbspFix(v) : v; audit('Контент: ' + p[0], `${esc(o.t || o.k || o.img || '')}: <span class="diff"><s>${esc(w)}</s> → <ins>${esc(v)}</ins></span>`); save(); render(); }

@@ -122,8 +122,8 @@ function catSet(i, k, v) { const c = DB.cats[i], w = c[k]; if (k === 'hours' && 
 function catAdd() { modal({t:'Новый раздел', body:'<label class="fld"><span>Название</span><input class="inp" id="cn"></label>', ok:'Добавить', onOk:() => { const n = val('cn'); if (n.length < 2) return false; DB.cats.push({id:'c' + Date.now().toString(36), name:n, hours:'', on:true}); audit('Новый раздел', esc(n)); save(); render(); }}); }
 
 /* ── кофейни и доставка ── */
-PAGES.shops = () => ph('Кофейни и доставка', 'Адреса, часы, способы получения, временное закрытие, фото и зоны доставки', can('shops.edit') ? '<button class="btn pri" onclick="editShop(-1)">＋ Кофейня</button>' : '')
-  + `<div class="grid g3">${DB.shops.map((s, i) => `<div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="editShop(${i})"><img src="${esc(s.img)}" alt="" style="width:100%;height:120px;object-fit:cover;display:block;background:var(--surface2)">
+PAGES.shops = () => ph('Зоны доставки и кофейни', 'Зоны доставки — внизу. Нажмите на кофейню — откроется её карточка, как в «Точки → Точки продаж»', can('shops.edit') ? '<button class="btn pri" onclick="editShop(-1)">＋ Кофейня</button>' : '')
+  + `<div class="grid g3">${DB.shops.map((s, i) => `<div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="location.hash='#/shop/${i}'"><img src="${esc(s.img)}" alt="" style="width:100%;height:120px;object-fit:cover;display:block;background:var(--surface2)">
     <div style="padding:12px 14px"><h3>${esc(s.n)}</h3><div class="small muted">${esc(s.a)}</div><div class="small" style="margin-top:6px">Будни ${esc(s.wd)} · выходные ${esc(s.we)}</div>
     <div class="btns" style="margin-top:8px">${s.t.map(t => `<span class="pill">${WAYS[t]}</span>`).join('')}${s.closed ? `<span class="pill red">${esc(s.closed)}</span>` : ''}</div></div></div>`).join('')}</div>
   <div class="card"><div class="card-h"><h2>Зоны доставки</h2><span class="sp"></span>${can('shops.edit') ? '<button class="btn sm" onclick="DB.zones.push({n:\'Новая зона\',min:700,fee:150,free:1500,eta:\'60–80 мин\'});save();render()">＋ Зона</button>' : ''}</div>
