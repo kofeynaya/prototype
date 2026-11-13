@@ -101,12 +101,7 @@ function opModalBtn(label, fn, cls = '') {   /* третья кнопка в п�
   const f = [...$$('[data-modal]')].pop().querySelector('.md-f'), b = document.createElement('button');
   b.className = 'btn ' + cls; b.textContent = label; b.onclick = fn; f.insertBefore(b, f.querySelector('#mdOk'));
 }
-function opNested(o) {   /* окно поверх окна: если второе закрыли без «ОК», первому возвращаем его кнопку */
-  const prev = _onOk, ok = o.onOk; let done = false;
-  modal({...o, onOk: () => { done = true; const r = ok(); if (r === false) done = false; return r; }});
-  const el = [...$$('[data-modal]')].pop(), mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); if (!done) _onOk = prev; } });
-  mo.observe($('#layer'), {childList: true});
-}
+const opNested = o => modal(o);   /* окно поверх окна: у каждого окна в ядре своя кнопка «ОК» (стек) */
 document.addEventListener('click', e => { if (!e.target.closest('.op-more')) $$('.op-menu.on').forEach(m => m.classList.remove('on')); });
 
 /* ───────── данные ───────── */
@@ -175,7 +170,7 @@ PAGES.shops2 = () => {
   const L = DB.shops.map((s, i) => [s, i]).filter(([s]) => (!q || (s.n + ' ' + s.a).toLowerCase().includes(q) || (qd.length > 2 && opDig(s.phone).includes(qd)))
     && (!opS2.act || opActKey(s) === opS2.act) && (!opS2.load || String(s.load.kitchen) === opS2.load && s.load.panel !== 'none'));
   return ph('Точки продаж', `Всего ${DB.shops.length} ${plural(DB.shops.length, 'точка', 'точки', 'точек')}. Нажмите на точку — откроются активность, график, загрузка, контакты, сборка, доставка и предзаказ`,
-    `<a class="btn" href="#/loadpanel/${DB.ops2.main}">⏱ Панель загрузки</a>`)
+    `<a class="btn" href="admin/#/loadpanel/${DB.ops2.main}">⏱ Панель загрузки</a>`)
   + `<div class="filters"><div class="search">${SEARCH_SVG}<input class="inp" placeholder="Название, адрес или телефон" value="${esc(opS2.q)}" onchange="opS2.q=this.value;render()"></div>
     <select class="inp" style="width:auto" onchange="opS2.act=this.value;render()">${opOpt([['', 'Любая активность'], ['on', 'Включена'], ['closed', 'Временно закрыта'], ['stop', 'Приём заказов на стопе'], ['off', 'Отключена']], opS2.act)}</select>
     <select class="inp" style="width:auto" onchange="opS2.load=this.value;render()">${opOpt([['', 'Любая загрузка'], ...LOAD_M.map(m => [String(m[0]), m[1]])], opS2.load)}</select>
@@ -187,7 +182,7 @@ PAGES.shops2 = () => {
     <td class="nowrap">${opTodayHr(s)}</td><td class="small">${esc(s.a)}</td><td class="nowrap small">${s.phone ? esc(s.phone) : '<span class="muted">—</span>'}</td>
     <td class="small">${(s.t || []).includes('delivery') ? (DSVC.find(d => d[0] === s.dsvc) || DSVC[0])[1] : '<span class="muted">нет доставки</span>'}</td>
     <td class="r nowrap">${s.asm} мин</td><td>${s.pre.on ? '<span class="pill ok">вкл</span>' : '<span class="pill">выкл</span>'}</td>
-    <td onclick="event.stopPropagation()"><a class="btn sm" href="#/loadpanel/${i}" title="Панель управления загрузкой">⏱</a></td></tr>`).join('')}
+    <td onclick="event.stopPropagation()"><a class="btn sm" href="admin/#/loadpanel/${i}" title="Панель управления загрузкой">⏱</a></td></tr>`).join('')}
   </tbody></table>${L.length ? '' : '<div class="empty">Ничего не нашли — измените поиск или фильтры</div>'}</div>`;
 };
 
@@ -203,11 +198,11 @@ const OPT_TABS = [['act', 'Активность'], ['sched', 'График ра�
 PAGES.shop = r => {
   opFixAll();
   const i = +r[1];
-  if (!DB.shops[i] || isNaN(i)) return ph('Точка не найдена') + '<div class="card empty">Такой точки нет. <a href="#/shops2">К списку точек</a></div>';
+  if (!DB.shops[i] || isNaN(i)) return ph('Точка не найдена') + '<div class="card empty">Такой точки нет. <a href="admin/#/shops2">К списку точек</a></div>';
   const s = opDraft(i), ro = opRO('shops.edit'), live = DB.shops[i];
   if (r[2] && OPT_TABS.some(t => t[0] === r[2])) opSD.tab = r[2];   /* вкладка — в адресе: #/shop/4/load */
   const dirty = opDirty();
-  return `<a class="op-back" href="#/shops2">← Назад</a>`
+  return `<a class="op-back" href="admin/#/shops2">← Назад</a>`
   + ph(`${esc(live.n)}${i === DB.ops2.main ? ' <span class="star" title="Главная точка">★</span>' : ''} ${opActPill(live)}`, esc(live.a),
     `<button class="btn pri" ${dirty && !ro ? '' : 'disabled'} onclick="opShopSave()">Сохранить изменения</button>${dirty ? `<button class="btn" onclick="opSD=null;render()">Отменить</button>` : ''}
      <span class="op-more"><button class="btn" aria-label="Ещё" onclick="this.nextElementSibling.classList.toggle('on')">⋯</button><span class="op-menu">
@@ -239,7 +234,7 @@ const OPT = {
       <div class="op-grp"><b>Применить настройки ко всем точкам?</b><span class="sp" style="flex:1"></span><button class="btn sm" ${ro} onclick="opAll(${i},'sched')">Применить ко всем</button></div>
     </div><div>${opHelp([['Как задать график', 'Отметьте дни и время. День, не попавший ни в одну группу, — выходной: заказать в этот день можно только предзаказом'], ['Зависит от способа получения', 'Например, за столик — до 22:00, а доставка — до 21:00, потому что курьеру нужно время']])}</div></div>`; },
   load: (s, i, ro) => `<div class="op-side2"><div>
-    <div class="op-sec"><div class="card-h" style="margin:0 0 8px"><h3 style="margin:0">Время получения срочного заказа</h3><span class="sp"></span><a class="btn sm" href="#/loadpanel/${i}">⏱ Панель управления</a></div>
+    <div class="op-sec"><div class="card-h" style="margin:0 0 8px"><h3 style="margin:0">Время получения срочного заказа</h3><span class="sp"></span><a class="btn sm" href="admin/#/loadpanel/${i}">⏱ Панель управления</a></div>
       <div class="seg"><button class="${s.load.urgent === 'exact' ? 'on' : ''}" ${ro} onclick="opSet('load.urgent','exact')">Точное время</button><button class="${s.load.urgent === 'interval' ? 'on' : ''}" ${ro} onclick="opSet('load.urgent','interval')">Интервалы</button></div>
       <p class="small muted">${s.load.urgent === 'exact' ? 'Гость увидит одно время: «Готово к 12:40»' : 'Подойдёт при высокой загрузке и сложной логистике. Гость увидит интервал: «Готово к 12:35–12:45»'}</p></div>
     <div class="op-sec"><h3>Панель управления загрузкой</h3>
@@ -272,7 +267,7 @@ const OPT = {
           : '<dt>Client ID и Secret</dt><dd><span class="pill">🔒 хранятся на сервере</span></dd>'}</dl>
         <p class="small muted" style="margin:8px 0 0">Ключи в панели не вводят и не показывают — их кладёт разработчик на сервер</p></div>` : ''}
       <label class="chk" style="margin-top:14px"><input type="checkbox" ${ro} ${s.outZone ? 'checked' : ''} onchange="opSet('outZone',this.checked)"> Запрос на доставку вне зоны — гость оставит заявку, если адрес вне зон</label>
-    </div><div>${opHelp([['Стартер Логист', 'Свой сервис Starter: подбирает курьера среди нескольких служб. Подключается через поставщика'], ['Заявки на доставку', 'Все вызовы курьеров видны в разделе <a href="#/deliveries">«Доставки»</a> с Claim_ID внешней службы']])}</div></div>`; },
+    </div><div>${opHelp([['Стартер Логист', 'Свой сервис Starter: подбирает курьера среди нескольких служб. Подключается через поставщика'], ['Заявки на доставку', 'Все вызовы курьеров видны в разделе <a href="admin/#/deliveries">«Доставки»</a> с Claim_ID внешней службы']])}</div></div>`; },
   pre: (s, i, ro) => { const ways = s.t.length ? s.t : ['pickup'], k = s.pre.mode === 'common' ? 'common' : (ways.includes(opSD.pway) ? opSD.pway : ways[0]); opSD.pway = k;
     const sl = s.pre.slots[k] = s.pre.slots[k] || clone(s.pre.slots.common || {iv: 30, step: 30, max: ''});
     const g = (s.sched.common.find(x => x.d.includes(opDow())) || {f: '09:00'}), st = opMin(g.f), t0 = st[0] * 60 + (st[1] || 0);
@@ -322,15 +317,16 @@ function opSyncHours(s) {   /* «Будни / выходные» для прил
 }
 const OP_SEC = {sched: 'график', load: 'управление загрузкой', fa: 'фактический адрес', phone: 'телефон', emerg: 'экстренный контакт', tg: 'Telegram id', max: 'MAX id', asm: 'время сборки', dsvc: 'сервис доставки', outZone: 'заявки вне зоны', ytar: 'тариф Яндекс Доставки', pre: 'предзаказ', closeMsg: 'сообщение о закрытии'};
 function opShopSave() {
-  if (!can('shops.edit')) return;
+  if (!can('shops.edit')) return false;
   const i = opSD.i, s = opSD.s, old = DB.shops[i];
-  const e = opSchedCheck(s) || opPreCheck(s); if (e) { toast(e); return; }
+  const e = opSchedCheck(s) || opPreCheck(s); if (e) { toast(e); return false; }
   opSyncHours(s);
   const ch = Object.keys(OP_SEC).filter(k => JSON.stringify(old[k]) !== JSON.stringify(s[k])).map(k =>
     ['asm', 'phone', 'fa', 'emerg', 'tg', 'max', 'dsvc', 'closeMsg'].includes(k) ? `${OP_SEC[k]} ${opDiff(old[k] || '—', s[k] || '—')}` : OP_SEC[k]);
   const live = {...s, act: old.act, closed: old.closed, load: {...s.load, kitchen: old.load.kitchen, couriers: old.load.couriers, stopAll: old.load.stopAll, stopDel: old.load.stopDel}};
   DB.shops[i] = live; opSD.s = clone(live);
   audit('Изменили точку ' + old.n, ch.join(' · ') || 'без изменений', {shop: i}); save(); render(); toast('Сохранено ✓');
+  return true;
 }
 function opAct(i, a) {
   if (!can('shops.edit')) return;
@@ -391,10 +387,10 @@ PAGES.loadpanel = r => {
   const zs = DB.zones.map((z, k) => [z, k]), act = zs.filter(([z]) => !z.off), zl = opLP.zf === 'on' ? act : opLP.zf === 'off' ? zs.filter(([z]) => z.off) : zs;
   const modes = (k, dis) => `<div class="op-modes">${LOAD_M.map(([v, t, sub]) => `<button class="op-mode ${s.load[k] === v ? 'on' : ''}" ${ro || dis} onclick="opMode(${i},'${k}',${v})">${t}<small>${sub}</small></button>`).join('')}</div>`;
   const pk = s.asm, kd = opShift(s), cd = s.load.panel === 'none' ? 0 : s.load.couriers;
-  return `<a class="op-back" href="#/shops2">← Точки продаж</a>`
+  return `<a class="op-back" href="admin/#/shops2">← Точки продаж</a>`
   + `<div class="filters"><select class="inp" style="width:auto;font-weight:600" onchange="location.hash='#/loadpanel/'+this.value">${DB.shops.map((x, k) => `<option value="${k}" ${k === i ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select>
     <div class="seg"><button class="${opLP.tab === 'load' ? 'on' : ''}" onclick="opLP.tab='load';render()">⏱ Загрузка</button><button class="${opLP.tab === 'map' ? 'on' : ''}" onclick="opLP.tab='map';render()">📍 Карта доставки</button></div>
-    <span style="flex:1"></span>${opActPill(s)}<a class="btn sm" href="#/shop/${i}/load">Настройки точки</a></div>`
+    <span style="flex:1"></span>${opActPill(s)}<a class="btn sm" href="admin/#/shop/${i}/load">Настройки точки</a></div>`
   + (ro ? noPerm('shops.edit') : '')
   + (s.load.panel === 'none' ? '<div class="note blue" style="margin-bottom:12px">ℹ️ <span>У точки панель «без изменения времени»: режимы видны сотрудникам, но время для гостя не меняется. Поменять — в «Настройки точки → Управление загрузкой»</span></div>' : '')
   + (opLP.tab === 'map' ? opMap(s, i, ro) : `<div class="op-lp"><div class="card">
@@ -439,7 +435,7 @@ function opMap(s, i, ro) {
       <text x="${C}" y="${C - R(k) + 16}" text-anchor="middle" font-size="12" font-weight="600" style="fill:var(--ink)">${esc(z.n)} · ${esc(z.eta)}</text>`; }).join('')}
     <circle cx="${C}" cy="${C}" r="9" fill="#e53935" stroke="#fff" stroke-width="3"/><text x="${C}" y="${C + 26}" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--ink)">${esc(s.n)}</text></svg>
     <p class="small muted" style="margin:8px 0 0">Схема без подложки карты: в продукте зоны рисуются на карте города</p></div>
-    <div class="card"><h3>Зоны доставки</h3><p class="small muted">Выключенная зона пропадает у гостя при выборе адреса. Цены и минимальный заказ — в «Кофейни и доставка»</p>
+    <div class="card"><h3>Зоны доставки</h3><p class="small muted">Выключенная зона пропадает у гостя при выборе адреса. Цены, минимальный заказ и время — в <a href="admin/#/zones">«Зоны доставки»</a></p>
     ${zs.map((z, k) => `<label class="tog" style="padding:10px 0;border-top:1px solid var(--line)"><span><b>${esc(z.n)}</b><br><span class="small muted">${esc(z.eta)} · от ${rub(z.min)}</span></span>${sw('opZ' + k, !z.off, `${ro} onchange="opZone(${k},this.checked)"`)}</label>`).join('') || '<div class="empty">Зон нет</div>'}</div></div>`;
 }
 function opZone(k, on) { const z = DB.zones[k]; z.off = !on; audit(on ? 'Включили зону доставки' : 'Выключили зону доставки', esc(z.n)); save(); render(); }
@@ -671,7 +667,7 @@ PAGES.bills = () => {
     ${Object.entries(opBF).some(([k, v]) => k !== 'lim' && v !== '') ? `<button class="btn sm ghost" onclick="opBF={from:'',to:'',st:'',min:'',max:'',type:'',shop:'',org:'',lim:100};render()">Сбросить</button>` : ''}</div>
   <div class="tw"><table><thead><tr><th>№</th><th>Статус</th><th class="r">Сумма</th><th>Создан</th><th>Оплачен</th><th>№ заказа POS</th><th>№ заказа</th><th>Организация</th><th>Тип счёта</th><th>Телефон клиента</th><th>Карта</th><th class="c">Чеки</th></tr></thead><tbody>
   ${L.slice(0, opBF.lim).map(b => `<tr class="click" onclick="opBill('${b.id}')"><td class="nowrap">${b.id}</td><td>${opBPill(b.st)}</td><td class="r nowrap">${rub(b.sum)}</td><td class="nowrap small">${dShort(b.at)} ${b.at.slice(11, 16)}</td><td class="nowrap small">${b.paid ? `${dShort(b.paid)} ${b.paid.slice(11, 16)}` : '—'}</td>
-    <td class="small">${b.pos || '—'}</td><td onclick="event.stopPropagation()">${b.o ? `<a href="javascript:void 0" onclick="openOrder('${b.o}')">${b.o}</a>` : '—'}</td><td class="small nowrap">${esc(b.org)}</td><td class="small">${b.type}</td><td class="nowrap small">${esc(b.ph)}</td><td class="nowrap small">${esc(b.card)}</td><td class="c">${b.st === 'Оплачен' || b.st === 'Возвращен' ? '🧾' : ''}</td></tr>`).join('')}
+    <td class="small">${b.pos || '—'}</td><td>${b.o ? `<a href="javascript:void 0" onclick="event.stopPropagation();openOrder('${b.o}')">${b.o}</a>` : '—'}</td><td class="small nowrap">${esc(b.org)}</td><td class="small">${b.type}</td><td class="nowrap small">${esc(b.ph)}</td><td class="nowrap small">${esc(b.card)}</td><td class="c">${b.st === 'Оплачен' || b.st === 'Возвращен' ? '🧾' : ''}</td></tr>`).join('')}
   </tbody></table>${L.length ? '' : '<div class="empty">Счетов по этим условиям нет</div>'}</div>
   ${L.length > opBF.lim ? `<div class="btns" style="margin-top:10px"><button class="btn" onclick="opBF.lim+=200;render()">Показать ещё</button><span class="small muted">показано ${nf(opBF.lim)} из ${nf(L.length)}</span></div>` : ''}`;
 };
@@ -729,7 +725,7 @@ function opBillCreate() {
     ok: 'Создать счёт', onOk: () => {
       const id = 'B' + DB.ops2.billNo++;
       DB.ops2.bills.unshift({id, st: 'Не оплачен', sum, at: opNow(), paid: '', get: t, pos: '', o: '', shop: DB.shops[k].n, org: opOrgOf(DB.shops[k].n), type: 'Ручной', ph: opPhF(ph_), card: '—', lines: lines.map(l => ({n: l.n.trim(), p: +l.p, q: l.q})), by: ME().n});
-      audit('Создали счёт', `${id} на ${rub(sum)} · ${opPhF(ph_)} · ${esc(DB.shops[k].n)}`); save(); closeModal(); render(); toast(`Счёт ${id} на ${rub(sum)} создан — ссылка ушла гостю`);
+      audit('Создали счёт', `${id} на ${rub(sum)} · ${opPhF(ph_)} · ${esc(DB.shops[k].n)}`); save(); closeModal(); closeModal(); render(); toast(`Счёт ${id} на ${rub(sum)} создан — ссылка ушла гостю`); return false;
     }});
   return false;
 }
@@ -791,7 +787,7 @@ PAGES.blacklist = () => {
   + (ro ? noPerm('guests.block') : '')
   + `<div class="filters"><div class="search">${SEARCH_SVG}<input class="inp" placeholder="Телефон или имя" value="${esc(opBQ)}" onchange="opBQ=this.value;render()"></div></div>
   <div class="tw"><table><thead><tr><th>Телефон</th><th>Гость</th><th>Причина</th><th>Кто</th><th>Когда</th><th></th></tr></thead><tbody>
-  ${L.map(r => `<tr><td class="nowrap"><b>${opPhF(r.d)}</b></td><td>${r.g ? `<a href="#/guest/${r.g.id}">${esc(gName(r.g))}</a>` : '<span class="muted small">не гость приложения</span>'}</td><td class="small">${r.why}${r.card ? ' <span class="pill">из карточки</span>' : ''}</td>
+  ${L.map(r => `<tr><td class="nowrap"><b>${opPhF(r.d)}</b></td><td>${r.g ? `<a href="admin/#/guest/${r.g.id}">${esc(gName(r.g))}</a>` : '<span class="muted small">не гость приложения</span>'}</td><td class="small">${r.why}${r.card ? ' <span class="pill">из карточки</span>' : ''}</td>
     <td class="small">${esc(r.by)}</td><td class="nowrap small">${r.at ? tm(r.at) : '—'}</td><td><button class="btn sm" ${ro} onclick="opBlDel('${r.d}')">Убрать</button></td></tr>`).join('')}
   </tbody></table>${L.length ? '' : `<div class="empty">${all.length ? 'Никого не нашли' : 'Список пуст — никто не заблокирован'}</div>`}</div>`;
 };
@@ -858,7 +854,7 @@ PAGES.settings = () => {
       <label class="tog" style="padding:6px 0"><span>Авторизация через VK ID</span>${sw('opVk', c.vk, ro)}</label>
       <label class="tog" style="padding:6px 0"><span>Авторизация через Яндекс ID</span>${sw('opYa', c.ya, ro)}</label>
       <p class="small muted" style="margin:4px 0 0">Вход по номеру и коду из СМС работает всегда</p></div>
-    <div class="op-sec"><h3>Клиенты</h3><label class="fld" style="max-width:300px"><span>Срок активности клиента в RFM</span><div class="u-wrap"><input class="inp" id="opRfm" ${ro} inputmode="numeric" value="${c.rfmDays}"><i>дней</i></div>
+    <div class="op-sec"><h3>Клиенты</h3><label class="fld"><span>Срок активности клиента в RFM</span><div class="u-wrap"><input class="inp" id="opRfm" ${ro} inputmode="numeric" value="${c.rfmDays}"><i>дней</i></div>
       <small>Гость без покупок дольше этого срока — «неактивный» в сегментах и отчётах</small></label></div>
     <div class="op-sec"><h3>Отзывы и аналитика</h3>
       <label class="fld"><span>Ссылка сервиса для получения отзывов</span><input class="inp" id="opRev" ${ro} placeholder="https://…" value="${esc(c.reviewUrl)}"></label>
@@ -889,7 +885,7 @@ PAGES.tickets = () => {
   const L = T.filter(t => (opTk.v === 'all' || (opTk.v === 'act') === tkOpen(t)) && (!opTk.st || t.st === opTk.st) && (!opTk.type || t.type === opTk.type)
     && (!opTk.q || String(t.id).includes(opTk.q) || t.t.toLowerCase().includes(opTk.q.toLowerCase()))).sort((a, b) => b.id - a.id);
   const prP = p => `<span class="pill ${p === 'Высокий' ? 'red' : p === 'Средний' ? 'amb' : ''}">${p}</span>`;
-  return ph('Тикеты', 'Обращения сети к поставщику приложения и разработчикам: ошибки, задачи, идеи. Обращения гостей — в <a href="#/support">«Поддержке»</a>',
+  return ph('Тикеты', 'Обращения сети к поставщику приложения и разработчикам: ошибки, задачи, идеи. Обращения гостей — в <a href="admin/#/support">«Поддержке»</a>',
     `<button class="btn" onclick="opTkChat()">💬 Чат с поддержкой</button>${ro ? '' : '<button class="btn pri" onclick="opTkNew()">＋ Создать тикет</button>'}`)
   + (ro ? noPerm('system') : '')
   + `<div class="filters"><select class="inp" style="width:auto;font-weight:600" onchange="opTk.v=this.value;render()">${opOpt([['act', `Активные · ${act}`], ['done', `Закрытые · ${T.length - act}`], ['all', `Все · ${T.length}`]], opTk.v)}</select>
@@ -927,3 +923,73 @@ function opTkOpen(id) {
       audit('Тикет #' + t.id, ch.join(' · ')); save(); render(); toast('Тикет обновлён');
     }});
 }
+
+/* ═════════ Зоны доставки (Точки → Зоны доставки) ═════════ */
+let opZD = null;   /* черновик зон: правки и удаление попадают в DB.zones только по «Сохранить» */
+const opZDirty = () => opZD && JSON.stringify(opZD) !== JSON.stringify(DB.zones);
+PAGES.zones = () => {
+  if (!opZD) opZD = clone(DB.zones);
+  const ro = opRO('shops.edit'), dirty = opZDirty(), del = DB.shops.filter(x => (x.t || []).includes('delivery')).map(x => x.n);
+  return ph('Зоны доставки', `Минимальный заказ, цена доставки и время по зонам. Доставляют: ${del.length ? del.map(esc).join(', ') : 'ни одна точка'}. Время на лету меняют в <a href="admin/#/loadpanel/${DB.ops2.main}">панели загрузки</a>`,
+    `<button class="btn" ${ro} onclick="opZD.push({n:'Новая зона',min:700,fee:150,free:1500,eta:'60–80 мин'});render()">＋ Зона</button>${dirty ? '<button class="btn" onclick="opZD=null;render()">Отменить</button>' : ''}<button class="btn pri" ${dirty && !ro ? '' : 'disabled'} onclick="opZoneSave()">Сохранить</button>`)
+  + (ro ? noPerm('shops.edit') : '') + (dirty ? '<div class="note" style="margin-bottom:12px">✏️ <span>Есть несохранённые изменения — нажмите «Сохранить»</span></div>' : '')
+  + `<div class="tw"><table><thead><tr><th>Зона</th><th>Мин. заказ, ₽</th><th>Доставка, ₽</th><th>Бесплатно от, ₽</th><th>Время</th><th>Работает</th><th></th></tr></thead><tbody>
+  ${opZD.map((z, k) => `<tr>${[['n', 160], ['min', 100], ['fee', 90], ['free', 100], ['eta', 120]].map(([f, w]) => `<td><input class="inp" style="min-width:${w}px" ${ro} ${f !== 'n' && f !== 'eta' ? 'inputmode="numeric"' : ''} value="${esc(z[f])}" onchange="opZSet(${k},'${f}',this.value)"></td>`).join('')}
+    <td>${sw('opZs' + k, !z.off, `${ro} onchange="opZD[${k}].off=!this.checked;render()"`)}</td><td><button class="x" ${ro} title="Удалить зону" onclick="opZDel(${k})">✕</button></td></tr>`).join('')}
+  </tbody></table>${opZD.length ? '' : '<div class="empty">Зон нет — доставка у гостя не появится</div>'}</div>
+  <p class="small muted">Время — так: «70–90 мин». Выключенная зона пропадает у гостя при выборе адреса</p>`;
+};
+function opZSet(k, f, v) { opZD[k][f] = ['min', 'fee', 'free'].includes(f) ? (+String(v).replace(/\D/g, '') || 0) : String(v).trim(); render(); }
+function opZDel(k) {
+  const z = opZD[k];
+  modal({t: 'Удалить зону?', body: `<p style="margin-top:0">«${esc(z.n)}» пропадёт у гостей: адреса из этой зоны станут «вне зоны доставки». Удаление сработает после «Сохранить»</p>`, ok: 'Удалить', cls: 'red',
+    onOk: () => { opZD.splice(k, 1); render(); }});
+}
+function opZoneSave() {
+  if (!can('shops.edit')) return false;
+  for (const z of opZD) {
+    if (z.n.length < 2) { toast('У каждой зоны — название'); return false; }
+    if (!/^\d+\s*[–-]\s*\d+\s*мин$/.test(z.eta) && !/^\d+\s*мин$/.test(z.eta)) { toast(`«${z.n}»: время так — 70–90 мин`); return false; }
+    if (z.free && z.free < z.min) { toast(`«${z.n}»: «Бесплатно от» меньше минимального заказа`); return false; }
+    z.eta = z.eta.replace(/\s*-\s*/, '–');
+  }
+  const old = DB.zones, ch = [];
+  opZD.forEach(z => { const o = old.find(x => x.n === z.n); if (!o) ch.push('новая ' + esc(z.n)); else if (JSON.stringify(o) !== JSON.stringify(z)) ch.push(esc(z.n) + ': ' + ['min', 'fee', 'free', 'eta', 'off'].filter(f => o[f] !== z[f]).map(f => f === 'off' ? (z.off ? 'выключена' : 'включена') : `${{min: 'мин. заказ', fee: 'доставка', free: 'бесплатно от', eta: 'время'}[f]} ${opDiff(o[f], z[f])}`).join(', ')); });
+  old.forEach(o => { if (!opZD.some(z => z.n === o.n)) ch.push('удалена ' + esc(o.n)); });
+  DB.zones = clone(opZD); audit('Зоны доставки', ch.join(' · ') || 'без изменений'); save(); render(); toast('Сохранено ✓');
+  return true;
+}
+
+/* ═════════ Уход с несохранёнными изменениями — как в Starter «Сохранить изменения?» ═════════ */
+const opDraftOf = h => { const r = String(h || '').replace(/^#\/?/, '').split('/');
+  if (r[0] === 'shop' && opSD && String(opSD.i) === r[1] && opDirty()) return {save: opShopSave, drop: () => { opSD = null; }};
+  if (r[0] === 'zones' && opZDirty()) return {save: opZoneSave, drop: () => { opZD = null; }};
+  return null; };
+const opSamePage = (a, b) => { const x = a.replace(/^#\/?/, '').split('/'), y = b.replace(/^#\/?/, '').split('/'); return x[0] === y[0] && (x[0] !== 'shop' || x[1] === y[1]); };
+let opHash = location.hash, opPending = null;
+const opMustAsk = next => !!opDraftOf(opHash) && !opSamePage(opHash, next);
+function opAsk(nextHash) {
+  const d = opDraftOf(opHash); if (!d) { location.hash = nextHash; return; }
+  modal({t: 'Сохранить изменения?', body: '<p style="margin-top:0">На странице есть несохранённые изменения. Если выйти без сохранения, они пропадут</p>', ok: 'Сохранить', cancel: 'Остаться',
+    onOk: () => { if (d.save() === false) return false; closeModal(); location.hash = nextHash; return false; }});
+  opModalBtn('Выйти без сохранения', () => { d.drop(); closeModal(); location.hash = nextHash; });
+}
+function opGuardLeave(nextHash) {   /* true — можно уходить; false — уход отменён и задан вопрос «Сохранить изменения?» */
+  if (!opMustAsk(nextHash)) return true;
+  opAsk(nextHash); return false;
+}
+/* popstate приходит раньше hashchange: возвращаем адрес, пока app.js не перерисовал страницу; вопрос задаём после его render() */
+addEventListener('popstate', () => {
+  const next = location.hash;
+  if (next !== opHash && opMustAsk(next)) { history.replaceState(null, '', location.pathname + opHash); opPending = next; }
+});
+addEventListener('hashchange', () => {
+  if (opPending) { const n = opPending; opPending = null; opAsk(n); return; }
+  const next = location.hash;
+  if (next === opHash) return;
+  const r = next.replace(/^#\/?/, '').split('/');
+  if (r[0] !== 'zones') opZD = null;
+  if (r[0] !== 'shop') opSD = null;
+  opHash = next;
+});
+addEventListener('beforeunload', e => { if (opDraftOf(location.hash)) { e.preventDefault(); e.returnValue = ''; } });

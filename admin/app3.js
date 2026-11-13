@@ -211,7 +211,7 @@ function editStaff(id) {
 let aq = '', aw = 'all';
 PAGES.audit = () => { const L = DB.audit.filter(a => (aw === 'all' || a.by === aw) && (!aq || (a.what + a.detail).toLowerCase().includes(aq.toLowerCase())));
   return ph('Журнал действий', 'Всё, что меняли сотрудники: кто, когда, что было и что стало. Записи не удаляются')
-  + `<div class="filters"><div class="search">${SEARCH_SVG}<input class="inp" placeholder="Что искать" value="${esc(aq)}" onchange="aq=this.value;render()"></div><select class="inp" style="width:auto" onchange="aw=this.value;render()"><option value="all">Все сотрудники</option>${DB.staff.map(s => `<option ${aw === s.n ? 'selected' : ''}>${esc(s.n)}</option>`).join('')}</select><span class="small muted">${L.length} записей</span></div>
+  + `<div class="filters"><div class="search">${SEARCH_SVG}<input class="inp" placeholder="Что искать" value="${esc(aq)}" onchange="aq=this.value;render()"></div><select class="inp" style="width:auto" onchange="aw=this.value;render()"><option value="all">Все сотрудники</option>${DB.staff.map(s => `<option ${aw === s.n ? 'selected' : ''}>${esc(s.n)}</option>`).join('')}</select><span class="small muted">${L.length} ${plural(L.length, 'запись', 'записи', 'записей')}</span></div>
   <div class="card">${auditList(L.slice(0, 400))}</div>`; };
 
 /* ── интеграции ── */
@@ -224,7 +224,7 @@ PAGES.integr = () => ph('Интеграции', 'Связи с внешними 
     ['Пуш-уведомления', 'Не подключено', 'Apple и Google. Токены отзываются при выходе', ['iOS','Android','Веб-пуши PWA']],
     ['Погода', 'Не подключено', 'Для вариантов предложения «дождь», «холодно»', ['Город','Обновление раз в час']],
   ].map(([t, st, d, l]) => `<div class="card"><div class="card-h"><h3 style="flex:1">${t}</h3><span class="pill amb">${st}</span></div><p class="small muted">${d}</p><ul class="small" style="margin:8px 0 12px;padding-left:18px">${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-    <button class="btn sm" ${can('system') ? '' : 'disabled'} onclick="toast('Связи пока нет — это прототип. Проверка появится, когда дадут доступ')">Проверить связь</button></div>`).join('')}</div>`;
+    <button class="btn sm" ${can('system') ? '' : 'disabled'} onclick="toast('Связи пока нет: ждём доступ от поставщика. Проверка заработает после подключения')">Проверить связь</button></div>`).join('')}</div>`;
 
 /* ── резервная копия ── */
 PAGES.backup = () => ph('Резервная копия', 'Всё, что вы настроили здесь, хранится в этом браузере. Скачайте файл, чтобы перенести на другой компьютер или переслать')

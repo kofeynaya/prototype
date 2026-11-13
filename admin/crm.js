@@ -319,7 +319,6 @@ function loySave() {
     const d = ch.map(k => typeof L[k] !== 'object' ? `${NM[k] || k}: <s>${esc(DB.loy[k])}</s> → <ins>${esc(L[k])}</ins>` : NM[k] || k);
     DB.loy = clone(L); audit('Лояльность', `<span class="diff">${d.join('; ')}</span> · ${esc(why)}`); save(); render(); toast('Сохранено'); }});
 }
-addEventListener('hashchange', () => { if (!location.hash.startsWith('#/loyalty') && loyD && JSON.stringify(loyD) !== JSON.stringify(DB.loy)) { toast('Изменения в «Лояльности» не сохранены — они ждут вас там'); } });
 
 /* ───────── Статистика — как в Starter, плюс наша главная метрика ───────── */
 let stP = 'month', stShopF = '';

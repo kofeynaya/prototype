@@ -106,9 +106,22 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .mk-dl.up{color:var(--acc)} .mk-dl.dn{color:var(--red)}
 .mk-qa{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);margin-bottom:10px}
 .mk-wb .seg{display:flex;max-width:100%}.mk-wb .seg button{flex:1 1 auto}
+.mk-sg{grid-template-columns:minmax(0,1fr) 230px}
+.mk-2>div:last-child{position:sticky;top:0}
+.mk-md{width:min(940px,100%);display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+.mk-md>.md-b{overflow:auto;padding-top:4px}
+.mk-md>.md-f{border-top:1px solid var(--line);padding-top:12px;margin:0}
+.mk-tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.mk-st-row{border-top:1px solid var(--line);padding:12px 0}
+.mk-st-row:first-child{border-top:0}
 .mk-back{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;margin-bottom:8px}
 @media (max-width:860px){
-  .mk-2{grid-template-columns:1fr}
+  .mk-2,.mk-sg{grid-template-columns:1fr}
+  .mk-2>div:last-child{position:static}
+  .mk-tt>*{flex:1 1 100%}
+  .ov.c:has(>.mk-md){padding:0}
+  .ov.c>.mk-md{height:100%;max-height:none;border-radius:0}
+  .mk-sg .mk-ph9{margin:0 auto}
   .mk-ov{padding:0}
   .mk-win{height:100%;border-radius:0}
   .mk-wm{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
@@ -146,15 +159,29 @@ const mkSearch = (id, v, set, ph_) => `<div class="search">${SEARCH_SVG}<input c
 const mkTabs = (list, cur, fn) => `<div class="tabs">${list.map(([k, t, n]) => `<button class="${cur === k ? 'on' : ''}" onclick="${fn}('${k}')">${t}${n != null ? `<span class="mk-tc">${n}</span>` : ''}</button>`).join('')}</div>`;
 const mkTrans = s => { const m = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
   return String(s).toLowerCase().split('').map(c => c in m ? m[c] : c).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'story'; };
-/* свой стек окон поверх modal(): закрывается тем же closeModal() / Esc / сменой адреса */
-function mkWin(html, id) {
+/* свои окна (акция, рассылка, сторис) с вопросом «Сохранить изменения?», как в Starter.
+   Помечены data-guard — общий обработчик Esc/клика мимо из app.js их пропускает, закрытие решает mkClose() */
+const MK_G = {};
+function mkWin(html, id, o = {}) {
   let el = document.getElementById(id);
-  if (el) { const b = el.querySelector('.mk-wb'), y = b ? b.scrollTop : 0; el.querySelector('.mk-win').innerHTML = html; const nb = el.querySelector('.mk-wb'); if (nb) nb.scrollTop = y; return el; }
-  el = document.createElement('div'); el.className = 'mk-ov'; el.dataset.modal = 1; el.id = id;
-  el.innerHTML = `<div class="mk-win">${html}</div>`;
-  el.addEventListener('mousedown', e => { if (e.target === el) closeModal(); });
+  if (el) { const b = el.firstElementChild, sc = b.querySelector('[data-scroll]') || b, y = sc.scrollTop; b.innerHTML = html; (b.querySelector('[data-scroll]') || b).scrollTop = y; return el; }
+  el = document.createElement('div'); el.className = o.ov || 'mk-ov'; el.dataset.modal = 1; el.dataset.guard = 1; el.id = id;
+  el.innerHTML = `<div class="${o.box || 'mk-win'}">${html}</div>`;
+  el.addEventListener('mousedown', e => { if (e.target === el) mkClose(id); });
   $('#layer').appendChild(el); return el;
 }
+function mkGuard(id, dirty, save_, txt) { MK_G[id] = {dirty, save:save_, txt}; }
+function mkWinRemove(id) { const e = document.getElementById(id); if (e) e.remove(); delete MK_G[id]; }
+function mkClose(id) {
+  const g = MK_G[id];
+  if (!g || !g.dirty()) { mkWinRemove(id); return; }
+  askSave(g.save, () => mkWinRemove(id), g.txt || 'Вы что-то поменяли и не сохранили');
+}
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return; const m = [...document.querySelectorAll('[data-modal]')].pop();
+  if (m && m.dataset.guard && m.id in MK_G) { e.stopImmediatePropagation(); e.preventDefault(); mkClose(m.id); }
+}, true);
+addEventListener('beforeunload', e => { if (Object.values(MK_G).some(g => g.dirty()) || (typeof mkTD !== 'undefined' && mkTDirty())) { e.preventDefault(); e.returnValue = ''; } });
 
 /* ───────── данные раздела ───────── */
 const MK_TOPICS = [
@@ -281,23 +308,33 @@ function mkMailCancel(id) {
 
 /* форма «Создать рассылку» — как в Starter §04/§07 */
 let mkM = null, mkMLast = 'mkm-t';
-function mkMailNew(gid) {
+/* gid — один гость; opts = {ids:[…], label:'…'} — разовая аудитория (фильтр клиентов, кластер) без сохранения сегмента */
+const mkMCore = () => ({aud:mkM.aud, seg:mkM.seg, g:mkM.g, ids:mkM.ids, label:mkM.label, topic:mkM.topic, tpl:mkM.tpl, t:mkM.t, b:mkM.b, link:mkM.link, test:mkM.test, at:mkM.at});
+function mkMailNew(gid, opts) {
   if (!can('push.send')) { toast('Нет права отправлять пуши'); return; }
-  mkM = {aud: gid ? 'one' : 'all', seg:(DB.segments[0] || {}).id || '', g: gid || '', topic:'Скидки и акции', tpl:-1, t:'', b:'', link:LINKS[0], test:'', at:''};
+  const D = mkD(), seg0 = (DB.segments || [])[0];
+  if (!gid && !opts && D.mailDraft) mkM = {...clone(D.mailDraft), restored:1};
+  else mkM = {aud: gid ? 'one' : opts && opts.ids ? 'list' : seg0 ? 'seg' : '', seg: seg0 ? seg0.id : '', g: gid || '', ids: (opts && opts.ids) || [], label: (opts && opts.label) || '',
+    topic:'Скидки и акции', tpl:-1, t:'', b:'', link:LINKS[0], test:'', at:''};
+  const snap = JSON.stringify(mkMCore());
+  mkGuard('mkmw', () => JSON.stringify(mkMCore()) !== snap && (mkM.t.trim() || mkM.b.trim() || mkM.restored), () => mkMailKeep(), 'Рассылка не отправлена. Сохранить черновик — он откроется при следующем «Создать рассылку»?');
   mkMailDraw();
 }
+function mkMailKeep() { mkD().mailDraft = mkMCore(); save(); mkWinRemove('mkmw'); toast('Черновик рассылки сохранён'); }
+function mkMailFresh() { delete mkD().mailDraft; save(); mkWinRemove('mkmw'); mkMailNew(); }
 function mkMailIds() {
   const act = DB.guests.filter(g => !g.blocked);
-  const base = mkM.aud === 'one' ? (G(mkM.g) ? [G(mkM.g)] : []) : mkM.aud === 'seg' ? segMatch(((DB.segments || []).find(s => s.id === mkM.seg) || {c:[]}).c) : act;
+  const base = mkM.aud === 'one' ? (G(mkM.g) ? [G(mkM.g)] : []) : mkM.aud === 'seg' ? segMatch(((DB.segments || []).find(s => s.id === mkM.seg) || {c:[]}).c)
+    : mkM.aud === 'list' ? mkM.ids.map(G).filter(g => g && !g.blocked) : mkM.aud === 'all' ? act : [];
   return {base, push: base.filter(mkPush)};
 }
 function mkMailDraw() {
   const {base, push} = mkMailIds(), tp = MK_TOPICS.find(t => t[0] === mkM.topic), p = base.length ? Math.round(push.length / base.length * 100) : 0;
-  const head = mkM.aud === 'one' ? `<div class="mk-head"><div><span>Гость</span><b>${esc(gName(G(mkM.g)))}</b></div><div><span>Получит пуш</span><b>${push.length ? '✓ Да' : 'Нет'}</b></div><p>${push.length ? 'Гость разрешил уведомления' : 'Гость не разрешил уведомления — пуш не придёт. Лучше написать в чат поддержки'}</p></div>`
-    : `<div class="mk-head"><div><span>${mkM.aud === 'seg' ? 'В сегменте' : 'Вся база'}</span><b>${nf(base.length)} ${plural(base.length, 'контакт', 'контакта', 'контактов')}</b></div><div><span>Получат пуш</span><b>${nf(push.length)} (${p}%)</b></div>
-      <p>Пуш получат только гости, которые разрешили уведомления. ${mkM.aud === 'all' ? 'Чем больше база, тем труднее написать одно сообщение для всех — <a href="#/segments" onclick="closeModal()">сегментируйте гостей</a>' : ''}</p></div>`;
-  const body = `<div id="mkmf" class="mk-2"><div>
-    <div class="fld"><span>Кому</span><div class="seg">${[['all', 'Вся база'], ['seg', 'Сегмент'], ['one', 'Один гость']].map(([k, t]) => `<button class="${mkM.aud === k ? 'on' : ''}" onclick="mkM.aud='${k}';mkMailDraw()">${t}</button>`).join('')}</div></div>
+  const head = !mkM.aud ? '<div class="note red" style="margin-bottom:12px">👥 <span>Выберите, кому отправить: сегмент, одного гостя или всю базу</span></div>' : mkM.aud === 'one' ? `<div class="mk-head"><div><span>Гость</span><b>${esc(gName(G(mkM.g)))}</b></div><div><span>Получит пуш</span><b>${push.length ? '✓ Да' : 'Нет'}</b></div><p>${push.length ? 'Гость разрешил уведомления' : 'Гость не разрешил уведомления — пуш не придёт. Лучше написать в чат поддержки'}</p></div>`
+    : `<div class="mk-head"><div><span>${mkM.aud === 'seg' ? 'В сегменте' : mkM.aud === 'list' ? esc(mkM.label || 'Выбранные гости') : 'Вся база'}</span><b>${nf(base.length)} ${plural(base.length, 'контакт', 'контакта', 'контактов')}</b></div><div><span>Получат пуш</span><b>${nf(push.length)} (${p}%)</b></div>
+      <p>Пуш получат только гости, которые разрешили уведомления. ${mkM.aud === 'all' ? 'Чем больше база, тем труднее написать одно сообщение для всех — <a href="#/segments" onclick="mkWinRemove(\'mkmw\')">сегментируйте гостей</a>' : ''}${base.length && !push.length ? '<br><b style="color:var(--red)">Никто из них не получит пуш</b>' : ''}</p></div>`;
+  const body = `${mkM.restored ? `<div class="note blue" style="margin-bottom:12px">📝 <span>Открыл сохранённый черновик · <a href="javascript:void 0" onclick="mkMailFresh()">Начать заново</a></span></div>` : ''}<div id="mkmf" class="mk-2"><div>
+    <div class="fld"><span>Кому</span><div class="seg">${(mkM.aud === 'list' ? [['list', esc(mkM.label || 'Выбранные')]] : []).concat([['seg', 'Сегмент'], ['one', 'Один гость'], ['all', 'Вся база']]).map(([k, t]) => `<button class="${mkM.aud === k ? 'on' : ''}" onclick="mkM.aud='${k}';mkMailDraw()">${t}</button>`).join('')}</div></div>
     ${mkM.aud === 'seg' ? `<label class="fld"><span>Сегмент</span><select class="inp" onchange="mkM.seg=this.value;mkMailDraw()">${DB.segments.map(s => `<option value="${s.id}" ${s.id === mkM.seg ? 'selected' : ''}>${esc(s.n)} · ${segMatch(s.c).length}</option>`).join('')}</select></label>` : ''}
     ${mkM.aud === 'one' ? `<label class="fld"><span>Гость</span><select class="inp" onchange="mkM.g=this.value;mkMailDraw()"><option value="">Выберите…</option>${DB.guests.filter(g => !g.blocked).map(g => `<option value="${g.id}" ${g.id === mkM.g ? 'selected' : ''}>${esc(gName(g))} · ${esc(g.ph)}${mkPush(g) ? '' : ' · без пушей'}</option>`).join('')}</select></label>` : ''}
     ${head}
@@ -315,12 +352,10 @@ function mkMailDraw() {
   </div><div>
     <div class="phone-prev"><div class="tm">${mkM.at ? mkM.at.slice(11, 16) : new Date().toTimeString().slice(0, 5)}</div><div class="push"><span class="ic"><svg viewBox="0 0 360 262"><use href="#k-mark"/></svg></span><div><small>${mkM.at ? 'запланирован' : 'сейчас'}</small><b id="mkm-pt">${esc(mkVarPrev(mkM.t) || 'Заголовок')}</b><p id="mkm-pb">${esc(mkVarPrev(mkM.b) || 'Текст пуша')}</p></div></div></div>
     <p class="small muted" style="margin-top:10px">Переменные в предпросмотре — на примере гостя Ани. «Поймёт ли это человек, который видит приложение впервые?»</p></div></div>`;
-  const ex = $('#mkmf');
-  if (ex) { ex.closest('.md-b').innerHTML = body; $('#mdOk').textContent = mkMailBtn(push.length); return; }
-  modal({t:'Создать рассылку', wide:1, body, ok:mkMailBtn(push.length), onOk:mkMailSend});
-  const md = $('#mkmf').closest('.md'); md.style.width = 'min(940px,100%)';
+  mkWin(`<div class="md-h"><h2>Создать рассылку</h2><button class="cls" onclick="mkClose('mkmw')" aria-label="Закрыть">${X_SVG}</button></div>
+    <div class="md-b" data-scroll>${body}</div><div class="md-f"><button class="btn" onclick="mkClose('mkmw')">Отмена</button><button class="btn pri" id="mkmOk" onclick="mkMailSend()">${mkMailBtn(push.length)}</button></div>`, 'mkmw', {ov:'ov c', box:'md mk-md'});
 }
-const mkMailBtn = n => mkM.at ? `Запланировать · ${nf(n)}` : `Отправить сейчас · ${nf(n)}`;
+const mkMailBtn = n => !mkM.aud ? 'Выберите получателей' : mkM.at ? `Запланировать · ${nf(n)}` : `Отправить сейчас · ${nf(n)}`;
 function mkMailTpl(i) { const tp = MK_TOPICS.find(t => t[0] === mkM.topic); mkM.tpl = i; if (i >= 0) { mkM.t = nbspFix(tp[2][i][0]); mkM.b = nbspFix(tp[2][i][1]); } else { mkM.t = ''; mkM.b = ''; } mkMailDraw(); }
 function mkMailLive() {
   const s = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
@@ -341,19 +376,29 @@ function mkMailTest() {
   toast(`Тестовый пуш «${esc(mkVarPrev(mkM.t))}» ушёл на +7 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9)}`);
 }
 function mkMailSend() {
+  const {push} = mkMailIds();
+  if (!mkM.aud) { toast('Выберите, кому отправить'); return; }
+  if (mkM.aud === 'one' && !G(mkM.g)) { toast('Выберите гостя'); return; }
+  if (mkM.t.trim().length < 2 || mkM.b.trim().length < 2) { toast('Нужны заголовок и текст'); return; }
+  if (mkLen(mkM.t) > 30) { toast('Заголовок — до 30 знаков (переменные считаются по длине)'); return; }
+  if (mkLen(mkM.b) > 140) { toast('Текст — до 140 знаков'); return; }
+  if (mkM.at && new Date(mkM.at) <= new Date()) { toast('Время отправки — в будущем или пусто'); return; }
+  if (!push.length) { toast('Никто не получит пуш: у этих гостей уведомления выключены'); return; }
+  const n = push.length, w = textCheck(mkVarPrev(mkM.t), mkVarPrev(mkM.b));
+  modal({t: mkM.at ? `Запланировать на ${mkDT(+new Date(mkM.at))}?` : `Отправить ${nf(n)} ${plural(n, 'гостю', 'гостям', 'гостям')} сейчас?`,
+    body:`<p style="margin-top:0">${mkM.at ? 'До отправки рассылку можно отменить в списке' : '<b>Отменить будет нельзя</b> — пуш придёт сразу'}</p>
+      <div class="push" style="border:1px solid var(--line);background:var(--surface2);color:var(--ink)"><span class="ic"><svg viewBox="0 0 360 262"><use href="#k-mark"/></svg></span><div><b>${esc(mkVarPrev(mkM.t))}</b><p>${esc(mkVarPrev(mkM.b))}</p></div></div>
+      ${w.length ? `<div style="margin-top:10px">${pzWarn(w)}</div>` : ''}`,
+    ok: mkM.at ? 'Запланировать' : `Отправить ${nf(n)}`, cancel:'Вернуться', onOk:() => { mkMailDo(); }});
+}
+function mkMailDo() {
   const {push} = mkMailIds(), D = mkD();
-  if (mkM.aud === 'one' && !G(mkM.g)) { toast('Выберите гостя'); return false; }
-  if (mkM.t.trim().length < 2 || mkM.b.trim().length < 2) { toast('Нужны заголовок и текст'); return false; }
-  if (mkLen(mkM.t) > 30) { toast('Заголовок — до 30 знаков (переменные считаются по длине)'); return false; }
-  if (mkLen(mkM.b) > 140) { toast('Текст — до 140 знаков'); return false; }
-  if (mkM.at && new Date(mkM.at) <= new Date()) { toast('Время отправки — в будущем или пусто'); return false; }
-  if (!push.length) { toast('Никто не получит пуш: у этих гостей уведомления выключены'); return false; }
   const id = Math.max(100, ...D.mails.map(m => m.id)) + 1;
   const m = {id, topic:mkM.topic, t:nbspFix(mkM.t), b:nbspFix(mkM.b), link:mkM.link, st: mkM.at ? 'plan' : 'sent', at: mkM.at ? +new Date(mkM.at) : mkNow(),
-    aud: mkM.aud === 'one' ? {k:'one', g:mkM.g} : mkM.aud === 'seg' ? {k:'seg', seg:mkM.seg} : {k:'all'}, ids:push.map(g => g.id), n:push.length, by:ME().n};
-  D.mails.unshift(m);
-  audit(m.st === 'plan' ? 'Запланировали рассылку' : 'Отправили рассылку', `#${id} «${esc(m.t)}» · ${esc(m.topic)} · ${m.aud.k === 'seg' ? 'сегмент «' + esc(mkSegName(m.aud.seg)) + '»' : m.aud.k === 'one' ? esc(gName(G(m.aud.g))) : 'вся база'} · ${nf(m.n)} ${plural(m.n, 'контакт', 'контакта', 'контактов')}${m.st === 'plan' ? ' · на ' + mkDT(m.at) : ''}`, m.aud.k === 'one' ? {g:m.aud.g} : {});
-  save(); render(); toast(m.st === 'plan' ? `Рассылка #${id} запланирована на ${mkDT(m.at)}` : `Рассылка #${id} отправлена — ${nf(m.n)} ${plural(m.n, 'гостю', 'гостям', 'гостям')}`);
+    aud: mkM.aud === 'one' ? {k:'one', g:mkM.g} : mkM.aud === 'seg' ? {k:'seg', seg:mkM.seg} : mkM.aud === 'list' ? {k:'txt', txt:mkM.label || 'Выбранные гости'} : {k:'all'}, ids:push.map(g => g.id), n:push.length, by:ME().n};
+  D.mails.unshift(m); delete D.mailDraft;
+  audit(m.st === 'plan' ? 'Запланировали рассылку' : 'Отправили рассылку', `#${id} «${esc(m.t)}» · ${esc(m.topic)} · ${m.aud.k === 'seg' ? 'сегмент «' + esc(mkSegName(m.aud.seg)) + '»' : m.aud.k === 'one' ? esc(gName(G(m.aud.g))) : m.aud.k === 'txt' ? esc(m.aud.txt) : 'вся база'} · ${nf(m.n)} ${plural(m.n, 'контакт', 'контакта', 'контактов')}${m.st === 'plan' ? ' · на ' + mkDT(m.at) : ''}`, m.aud.k === 'one' ? {g:m.aud.g} : {});
+  save(); mkWinRemove('mkmw'); render(); toast(m.st === 'plan' ? `Рассылка #${id} запланирована на ${mkDT(m.at)}` : `Рассылка #${id} отправлена — ${nf(m.n)} ${plural(m.n, 'гостю', 'гостям', 'гостям')}`);
 }
 
 /* отчёт по рассылке */
@@ -579,7 +624,7 @@ function mkPromoToggle(id) {
 }
 function mkPromoArch(id) {
   const p = mkPr(id); if (!mkPOk()) return;
-  if (!p.arch) { modal({t:'В архив?', body:`<p style="margin-top:0">«${esc(p.n)}» выключится и уйдёт в архив. Вернуть можно в фильтре «В архиве»</p>`, ok:'В архив', onOk:() => { p.arch = true; p.on = false; mkPHist(p, 'В архив', mkDiff('в работе', 'в архиве')); save(); const w = $('#mkpw'); if (w) w.remove(); render(); }}); return; }
+  if (!p.arch) { modal({t:'В архив?', body:`<p style="margin-top:0">«${esc(p.n)}» выключится и уйдёт в архив. Вернуть можно в фильтре «В архиве»</p>`, ok:'В архив', onOk:() => { p.arch = true; p.on = false; mkPHist(p, 'В архив', mkDiff('в работе', 'в архиве')); save(); mkWinRemove('mkpw'); render(); }}); return; }
   p.arch = false; mkPHist(p, 'Из архива', mkDiff('в архиве', 'неактивная')); save(); render();
 }
 function mkPromoLog() {
@@ -593,17 +638,18 @@ let mkP = null, mkPSec = 'main', mkPIQ = '';
 function mkOpenPromo(id, kind, sec) {
   const src = id ? mkPr(id) : null;
   mkP = src ? clone(src) : mkPromoNew(kind || 'disc', {n:'', mass:{n:100, prefix:'', len:6, codes:[]}, codeType: kind === 'code' && sec === 'mass' ? 'mass' : 'single'});
-  mkP.isNew = !src; mkPSec = 'main'; mkPIQ = ''; mkPDraw();
+  mkP.isNew = !src; mkPSec = 'main'; mkPIQ = ''; const snap = JSON.stringify(mkP);
+  mkGuard('mkpw', () => JSON.stringify(mkP) !== snap, () => mkPromoSave(), 'Изменения в акции не сохранены'); mkPDraw();
 }
 function mkPDraw() {
   const p = mkP, ok = mkPOk(), dis = mkDis(ok);
   const S = [['main', '☰', 'Основное'], ['set', '⚙️', 'Настройки'], ['lim', '⏷', 'Ограничения'], ['goal', '◎', 'Отображать как цель'], ['hist', '🕘', 'История']];
   const nav = S.map(([k, i, t]) => (k === 'hist' ? '<span class="sp"></span>' : '') + `<button class="${mkPSec === k ? 'on' : ''}" ${k === 'goal' && p.kind === 'sur' ? 'disabled' : ''} onclick="mkPSec='${k}';mkPDraw()"><span>${i}</span>${t}</button>`).join('');
   const st = p.arch ? '<span class="pill">В архиве</span>' : p.on ? '<span class="pill ok">Активная</span>' : '<span class="pill red">Неактивная</span>';
-  const html = `<div class="mk-wh"><div><h2>${esc(p.n) || (p.isNew ? 'Новая ' + MK_KIND[p.kind].toLowerCase() : 'Без названия')}</h2><code>#${p.uuid}</code></div>${p.isNew ? '' : st}<button class="cls" onclick="closeModal()" aria-label="Закрыть">${X_SVG}</button></div>
-    <div class="mk-wm"><nav class="mk-nav">${nav}</nav><div class="mk-wb">${ok ? '' : noPerm('offers.edit') + '<div style="height:12px"></div>'}${MK_PSEC[mkPSec](p, dis)}</div></div>
+  const html = `<div class="mk-wh"><div><h2>${esc(p.n) || (p.isNew ? {disc:'Новая скидка', code:'Новый промокод', sur:'Новая надбавка'}[p.kind] : 'Без названия')}</h2><code>#${p.uuid}</code></div>${p.isNew ? '' : st}<button class="cls" onclick="mkClose('mkpw')" aria-label="Закрыть">${X_SVG}</button></div>
+    <div class="mk-wm"><nav class="mk-nav">${nav}</nav><div class="mk-wb" data-scroll>${ok ? '' : noPerm('offers.edit') + '<div style="height:12px"></div>'}${MK_PSEC[mkPSec](p, dis)}</div></div>
     <div class="mk-wf">${p.isNew ? '' : `<button class="btn" ${dis} onclick="mkPromoArch('${p.id}')">🗄 ${p.arch ? 'Из архива' : 'Архивировать'}</button><button class="btn" ${dis} onclick="mkP.on=!mkP.on;mkPDraw()">⏻ ${p.on ? 'Отключить' : 'Включить'}</button>`}
-      <span class="sp"></span><button class="btn ghost" onclick="closeModal()">Отмена</button>${ok ? `<button class="btn pri" onclick="mkPromoSave()">${p.isNew ? 'Создать' : 'Сохранить изменения'}</button>` : ''}</div>`;
+      <span class="sp"></span><button class="btn ghost" onclick="mkClose('mkpw')">Отмена</button>${ok ? `<button class="btn pri" onclick="mkPromoSave()">${p.isNew ? 'Создать' : 'Сохранить изменения'}</button>` : ''}</div>`;
   mkWin(html, 'mkpw');
 }
 /* короткие помощники для полей окна: меняют mkP по пути и, если нужно, перерисовывают */
@@ -623,7 +669,7 @@ const MK_PSEC = {
         <div class="fld" style="flex:0"><button class="btn" ${dis} onclick="mkP.code=mkRand(8);mkPDraw()">Сгенерировать</button></div></div>
         <div class="note blue">🔗 <span>Автоприменение: ссылка <code>kofeynaya.ru?promocode=${esc(p.code || 'КОД')}</code> — можно поставить в баннер или рассылку, код подставится сам</span></div>`
     : `<div class="row"><label class="fld"><span class="mk-req">Количество</span>${mkPN('mass.n', p.mass.n, dis)}</label><label class="fld"><span class="mk-req">Префикс · до 8</span><input class="inp" ${dis} maxlength="8" value="${esc(p.mass.prefix)}" oninput="this.value=this.value.toUpperCase()" onchange="mkPSet('mass.prefix',this.value,0)"></label><label class="fld"><span class="mk-req">Длина случайной части</span>${mkPN('mass.len', p.mass.len, dis)}</label></div>
-      <div class="btns" style="margin-bottom:10px"><button class="btn pri" ${dis} onclick="mkPGen()">Сгенерировать</button><button class="btn" ${dis} onclick="mkPImport()">Импортировать</button>${p.mass.codes.length ? `<a class="btn ghost" href="#/masscodes" onclick="closeModal()">Все коды ›</a>` : ''}</div>
+      <div class="btns" style="margin-bottom:10px"><button class="btn pri" ${dis} onclick="mkPGen()">Сгенерировать</button><button class="btn" ${dis} onclick="mkPImport()">Импортировать</button>${p.mass.codes.length ? `<a class="btn ghost" href="#/masscodes" onclick="mkWinRemove('mkpw')">Все коды ›</a>` : ''}</div>
       ${p.mass.codes.length ? `<div class="fld"><span>Сейчас ${nf(p.mass.codes.length)} ${plural(p.mass.codes.length, 'код', 'кода', 'кодов')}, использовано ${p.mass.codes.filter(c => c.st === 'used').length}. Примеры</span><div class="mk-codes">${p.mass.codes.slice(0, 8).map(c => `<span>${esc(c.c)}</span>`).join('')}</div></div>`
         : `<div class="fld"><span>Примеры кодов</span><div class="mk-codes">${[0, 1, 2].map(i => `<span>${esc((p.mass.prefix || 'PREFIX'))}${mkRand(Math.min(12, Math.max(3, p.mass.len || 6)), 'ex' + i)}</span>`).join('')}</div></div>`}`}` : ''}
     <dl class="kv" style="margin-top:12px"><dt>Тип</dt><dd>${MK_KIND[p.kind]}</dd>${p.isNew ? '' : `<dt>Создана</dt><dd>${mkDT(p.created)}</dd><dt>Использований</dt><dd>${nf(p.uses)}</dd>`}</dl></div>`,
@@ -642,7 +688,7 @@ const MK_PSEC = {
       ${mkPChk('lim.firstOnly', p.lim.firstOnly, 'Только на первый заказ', dis)}</div>
       ${p.kind === 'code' ? `<div class="row" style="margin-top:12px"><label class="fld"><span>На каждый промокод</span>${mkPN('lim.perCodeN', p.lim.perCodeN, dis, 'раз')}<small>Например, 1 — каждый код сработает один раз</small></label><label class="fld"><span>На всю акцию</span>${mkPN('lim.perActN', p.lim.perActN, dis, 'раз')}<small>0 — без предела</small></label></div>` : ''}</div>
     ${p.kind === 'sur' ? '' : `<div class="card"><h3>Особые сценарии</h3><div class="mk-opt">
-      ${mkPChk('special.bd', p.special.bd, 'Акция на день рождения', dis, 'Работает в период вокруг ДР. Наша скидка в ДР = возраст — в <a href="#/m/bd" onclick="closeModal()">правилах</a>')}
+      ${mkPChk('special.bd', p.special.bd, 'Акция на день рождения', dis, 'Работает в период вокруг ДР. Наша скидка в ДР = возраст — в <a href="#/m/bd" onclick="mkWinRemove(\'mkpw\')">правилах</a>')}
       ${mkPChk('special.ref', p.special.ref, 'Акция для реферальной программы', dis, 'Достаётся другу по реферальной ссылке — выбирается в «Реферальной программе»')}</div></div>`}
     <div class="card"><h3>Минимальная сумма корзины</h3><div class="mk-opt">${[['none', 'Без ограничений'], ['all', 'Общая для всех способов получения'], ['way', 'Зависит от способа получения']].map(([k, t]) => `<label><input type="radio" name="mkmin" ${p.minMode === k ? 'checked' : ''} ${dis} onchange="mkPSet('minMode','${k}',1)"><span>${t}</span></label>`).join('')}</div>
       ${p.minMode === 'all' ? `<div style="max-width:240px;margin-top:10px">${mkPN('min.all', p.min.all, dis, '₽')}</div>` : p.minMode === 'way' ? `<div class="row" style="margin-top:10px">${['delivery', 'pickup', 'table'].map(k => `<label class="fld"><span>${WAYS[k]}</span>${mkPN('min.' + k, p.min[k], dis, '₽')}</label>`).join('')}</div>` : ''}</div>`,
@@ -707,9 +753,9 @@ function mkPromoSave() {
   else { const i = D.promos.findIndex(x => x.id === p.id), old = D.promos[i], a = mkPSum(old), b = mkPSum(p);
     const ch = Object.keys(b).filter(k => a[k] !== b[k]).map(k => `${k}: ${mkDiff(a[k] || '—', b[k] || '—')}`);
     p.hist = old.hist; D.promos[i] = p;
-    if (!ch.length) { closeModal(); toast('Изменений нет'); return; }
+    if (!ch.length) { mkWinRemove('mkpw'); toast('Изменений нет'); return; }
     mkPHist(p, a['Статус'] !== b['Статус'] && ch.length === 1 ? (p.on ? 'Включена' : 'Выключена') : 'Изменена', ch.join('<br>')); }
-  save(); closeModal(); render(); toast(isNew ? `«${esc(p.n)}» создана${p.on ? '' : ' — пока выключена, включите в списке'}` : 'Сохранено');
+  save(); mkWinRemove('mkpw'); render(); toast(isNew ? `«${esc(p.n)}» создана${p.on ? '' : ' — пока выключена, включите в списке'}` : 'Сохранено');
 }
 
 /* ═════════ 4. МАССОВЫЕ ПРОМОКОДЫ ═════════ */
@@ -822,7 +868,8 @@ let mkSE = null, mkSEi = 0;
 function mkStEdit(id) {
   const s = id ? mkD().stories.find(x => x.id === id) : null;
   mkSE = s ? clone(s) : {id:'st' + Date.now().toString(36), t:'', place:MK_SPLACE[0], st:'draft', at:mkNow(), slides:[], seo:{slug:'', title:'', d:''}, isNew:1};
-  mkSEi = 0; mkStDraw();
+  mkSEi = 0; const snap = JSON.stringify(mkSE);
+  mkGuard('mkstw', () => JSON.stringify(mkSE) !== snap, () => mkStSave(mkSE.st), 'Изменения в сторис не сохранены'); mkStDraw();
 }
 function mkStDraw() {
   const s = mkSE, ok = can('content.edit'), dis = mkDis(ok), cur = s.slides[mkSEi];
@@ -833,7 +880,7 @@ function mkStDraw() {
   ${s.slides.length ? `<div class="mk-slides">${s.slides.map((x, i) => `<div class="mk-slide ${i === mkSEi ? 'on' : ''}" onclick="mkSEi=${i};mkStDraw()"><div class="pic" style="background-image:url('${esc(x.img)}')"><span class="n">${i + 1}</span>${x.btn ? `<em>${esc(x.btn.t)}</em>` : ''}</div>
       <div class="btns" onclick="event.stopPropagation()"><button class="btn sm" ${ok && i ? '' : 'disabled'} title="Раньше" onclick="mkStMv(${i},-1)">←</button><button class="btn sm" ${ok && i < s.slides.length - 1 ? '' : 'disabled'} title="Позже" onclick="mkStMv(${i},1)">→</button><button class="btn sm" ${dis} title="Удалить" onclick="mkSE.slides.splice(${i},1);mkSEi=Math.max(0,Math.min(mkSEi,mkSE.slides.length-1));mkStDraw()">🗑</button></div></div>`).join('')}</div>`
     : '<div class="card empty">Слайдов пока нет. Картинка 9:16 — PNG или JPG. Загрузите с компьютера или вставьте адрес</div>'}
-  ${cur ? `<div class="grid g-side" style="margin-top:16px;grid-template-columns:minmax(0,1fr) 230px"><div class="card"><h3>Слайд ${mkSEi + 1}</h3>
+  ${cur ? `<div class="grid mk-sg" style="margin-top:16px"><div class="card"><h3>Слайд ${mkSEi + 1}</h3>
       <label class="fld"><span>Адрес картинки</span><input class="inp" ${dis} value="${esc(cur.img.startsWith('data:') ? '' : cur.img)}" placeholder="${cur.img.startsWith('data:') ? 'Загружена с компьютера' : 'img/bn1.jpg или https://…'}" onchange="mkSE.slides[mkSEi].img=this.value.trim();setTimeout(mkStDraw,250)"></label>
       ${ok ? `<label class="btn sm" style="margin-bottom:12px">🔁 Заменить файлом<input type="file" accept="image/*" hidden onchange="mkStUp(this,mkSEi)"></label>` : ''}
       <div class="tog" style="margin-bottom:10px"><b style="font-weight:500">Кнопка на слайде</b>${sw('mkse-btn', !!cur.btn, dis + ' onchange="mkSE.slides[mkSEi].btn=this.checked?{t:\'Смотреть\',link:LINKS[1]}:null;mkStDraw()"')}</div>
@@ -843,9 +890,7 @@ function mkStDraw() {
   <div class="card" style="margin-top:16px"><div class="card-h"><h3>SEO настройки</h3><span class="sp"></span><button class="btn sm" onclick="mkStSeo()">Изменить</button></div>
     <dl class="kv"><dt>Ссылка</dt><dd>kofeynaya.ru/stories/${esc(s.seo.slug || mkTrans(s.t || 'story'))}</dd><dt>Title</dt><dd>${esc(s.seo.title || s.t) || '—'}</dd><dt>Description</dt><dd>${esc(s.seo.d) || '—'}</dd></dl></div>
   ${ok ? `<div class="btns" style="margin-top:16px"><button class="btn pri" onclick="mkStSave('pub')">${s.st === 'pub' ? 'Опубликовать изменения' : 'Опубликовать'}</button><button class="btn" onclick="mkStSave(${s.st === 'pub' ? "'pub'" : "'draft'"},1)">${s.st === 'pub' ? 'Сохранить' : 'Сохранить черновик'}</button>${s.isNew ? '' : `<button class="btn ghost" onclick="mkStSave('arch')">🗄 В архив</button>`}</div>` : ''}`;
-  const d = $('#drw');
-  if (d && d.dataset.mkst === s.id) { const b = $('#drb'), y = d.querySelector('.dr').scrollTop; b.innerHTML = html; d.querySelector('.dr').scrollTop = y; return; }
-  drawer(s.isNew ? 'Новая сторис' : esc(s.t), html, s.isNew ? 'До 10 картинок 9:16' : `создана ${mkDT(s.at)}`); $('#drw').dataset.mkst = s.id;
+  mkWin(`<div class="dr-h"><div style="flex:1;min-width:0"><h2>${s.isNew ? 'Новая сторис' : esc(s.t)}</h2><div class="small muted">${s.isNew ? 'До 10 картинок 9:16' : `создана ${mkDT(s.at)}`}</div></div><button class="cls" onclick="mkClose('mkstw')" aria-label="Закрыть">${X_SVG}</button></div><div class="dr-b">${html}</div>`, 'mkstw', {ov:'ov', box:'dr'});
 }
 function mkStMv(i, d) { const a = mkSE.slides, j = i + d; [a[i], a[j]] = [a[j], a[i]]; mkSEi = j; mkStDraw(); }
 function mkStUp(inp, at) {
@@ -880,7 +925,7 @@ function mkStSave(st, stay) {
   s.st = st; if (i >= 0) D.stories[i] = clone(s); else D.stories.unshift(clone(s));
   if (!save()) return;
   audit(isNew ? 'Новая сторис' : 'Сторис изменена', `«${esc(s.t)}» · ${isNew ? T[st] + ' · ' + s.slides.length + ' сл.' : ch.join('; ') || 'без изменений'}`);
-  save(); mkST = st; closeDrawer(); render(); toast(st === 'pub' ? `«${esc(s.t)}» опубликована` : st === 'arch' ? 'Сторис в архиве' : 'Черновик сохранён');
+  save(); mkST = st; mkWinRemove('mkstw'); render(); toast(st === 'pub' ? `«${esc(s.t)}» опубликована` : st === 'arch' ? 'Сторис в архиве' : 'Черновик сохранён');
 }
 
 /* ═════════ 7. ВНЕШНИЙ МАРКЕТИНГ ═════════ */
@@ -969,4 +1014,105 @@ function mkSrcExport() {
   const [a, b] = mkSrcRange(), T = mkSrcAgg(a, b), rows = [];
   MK_SRC.forEach(s => { const k = s.slice(0, 4).join('›'); if (T[k]) rows.push([s[0], s[1], s[2], s[3], T[k].o, T[k].c.size, T[k].r, T[k].on, T[k].oc]); });
   mkCSV('istochniki', ['Канал', 'Источник', 'Medium', 'Campaign', 'Заказы', 'Клиенты', 'Доход', 'Заказы новых', 'Заказы текущих'], rows);
+}
+
+/* ═════════ 9. ТРИГГЕРНЫЕ РАССЫЛКИ (Starter §15) + наши авто-сообщения ═════════
+   Флаги и числа, которые есть в SCHEMA 'triggers', — в DB.cfg.triggers; тексты и остальное — в DB.mk.trig; наши — DB.autos.
+   Всё правится в черновике mkTD и сохраняется кнопкой «Сохранить» */
+const MK_STS = {
+  delivery:[['acc', 'Принят', 'Заказ №{{ORDER_NUMBER}} принят', 'Привезём к {{DELIVERY_TIME}}'], ['cook', 'Готовится', 'Готовим заказ', 'Скоро передадим курьеру'], ['go', 'Доставляется', 'Курьер уже едет', 'Будет у тебя к {{DELIVERY_TIME}}'],
+    ['near', 'Курьер рядом', 'Курьер рядом', 'Будет минут через 10', 'За ~10 минут. Работает с Стартер Логист, Яндекс Доставкой, White Cabs, One Sync или Купером'], ['door', 'Курьер у дома', 'Курьер у дома', 'Встречай — заказ уже у двери', 'За ~3 минуты, при тех же интеграциях'],
+    ['done', 'Доставлен', 'Приятного аппетита!', 'Заказ №{{ORDER_NUMBER}} доставлен'], ['cancel', 'Отменён', 'Заказ отменён', 'Деньги вернутся на карту •• {{USER_LAST_FOUR_DIGITS}}']],
+  pickup:[['acc', 'Принят', 'Заказ №{{ORDER_NUMBER}} принят', 'Приготовим к {{DELIVERY_TIME}}'], ['cook', 'Готовится', 'Готовим заказ', 'Скоро будет готово'], ['ready', 'Готов', 'Заказ готов ☕', 'Забирай на стойке — назови номер {{ORDER_NUMBER}}'],
+    ['done', 'Выдан', 'Приятного аппетита!', 'Спасибо, что заглянул'], ['cancel', 'Отменён', 'Заказ отменён', 'Деньги вернутся на карту •• {{USER_LAST_FOUR_DIGITS}}']],
+  table:[['acc', 'Принят', 'Заказ №{{ORDER_NUMBER}} принят', 'Скоро принесём к столику'], ['cook', 'Готовится', 'Готовим заказ', 'Уже почти'], ['ready', 'Готов', 'Несём заказ', 'Приятного аппетита!'],
+    ['cancel', 'Отменён', 'Заказ отменён', 'Деньги вернутся на карту •• {{USER_LAST_FOUR_DIGITS}}']],
+};
+const MK_STW = {delivery:'Доставка', pickup:'Самовывоз', table:'Из зала'};
+const MK_TVARS = ['{{bonuses}}', '{{ORDER_NUMBER}}', '{{ORDER_CODE}}', '{{DELIVERY_TIME}}', '{{USER_LAST_FOUR_DIGITS}}'];
+const MK_TCFG = ['winback', 'winbackDays', 'winbackBon', 'balPush', 'review', 'reviewEvery', 'bdPush'];
+function mkTrig() {
+  const D = mkD();
+  if (!D.trig) {
+    const st = {}; Object.entries(MK_STS).forEach(([w, L]) => { st[w] = {on:true}; L.forEach(([k, , t, b]) => st[w][k] = {t, b}); });
+    /* тексты Starter — как сейчас в CRM (на «вы»: проверка текста подсветит) */
+    D.trig = {review:{min:30, t:'Вам понравилось❓', b:'Нам важно ваше мнение — расскажите о ваших впечатлениях от заказа'},
+      bal:{min:4320, minBal:100, t:'У вас есть {{bonuses}} бонусов', b:'Потратьте их на следующий заказ: 1 бонус = 1 ₽'},
+      bd:{days:0, t:'С днём рождения! 🎂', b:'Загляни в кофейную — для тебя скидка в день рождения'},
+      win:{t:'Вам 200 бонусов 💰', b:'Мы начислили вам 200 бонусов, потому что мы соскучились'}, st};
+  }
+  return D.trig;
+}
+const mkTSaved = () => ({cfg:Object.fromEntries(MK_TCFG.map(k => [k, DB.cfg.triggers[k]])), trig:mkTrig(), autos:(DB.autos || []).map(a => ({on:a.on, t:a.t, b:a.b}))});
+let mkTD = null, mkTT = 'review', mkTST = 'delivery', mkTLast = '';
+const mkTDirty = () => !!mkTD && JSON.stringify(mkTD) !== JSON.stringify(mkTSaved());
+const mkTGet = path => path.split('.').reduce((o, k) => o[k], mkTD);
+function mkTSet(path, v, rr) {
+  const k = path.split('.'); let o = mkTD; k.slice(0, -1).forEach(x => o = o[x]); o[k[k.length - 1]] = v;
+  if (rr) { render(); return; }
+  const bar = $('#mktbar'); if (bar) bar.innerHTML = mkTBar();
+  const m = path.match(/^(.*)\.(t|b)$/); if (m) { const w = document.getElementById('mkw-' + m[1].replace(/\./g, '-')); if (w) { const x = mkTGet(m[1]); w.innerHTML = pzWarn(textCheck(x.t, x.b)); } }
+}
+const mkTBar = () => mkTDirty() ? `<b>Есть несохранённые изменения</b><span class="sp"></span><button class="btn" onclick="mkTD=null;render()">Отменить</button><button class="btn pri" onclick="mkTSave()">Сохранить</button>` : '<span class="muted">Изменений нет</span>';
+const mkTTxt = (base, ok, lt = 30, lb = 140) => { const x = mkTGet(base), id = base.replace(/\./g, '-');
+  return `<div class="row mk-tt"><label class="fld"><span class="mk-req">Заголовок · до ${lt}</span><input class="inp" id="mkt-${id}-t" maxlength="${lt}" ${mkDis(ok)} value="${esc(x.t)}" onfocus="mkTLast=this.id" oninput="mkTSet('${base}.t',this.value)"></label>
+    <label class="fld" style="flex:2"><span class="mk-req">Текст · до ${lb}</span><textarea class="inp" id="mkt-${id}-b" maxlength="${lb}" style="min-height:58px" ${mkDis(ok)} onfocus="mkTLast=this.id" oninput="mkTSet('${base}.b',this.value)">${esc(x.b)}</textarea></label></div>
+    <div id="mkw-${id}">${pzWarn(textCheck(x.t, x.b))}</div>`; };
+const mkTNum = (path, u, ok, w = 200) => `<div class="u-wrap" style="max-width:${w}px"><input class="inp" inputmode="numeric" ${mkDis(ok)} value="${esc(mkTGet(path))}" oninput="mkTSet('${path}',+this.value.replace(/\\D/g,'')||0)"><i>${u}</i></div>`;
+const mkTSw = (path, ok, label, sub = '') => `<div class="tog" style="margin-bottom:12px"><span><b style="font-weight:500">${label}</b>${sub ? `<small class="muted" style="display:block">${sub}</small>` : ''}</span>${sw('mkts-' + path.replace(/\./g, '-'), mkTGet(path), (ok ? '' : 'disabled ') + `onchange="mkTSet('${path}',this.checked,1)"`)}</div>`;
+function mkTVar(v) {
+  const e = document.getElementById(mkTLast); if (!e) { toast('Сначала поставьте курсор в заголовок или текст'); return; }
+  const a = e.selectionStart ?? e.value.length; e.value = e.value.slice(0, a) + v + e.value.slice(e.selectionEnd ?? a); e.focus(); e.setSelectionRange(a + v.length, a + v.length); e.dispatchEvent(new Event('input'));
+}
+PAGES.triggers = () => {
+  if (!mkTD) mkTD = clone(mkTSaved());
+  const ok = can('push.send'), okB = ok && can('mech.edit'), c = mkTD.cfg, t = mkTD.trig, risk = ((SCHEMA.find(x => x.id === 'triggers') || {fields:[]}).fields.find(f => f.k === 'winback') || {}).risk;
+  const anyOn = c.winback || c.balPush || c.review || c.bdPush || Object.values(t.st).some(x => x.on);
+  const T = [['review', `${c.review ? '🟢' : '⚪'} Отзыв`], ['bal', `${c.balPush ? '🟢' : '⚪'} Бонусы`], ['bd', `${c.bdPush ? '🟢' : '⚪'} День рождения`], ['win', `${c.winback ? '🟢' : '⚪'} Возврат клиента`], ['st', 'Статусы заказа'], ['autos', 'Наши авто-сообщения', mkTD.autos.filter(a => a.on).length]];
+  const vars = `<div class="mk-vars" style="margin:0 0 12px">${MK_TVARS.map(v => `<button type="button" ${mkDis(ok)} onmousedown="event.preventDefault()" onclick="mkTVar('${v}')">${v}</button>`).join('')}</div>`;
+  let b = '';
+  if (mkTT === 'review') b = `<div class="card">${mkTSw('cfg.review', ok, 'Запрос отзыва', 'Пуш после завершения заказа — оценки попадают в <a href="#/feedbacks">«Отзывы»</a>')}
+    <div class="row"><label class="fld"><span>Через сколько после завершения заказа</span>${mkTNum('trig.review.min', 'мин', ok)}</label><label class="fld"><span>Не чаще раза в — наше, не после каждого кофе</span>${mkTNum('cfg.reviewEvery', 'дней', ok)}</label></div>${vars}${mkTTxt('trig.review', ok)}</div>`;
+  else if (mkTT === 'bal') b = `<div class="card">${mkTSw('cfg.balPush', ok, 'Напомнить о бонусах', 'Если на счёте много бонусов — пуш, чтобы гость вернулся их потратить')}
+    <div class="row"><label class="fld"><span>Через сколько после заказа</span>${mkTNum('trig.bal.min', 'мин', ok)}<small>4 320 мин = 3 дня</small></label><label class="fld"><span>Если на счёте не меньше</span>${mkTNum('trig.bal.minBal', 'бонусов', ok)}</label></div>${vars}${mkTTxt('trig.bal', ok)}</div>`;
+  else if (mkTT === 'bd') b = `<div class="card">${mkTSw('cfg.bdPush', ok, 'Поздравить с днём рождения')}
+    <div class="note blue" style="margin-bottom:12px">🎂 <span>У нас уже есть авто-сообщение «Скоро день рождения» за 7 дней — во вкладке «Наши авто-сообщения». Включать оба — гость получит два пуша</span></div>
+    <label class="fld"><span>За сколько дней до дня рождения — 0, значит в сам день</span>${mkTNum('trig.bd.days', 'дней', ok)}</label>${vars}${mkTTxt('trig.bd', ok)}</div>`;
+  else if (mkTT === 'win') b = `<div class="card">${mkTSw('cfg.winback', okB, 'Вернуть гостя бонусами', 'Через N дней без заказа начислить бонусы и прислать пуш')}
+    ${risk ? `<div class="note" style="margin-bottom:12px">⚠️ <span><b>Критик:</b> ${esc(risk)}</span></div>` : ''}${okB ? '' : noPerm('mech.edit') + '<div style="height:10px"></div>'}
+    <div class="row"><label class="fld"><span>Через сколько дней после заказа</span>${mkTNum('cfg.winbackDays', 'дней', okB)}</label><label class="fld"><span>Начислить</span>${mkTNum('cfg.winbackBon', 'бонусов', okB)}</label></div>
+    <p class="small muted" style="margin-top:0">Бонусы начисляет один баланс — наши механики их второй раз не начисляют</p>${vars}${mkTTxt('trig.win', ok)}</div>`;
+  else if (mkTT === 'st') b = `<div class="seg" style="margin-bottom:12px">${Object.entries(MK_STW).map(([k, l]) => `<button class="${mkTST === k ? 'on' : ''}" onclick="mkTST='${k}';render()">${l}</button>`).join('')}</div>
+    <div class="card">${mkTSw(`trig.st.${mkTST}.on`, ok, `Пуши о статусе · ${MK_STW[mkTST]}`)}${vars}
+    ${MK_STS[mkTST].map(([k, l, , , note]) => `<div class="mk-st-row"><h3 style="margin-bottom:8px">${l}</h3>${note ? `<p class="small muted" style="margin:-4px 0 8px">${note}</p>` : ''}${mkTTxt(`trig.st.${mkTST}.${k}`, ok)}</div>`).join('')}</div>`;
+  else b = `<p class="muted" style="margin-top:0">Пуши, которые шлёт наше приложение по своим событиям. Числа в текстах — пример</p>` + (DB.autos || []).map((a, i) => `<div class="card"><div class="card-h"><div style="flex:1"><h3>${esc(a.n)}</h3><div class="small muted">${esc(a.when)}</div></div>${sw('mkta-' + i, mkTD.autos[i].on, (ok ? '' : 'disabled ') + `onchange="mkTSet('autos.${i}.on',this.checked,1)"`)}</div>${mkTTxt('autos.' + i, ok, 40, 140)}</div>`).join('');
+  return ph('Триггерные рассылки', 'Пуши, которые уходят сами по событию: после заказа, при бонусах, в день рождения, по статусу заказа. Как в Starter, плюс наши авто-сообщения. Всё меняется черновиком и сохраняется кнопкой',
+    ok ? `<button class="btn" ${anyOn ? '' : 'disabled'} onclick="mkTOff()">⏻ Отключить все</button>` : '')
+  + (ok ? '' : noPerm('push.send') + '<div style="height:12px"></div>')
+  + mkTabs(T, mkTT, 'mkTTab') + b + (ok ? `<div class="savebar" id="mktbar">${mkTBar()}</div>` : '');
+};
+function mkTTab(k) { mkTT = k; render(); }
+function mkTOff() { const c = mkTD.cfg; c.winback = c.balPush = c.review = c.bdPush = false; Object.values(mkTD.trig.st).forEach(x => x.on = false); render(); toast('Все триггеры Starter выключены в черновике — нажмите «Сохранить»'); }
+function mkTFlat(o, p = '', out = {}) { Object.entries(o).forEach(([k, v]) => { const q = p ? p + '.' + k : k; if (v && typeof v === 'object') mkTFlat(v, q, out); else out[q] = v; }); return out; }
+function mkTLabel(path) {
+  const W = {cfg:'', trig:'', review:'Отзыв', reviewEvery:'Отзыв: не чаще раза в дней', balPush:'Бонусы', bal:'Бонусы', bdPush:'День рождения', bd:'День рождения', win:'Возврат клиента', winback:'Возврат клиента', winbackDays:'Возврат клиента: через дней', winbackBon:'Возврат клиента: бонусов',
+    st:'Статусы', t:'заголовок', b:'текст', min:'через мин', minBal:'от бонусов', days:'за дней', on:'вкл', autos:'', ...MK_STW};
+  const k = path.split('.'), out = [];
+  k.forEach((x, i) => { if (k[i - 1] === 'autos') out.push('Авто-сообщение «' + ((DB.autos[+x] || {}).n || x) + '»'); else if (k[i - 2] === 'st') out.push((MK_STS[k[i - 1]].find(s => s[0] === x) || [, x])[1]); else if (x in W) { if (W[x]) out.push(W[x]); } else out.push(x); });
+  return out.join(' · ') + (k[0] === 'cfg' && ['review', 'balPush', 'bdPush', 'winback'].includes(k[1]) ? ': вкл' : '');
+}
+function mkTSave(force) {
+  const D = mkD(), d = mkTD, warn = [], bad = [];
+  [['trig.review.min', 1], ['trig.bal.min', 1], ['cfg.winbackDays', 1], ['cfg.reviewEvery', 0], ['trig.bal.minBal', 0], ['cfg.winbackBon', 0]].forEach(([p, mn]) => { if (!(mkTGet(p) >= mn)) bad.push(mkTLabel(p)); });
+  const texts = Object.entries(mkTFlat(d)).filter(([p]) => /\.(t|b)$/.test(p));
+  texts.forEach(([p, v]) => { if (!String(v).trim()) bad.push(mkTLabel(p) + ' — пусто'); });
+  if (bad.length) { toast('Проверьте: ' + esc(bad.slice(0, 3).join('; '))); return; }
+  texts.filter(([p]) => p.endsWith('.t')).forEach(([p]) => { const base = p.slice(0, -2), x = mkTGet(base), w = textCheck(x.t, x.b); if (w.length) warn.push(`<b>${esc(mkTLabel(base))}</b>: ${w.map(esc).join('; ')}`); });
+  if (warn.length && !force) { modal({t:'В текстах есть замечания', wide:1, body:`<div class="note">✏️ <span>${warn.join('<br>')}</span></div><p class="small muted">Тексты Starter написаны на «вы» — у нас обращение на «ты». Неразрывный пробел перед ₽ и % поставлю сам</p>`, ok:'Сохранить как есть', cancel:'Исправить', onOk:() => { setTimeout(() => mkTSave(1), 0); }}); return; }
+  texts.forEach(([p, v]) => { const k = p.split('.'); let o = d; k.slice(0, -1).forEach(x => o = o[x]); o[k[k.length - 1]] = nbspFix(String(v)); });
+  const A = mkTFlat(mkTSaved()), B = mkTFlat(d), sh = v => v === true ? 'вкл' : v === false ? 'выкл' : String(v);
+  const ch = Object.keys(B).filter(k => A[k] !== B[k]).map(k => `${esc(mkTLabel(k))}: ${mkDiff(sh(A[k]), sh(B[k]))}`);
+  if (!ch.length) { mkTD = null; render(); toast('Изменений нет'); return; }
+  MK_TCFG.forEach(k => DB.cfg.triggers[k] = d.cfg[k]); D.trig = clone(d.trig); d.autos.forEach((a, i) => { if (DB.autos[i]) Object.assign(DB.autos[i], a); });
+  audit('Триггерные рассылки', ch.join('<br>')); save(); mkTD = null; render(); toast(`Сохранено: ${ch.length} ${plural(ch.length, 'изменение', 'изменения', 'изменений')}`);
 }

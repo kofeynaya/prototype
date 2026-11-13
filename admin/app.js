@@ -54,10 +54,10 @@ const LIMIT_DEF = {'Владелец':{bonus:0, depo:0}, 'Управляющий
 function freshDB() {
   const cfg = {}; SCHEMA.forEach(s => { cfg[s.id] = {}; s.fields.forEach(f => cfg[s.id][f.k] = clone(f.v)); });
   return {
-    v: 1, me: 's1', cfg, ver: {},
+    v: 2, me: 's1', cfg, ver: {},
     perms: clone(PERM_DEF), limits: clone(LIMIT_DEF),
     staff: [
-      {id:'s1', n:'Владелец', role:'Владелец', shops:'Все', on:true},
+      {id:'s1', n:'Вы', role:'Владелец', shops:'Все', on:true},
       {id:'s2', n:'Ирина Гусева', role:'Управляющий', shops:'Все', on:true},
       {id:'s3', n:'Дарья Ким', role:'Маркетолог', shops:'Все', on:true},
       {id:'s4', n:'Анна Белова', role:'Поддержка', shops:'Все', on:true},
@@ -71,7 +71,7 @@ function freshDB() {
 }
 let DB;
 try { DB = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { DB = null; }
-if (!DB || DB.v !== 1) DB = freshDB();
+if (!DB || DB.v !== 2) DB = freshDB();
 SCHEMA.forEach(s => { DB.cfg[s.id] = DB.cfg[s.id] || {}; s.fields.forEach(f => { if (!(f.k in DB.cfg[s.id])) DB.cfg[s.id][f.k] = clone(f.v); }); });
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(DB)); return true; }
@@ -91,28 +91,44 @@ const noPerm = p => `<div class="note red">🔒 <span>У роли «${esc(ME().r
 
 /* ───────── окна ───────── */
 let toastT;
-function toast(t) { $$('.toast').forEach(x => x.remove()); const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = t; document.body.appendChild(d); clearTimeout(toastT); toastT = setTimeout(() => d.remove(), 5000); d.onclick = () => d.remove(); }
-let _onOk = null;
+function toast(t) { t = String(t); $$('.toast').forEach(x => x.remove()); const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = t; document.body.appendChild(d); clearTimeout(toastT); toastT = setTimeout(() => d.remove(), 5000); d.onclick = () => d.remove(); }
+/* окна — стопкой: у каждого свой обработчик «Готово» (раньше вложенное окно затирало обработчик родителя) */
 function modal({t, body, ok = 'Готово', cls = 'pri', onOk, cancel = 'Отмена', wide}) {
-  _onOk = onOk || null;
-  const el = document.createElement('div'); el.className = 'ov c'; el.dataset.modal = 1;
-  el.innerHTML = `<div class="md" style="${wide ? 'width:min(720px,100%)' : ''}"><div class="md-h"><h2>${t}</h2><button class="cls" onclick="closeModal()" aria-label="Закрыть">${X_SVG}</button></div>
-    <div class="md-b">${body}</div><div class="md-f">${cancel ? `<button class="btn" onclick="closeModal()">${cancel}</button>` : ''}${ok ? `<button class="btn ${cls}" id="mdOk" onclick="modalOk()">${ok}</button>` : ''}</div></div>`;
-  el.addEventListener('mousedown', e => { if (e.target === el) closeModal(); });
+  const el = document.createElement('div'); el.className = 'ov c'; el.dataset.modal = 1; el._onOk = onOk || null;
+  el.innerHTML = `<div class="md" style="${wide ? 'width:min(760px,100%)' : ''}"><div class="md-h"><h2>${t}</h2><button class="cls" onclick="tryClose(this)" aria-label="Закрыть">${X_SVG}</button></div>
+    <div class="md-b">${body}</div><div class="md-f">${cancel ? `<button class="btn" onclick="tryClose(this)">${cancel}</button>` : ''}${ok ? `<button class="btn ${cls}" id="mdOk" onclick="modalOk(this)">${ok}</button>` : ''}</div></div>`;
+  el.addEventListener('mousedown', e => { if (e.target === el) tryClose(el); });
+  el.addEventListener('input', () => { el.dataset.dirty = 1; });
   $('#layer').appendChild(el);
   const f = el.querySelector('input:not([type=checkbox]):not([type=radio]),textarea,select'); if (f && innerWidth > 860) f.focus();
 }
-function modalOk() { if (!_onOk || _onOk() !== false) closeModal(); }
-function closeModal() { const m = [...$$('[data-modal]')].pop(); if (m) m.remove(); }
+const topModal = b => (b && b.closest && b.closest('[data-modal]')) || [...$$('[data-modal]')].pop();
+function modalOk(b) { const m = topModal(b); if (!m) return; if (!m._onOk || m._onOk() !== false) m.remove(); }
+function closeModal(b) { const m = topModal(b); if (m) m.remove(); }
+/* закрытие крестиком, «Отмена», Esc, кликом мимо: если что-то вводили — спросить, как в Starter */
+function tryClose(b) {
+  const m = b && b.dataset && b.dataset.modal ? b : topModal(b); if (!m) return;
+  if (m.dataset.guard) return;
+  if (!m.dataset.dirty || !m._onOk) { m.remove(); return; }
+  askSave(() => { if (m._onOk() !== false) m.remove(); }, () => m.remove());
+}
+function askSave(onSave, onDrop, txt = 'Вы что-то поменяли и не сохранили') {
+  const el = document.createElement('div'); el.className = 'ov c'; el.dataset.modal = 1; el.dataset.ask = 1;
+  el.innerHTML = `<div class="md" style="width:min(440px,100%)"><div class="md-h"><h2>Сохранить изменения?</h2></div><div class="md-b"><p style="margin:0">${txt}</p></div>
+    <div class="md-f"><button class="btn" data-a="stay">Остаться</button><button class="btn" data-a="drop">Выйти без сохранения</button>${onSave ? '<button class="btn pri" data-a="save">Сохранить</button>' : ''}</div></div>`;
+  el.addEventListener('click', e => { const a = e.target.dataset && e.target.dataset.a; if (!a) return; el.remove(); if (a === 'save') onSave(); if (a === 'drop') onDrop(); });
+  $('#layer').appendChild(el);
+}
 function drawer(title, html, sub = '') {
   closeDrawer(true);
   const el = document.createElement('div'); el.className = 'ov'; el.id = 'drw';
   el.innerHTML = `<div class="dr"><div class="dr-h"><div style="flex:1;min-width:0"><h2>${title}</h2>${sub ? `<div class="small muted">${sub}</div>` : ''}</div><button class="cls" onclick="closeDrawer()" aria-label="Закрыть">${X_SVG}</button></div><div class="dr-b" id="drb">${html}</div></div>`;
   el.addEventListener('mousedown', e => { if (e.target === el) closeDrawer(); });
+  el.addEventListener('input', () => { el.dataset.dirty = 1; });
   $('#layer').appendChild(el);
 }
-function closeDrawer(silent) { const d = $('#drw'); if (d) d.remove(); if (!silent && location.hash.split('/').length > 3) { history.replaceState(null, '', location.hash.split('/').slice(0, 3).join('/')); } }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($$('[data-modal]').length) closeModal(); else closeDrawer(); } });
+function closeDrawer(silent, force) { const d = $('#drw'); if (d && !force && !silent && d.dataset.dirty) { askSave(null, () => closeDrawer(silent, 1), 'Изменения в этой карточке не сохранены'); return; } if (d) d.remove(); if (!silent && location.hash.split('/').length > 3) { history.replaceState(null, '', location.pathname + location.hash.split('/').slice(0, 3).join('/')); } }
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; const o = $$('.tn>.it.open'); if (o.length) { o.forEach(x => x.classList.remove('open')); return; } const m = [...$$('[data-modal]')].pop(); if (m) { if (m.dataset.ask) m.remove(); else tryClose(m); } else if ($('#drw')) closeDrawer(); });
 const val = id => { const e = document.getElementById(id); return e ? (e.type === 'checkbox' ? e.checked : e.value.trim()) : ''; };
 const reasonBox = (list, id = 'rsn') => `<label class="fld"><span>Причина</span><select class="inp" id="${id}">${list.map(x => `<option>${x}</option>`).join('')}</select></label>
   <label class="fld"><span>Комментарий — попадёт в журнал</span><textarea class="inp" id="${id}c" placeholder="Например: номер обращения, что случилось"></textarea></label>`;
@@ -468,7 +484,9 @@ PAGES.approvals = () => {
     + (w.length ? w.map(row).join('') : '<div class="card empty">Ничего не ждёт подтверждения</div>') + (d.length ? '<h2 style="margin:22px 0 10px">Решённые</h2>' + d.slice(0, 30).map(row).join('') : '');
 };
 function apprDo(id, yes) {
-  const a = DB.approvals.find(x => x.id === id); a.st = yes ? 'ok' : 'no'; a.who = ME().n;
-  if (yes) applyOp(a.op, ME().n); else { audit('Отклонили операцию', `${a.t} · просил ${esc(a.by)}`, {g:a.op.g}); }
+  const a = DB.approvals.find(x => x.id === id);
+  if (yes && applyOp(a.op, ME().n) === false) return;
+  a.st = yes ? 'ok' : 'no'; a.who = ME().n;
+  if (!yes) { audit('Отклонили операцию', `${a.t} · просил ${esc(a.by)}`, {g:a.op.g}); }
   save(); render();
 }

@@ -307,18 +307,21 @@ window.SEED = (() => {
   /* заказы */
   const items = (window.MENU_ITEMS || []).filter(m => m.p > 0);
   const orders = []; let on = 51200;
-  guests.forEach(g => {
-    const k = Math.min(18, Math.max(1, Math.round(g.total / 8)));
+  guests.forEach((g, gi) => {
+    const type = gi === 0 ? 'act' : pick(['none','one','one','lost','lost','sleep','sleep','act','act','act','act','act']);
+    const k = type === 'none' ? 0 : type === 'one' ? 1 : type === 'act' ? int(3, 18) : int(2, 9);
+    const age = () => type === 'lost' ? int(95, 380) : type === 'sleep' ? int(32, 88) : type === 'one' ? int(0, 200) : (R() < .5 ? int(0, 6) : int(0, 60));
     for (let j = 0; j < k; j++) {
       const lines = []; const nn = int(1, 3);
       for (let q = 0; q < nn; q++) { const m = pick(items); const off = R() < .3 ? pick([['Предложение дня', .2],['Цена недели', .1],['Шестое', .2],['День рождения', .3]]) : null;
         lines.push({id:m.id, n:m.n, p:m.p, q:1, d: off ? Math.round(m.p * off[1]) : 0, k: off ? off[0] : ''}); }
       const sum = lines.reduce((a, x) => a + x.p - x.d, 0), bonUse = g.plus && R() < .3 ? Math.min(Math.floor(sum * .3), g.bon) : 0;
-      orders.push({id:'K-' + (on++), g:g.id, at: ago(int(0, 60)) + 'T' + String(int(8, 22)).padStart(2,'0') + ':' + String(int(0,59)).padStart(2,'0'), ch: pick(['Касса','Касса','Касса','Самовывоз','Доставка','За столик']),
+      const ch = pick(['Касса','Касса','Касса','Самовывоз','Доставка','За столик']);
+      orders.push({id:'', g:g.id, promo: R() < .07 ? pick(['FIRST15','KOFE10']) : '', src: ch === 'Касса' ? 'Касса' : pick(['Приложение iOS','Приложение Android','Сайт']), at: ago(age()) + 'T' + String(int(8, 22)).padStart(2,'0') + ':' + String(int(0,59)).padStart(2,'0'), ch,
         shop:g.shop, lines, sum, bonUse, pay: pick(['Карта','Карта','Депозит','Наличные','SberPay']), st: R() < .03 ? 'Возврат' : 'Выполнен'});
     }
   });
-  orders.sort((a, b) => b.at.localeCompare(a.at));
+  orders.sort((a, b) => a.at.localeCompare(b.at)); orders.forEach(o => o.id = 'K-' + (on++)); orders.reverse();
   /* обращения в поддержку */
   const tickets = [
     {id:'T-1042', g:'G-000014', topic:'🪙 Бонусы и скидки', st:'new', at:ago(0)+'T09:12', msgs:[{me:0,t:'Здравствуйте! Вчера купила капучино, а бонусы не пришли',at:'09:12'}]},
