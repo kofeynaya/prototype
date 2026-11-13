@@ -119,34 +119,42 @@ const reasonBox = (list, id = 'rsn') => `<label class="fld"><span>Причина
 const needReason = (id = 'rsn') => { const c = val(id + 'c'); if (c.length < 4) { document.getElementById(id + 'c').classList.add('err'); toast('Напишите комментарий: зачем это делаем'); return null; } return `${val(id)} · ${c}`; };
 const sw = (id, on, attrs = '') => `<label class="sw"><input type="checkbox" id="${id}" ${on ? 'checked' : ''} ${attrs}><i></i></label>`;
 
-/* ───────── навигация ───────── */
+/* ───────── навигация: верхнее меню, как в Starter CRM ───────── */
 const NAV = [
-  ['Главное', [['dash','📊','Обзор'], ['guests','👥','Гости'], ['orders','🧾','Заказы'], ['support','💬','Поддержка', () => DB.tickets.filter(t => t.st === 'new').length], ['approvals','✅','Подтверждения', () => DB.approvals.filter(a => a.st === 'wait').length]]],
-  ['Меню и кофейни', [['menu','☕','Блюда и цены'], ['cats','🗂️','Разделы меню'], ['shops','📍','Кофейни и доставка'], ['stop','⛔','Стоп-лист']]],
-  ['Выгоды', [['mech','⚙️','Все правила механик'], ['offers','🎯','Предложения дня'], ['week','★','Цены недели'], ['heroes','🦸','Герои дня и цвета']]],
-  ['Общение с гостями', [['push','📣','Пуши'], ['autos','🔔','Авто-сообщения'], ['segments','🎯','Сегменты'], ['content','🖼️','Сторис, баннеры, тексты'], ['search','🔍','Поиск в приложении']]],
-  ['Система', [['staff','🧑‍💼','Сотрудники и права'], ['audit','📜','Журнал действий'], ['integr','🔌','Интеграции'], ['backup','💾','Резервная копия'], ['risks','🧭','Что решить до запуска']]],
+  {t:'Заказы', ic:'🧾', id:'orders'},
+  {t:'Клиенты', ic:'👥', id:'customers', also:['guests','guest','blacklist']},
+  {t:'Маркетинг', ic:'📣', sub:[['segments','Сегменты'],['mailings','Рассылки'],['feedbacks','Отзывы'],['loyalty','Лояльность'],['referral','Реферальная программа'],['stories','Сторис'],['external','Внешний маркетинг'],['promos','Акции'],['masscodes','Массовые промокоды'],['autos','Триггерные рассылки'],['sources','Маркетинговые источники'],'Наше приложение',['mech','Правила механик'],['offers','Предложения дня'],['week','★ Цены недели'],['heroes','Герои дня и цвета'],['content','Экраны и тексты'],['push','Быстрый пуш']], also:['m','mailing']},
+  {t:'Доставка', ic:'🛵', sub:[['couriers','Курьеры'],['deliveries','Доставки'],['shops','Зоны доставки']]},
+  {t:'Точки', ic:'📍', sub:[['shops2','Точки продаж'],['loadpanel','Панель управления загрузкой']], also:['shop']},
+  {t:'Каталог', ic:'☕', sub:[['menu','Блюда и цены'],['cats','Разделы меню'],['stop','Стоп-листы'],['package','Комплектация заказа'],['search','Поиск в приложении']]},
+  {t:'Статистика', ic:'📊', id:'dash'},
+  {t:'Онлайн-оплата', ic:'💳', sub:[['payonline','Онлайн-оплата'],['bills','Счета'],['transactions','Транзакции']]},
+  {t:'Поддержка', ic:'💬', id:'support', cnt:() => DB.tickets.filter(t => t.st === 'new').length},
+  {t:() => ME().n, ic:'👤', right:1, cnt:() => DB.approvals.filter(a => a.st === 'wait').length, sub:[['settings','Настройки проекта'],['staff','Сотрудники и права'],['approvals','Подтверждения', () => DB.approvals.filter(a => a.st === 'wait').length],['audit','Журнал действий'],['tickets','Тикеты'],['integr','Интеграции'],['backup','Резервная копия'],['risks','Что решить до запуска']]},
 ];
 const PAGES = {};
 let route = ['dash'];
+const navOn = n => n.id === route[0] || (n.also || []).includes(route[0]) || (n.sub || []).some(x => Array.isArray(x) && x[0] === route[0]);
 function navHtml() {
-  return `<a class="brand" href="#/dash"><svg class="mk"><use href="#k-mark"/></svg><span><svg class="wd" viewBox="0 0 1000 121"><use href="#k-word"/></svg><small>Бэк-офис</small></span></a>
-  <nav class="nav">${NAV.map(([g, items]) => `<div class="nav-g">${g}</div>` + items.map(([id, ic, t, cnt]) => { const n = cnt ? cnt() : 0;
-    return `<a href="#/${id}" class="${route[0] === id || (id === 'mech' && route[0] === 'm') || (id === 'guests' && route[0] === 'guest') ? 'on' : ''}"><span class="i">${ic}</span>${t}${n ? `<span class="cnt">${n}</span>` : ''}</a>`; }).join('')).join('')}</nav>`;
+  return NAV.map((n, i) => { const c = n.cnt ? n.cnt() : 0, t = typeof n.t === 'function' ? n.t() : n.t, cn = c ? `<span class="cnt">${c}</span>` : '';
+    if (!n.sub) return `<div class="it ${navOn(n) ? 'on' : ''}"><a href="#/${n.id}"><span class="i">${n.ic}</span>${esc(t)}${cn}</a></div>`;
+    return `<div class="it ${navOn(n) ? 'on' : ''} ${n.right ? 'right' : ''}" data-i="${i}"><button onclick="navTog(${i})" aria-haspopup="true"><span class="i">${n.ic}</span>${esc(t)}${cn}<span class="car">▾</span></button>
+      <div class="dd">${n.right ? `<label class="who">Вы вошли как${whoHtml()}</label>` : ''}${n.sub.map(x => typeof x === 'string' ? `<div class="dd-g">${x}</div>` : (() => { const k = x[2] ? x[2]() : 0; return `<a href="#/${x[0]}" class="${route[0] === x[0] ? 'on' : ''}">${x[1]}${k ? ` <span class="pill red" style="margin-left:auto">${k}</span>` : ''}</a>`; })()).join('')}</div></div>`; }).join('');
 }
+function navTog(i) { $$('.tn>.it').forEach(e => { if (+e.dataset.i !== i) e.classList.remove('open'); }); const e = $(`.tn>.it[data-i="${i}"]`); if (e) e.classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.tn')) $$('.tn>.it.open').forEach(x => x.classList.remove('open')); if (e.target.closest('.dd a')) { $$('.tn>.it.open').forEach(x => x.classList.remove('open')); document.body.classList.remove('nav-open'); } });
 function whoHtml() {
-  return `<span class="lbl muted">Вы вошли как</span><select onchange="DB.me=this.value;save();render();toast('Теперь вы — '+ME().n+' ('+ME().role+')')">${DB.staff.filter(s => s.on).map(s => `<option value="${s.id}" ${s.id === DB.me ? 'selected' : ''}>${esc(s.n)} · ${esc(s.role)}</option>`).join('')}</select>`;
+  return `<select onchange="DB.me=this.value;save();render();toast('Теперь вы — '+esc(ME().n)+' ('+ME().role+')')">${DB.staff.filter(s => s.on).map(s => `<option value="${s.id}" ${s.id === DB.me ? 'selected' : ''}>${esc(s.n)} · ${esc(s.role)}</option>`).join('')}</select>`;
 }
+const ALIAS = {guests:'customers'};
 function render() {
   route = (location.hash.replace(/^#\/?/, '') || 'dash').split('/').map(decodeURIComponent);
+  if (ALIAS[route[0]] && PAGES[ALIAS[route[0]]]) route[0] = ALIAS[route[0]];
   const page = PAGES[route[0]] || PAGES.dash;
-  $('#side').innerHTML = navHtml();
-  $('#who').innerHTML = whoHtml();
-  const t = (NAV.flatMap(g => g[1]).find(x => x[0] === route[0]) || [])[2] || '';
-  $('#crumbs').textContent = t;
-  const sy = scrollY, same = render._last === route[0];
+  $('#tn').innerHTML = navHtml();
+  const sy = scrollY, same = render._last === route.join('/');
   $('#page').innerHTML = page(route);
-  render._last = route[0];
+  render._last = route.join('/');
   if (!same) scrollTo(0, 0); else scrollTo(0, sy);
   document.body.classList.remove('nav-open');
 }
