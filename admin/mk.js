@@ -201,9 +201,9 @@ function mkD() {
   const POS = ['Быстрая доставка', 'Хорошее качество', 'Хороший сервис'], NEG = ['Долгая доставка', 'Неполный заказ', 'Опоздание', 'Плохая упаковка', 'Плохое качество', 'Плохой сервис', 'Проблема с сайтом/приложением', 'Инородное тело'];
   const feeds = DB.orders.filter(o => o.st !== 'Возврат' && mkH('fb' + o.id) % 100 < 22).slice(0, 42).map((o, i) => {
     const h = mkH('fbr' + o.id), r = h % 100 < 76 ? 5 : h % 100 < 88 ? 4 : h % 100 < 93 ? 3 : h % 100 < 97 ? 2 : 1;
-    const pool = [, C1, C2, C3, C4, C5][r], tags = r >= 4 ? (h % 3 ? [POS[h % 3]] : []) : [NEG[h % NEG.length]].concat(r === 1 && h % 2 ? [NEG[(h >> 4) % NEG.length]] : []);
+    const pool = [, C1, C2, C3, C4, C5][r], tags = r >= 4 ? (h % 3 ? [POS[h % 3]] : []) : [NEG[h % NEG.length]].concat(r === 1 && h % 2 ? [NEG[(h >>> 4) % NEG.length]] : []);
     const at = new Date(o.at); at.setMinutes(at.getMinutes() + 35);
-    return {id:'F-' + (3757 - i), g:o.g, o:o.id, shop:o.shop, ch:o.ch, at:+at, r, c:pool[(h >> 5) % pool.length], tags:[...new Set(tags)], st: i > 6 && h % 4 ? 'Обработан' : 'Принят', reply: r <= 2 && i > 6 ? 'Прости, пожалуйста — так быть не должно. Вернули бонусами стоимость блюда' : ''};
+    return {id:'F-' + (3757 - i), g:o.g, o:o.id, shop:o.shop, ch:o.ch, at:+at, r, c:pool[(h >>> 5) % pool.length], tags:[...new Set(tags)], st: i > 6 && h % 4 ? 'Обработан' : 'Принят', reply: r <= 2 && i > 6 ? 'Прости, пожалуйста — так быть не должно. Вернули бонусами стоимость блюда' : ''};
   });
   /* акции */
   const bake = (DB.cats.find(c => /выпеч/i.test(c.name)) || DB.cats[0] || {}).id;
@@ -358,9 +358,9 @@ function mkMailSend() {
 /* отчёт по рассылке */
 let mkRT = 'ok', mkRC = 'all';
 function mkRecip(m) {
-  return m.ids.map(gid => { const g = G(gid); if (!g) return null; const h = mkH(m.id + '|' + gid), del = h % 100 < 86, vis = del && (h >> 7) % 100 < 32, ord = vis && (h >> 12) % 100 < 44;
-    const vt = m.at + ((h >> 3) % 240 + 2) * 60e3, codes = mkD().promos.filter(p => p.kind === 'code' && p.codeType === 'single' && p.on);
-    return {g, del, vis, ord, vt, dev: (h >> 17) & 1 ? 'iPhone' : 'Android', on: 'K-' + (60000 + h % 9000), sum: 290 + ((h >> 9) % 140) * 10, promo: ord && codes.length && (h >> 21) % 5 === 0 ? codes[(h >> 23) % codes.length].code : ''}; }).filter(Boolean);
+  return m.ids.map(gid => { const g = G(gid); if (!g) return null; const h = mkH(m.id + '|' + gid), del = h % 100 < 86, vis = del && (h >>> 7) % 100 < 32, ord = vis && (h >>> 12) % 100 < 44;
+    const vt = m.at + ((h >>> 3) % 240 + 2) * 60e3, codes = mkD().promos.filter(p => p.kind === 'code' && p.codeType === 'single' && p.on);
+    return {g, del, vis, ord, vt, dev: (h >>> 17) & 1 ? 'iPhone' : 'Android', on: 'K-' + (60000 + h % 9000), sum: 290 + ((h >>> 9) % 140) * 10, promo: ord && codes.length && (h >>> 21) % 5 === 0 ? codes[(h >>> 23) % codes.length].code : ''}; }).filter(Boolean);
 }
 PAGES.mailing = r => {
   const m = mkMailsAll().find(x => String(x.id) === r[1]);
@@ -607,21 +607,21 @@ function mkPDraw() {
 /* короткие помощники для полей окна: меняют mkP по пути и, если нужно, перерисовывают */
 function mkPSet(path, v, redraw) { const k = path.split('.'); let o = mkP; k.slice(0, -1).forEach(x => o = o[x]); o[k[k.length - 1]] = v; if (redraw) mkPDraw(); }
 const mkPI = (path, v, dis, attrs = '') => `<input class="inp" ${dis} value="${esc(v)}" onchange="mkPSet('${path}',this.value)" ${attrs}>`;
-const mkPN = (path, v, dis, u) => { const i = `<input class="inp" ${dis} inputmode="numeric" value="${esc(v)}" onchange="mkPSet('${path}',+this.value.replace(/[^0-9.]/g,'')||0,1)">`; return u ? `<div class="u-wrap">${i}<i>${u}</i></div>` : i; };
+const mkPN = (path, v, dis, u, rd = 0) => { const i = `<input class="inp" ${dis} inputmode="numeric" value="${esc(v)}" onchange="mkPSet('${path}',+this.value.replace(/[^0-9.]/g,'')||0,${rd})">`; return u ? `<div class="u-wrap">${i}<i>${u}</i></div>` : i; };
 const mkPSel = (path, v, opts, dis, redraw = 1) => `<select class="inp" ${dis} onchange="mkPSet('${path}',this.value,${redraw})">${Object.entries(opts).map(([k, t]) => `<option value="${k}" ${String(v) === k ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
 const mkPChk = (path, v, label, dis, sub = '') => `<label><input type="checkbox" ${v ? 'checked' : ''} ${dis} onchange="mkPSet('${path}',this.checked,1)"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span></label>`;
 const mkPMode = (path, v, dis) => `<div class="seg" style="margin-bottom:10px">${[['only', 'Только к выбранным'], ['except', 'Ко всем, кроме выбранных']].map(([k, t]) => `<button ${dis} class="${v === k ? 'on' : ''}" onclick="mkPSet('${path}','${k}',1)">${t}</button>`).join('')}</div>`;
 function mkPTog(path, x) { const k = path.split('.'); let o = mkP; k.forEach(y => o = o[y]); const i = o.indexOf(x); if (i >= 0) o.splice(i, 1); else o.push(x); mkPDraw(); }
 const MK_PSEC = {
   main: (p, dis) => `<div class="card"><h3>Основное</h3>
-    <label class="fld"><span class="mk-req">Название акции — гость видит его в корзине</span><input class="inp" ${dis} maxlength="255" value="${esc(p.n)}" oninput="mkP.n=this.value" onchange="mkPDraw()" placeholder="Например: вечерняя скидка на выпечку"></label>
+    <label class="fld"><span class="mk-req">Название акции — гость видит его в корзине</span><input class="inp" ${dis} maxlength="255" value="${esc(p.n)}" oninput="mkP.n=this.value;document.querySelector('.mk-wh h2').textContent=this.value||'Без названия'" placeholder="Например: вечерняя скидка на выпечку"></label>
     ${p.kind === 'code' ? `<div class="fld"><span class="mk-req">Тип промокода</span><div class="seg">${[['single', 'Одиночный'], ['mass', 'Массовый']].map(([k, t]) => `<button ${dis} class="${p.codeType === k ? 'on' : ''}" onclick="mkPSet('codeType','${k}',1)">${t}</button>`).join('')}</div>
       <small>${p.codeType === 'single' ? 'Один код для всех — например, для рассылки или баннера' : 'Набор уникальных кодов — у каждого гостя свой. Так в Starter делается персональная цена'}</small></div>
     ${p.codeType === 'single' ? `<div class="row" style="align-items:flex-end"><label class="fld"><span class="mk-req">Промокод · до 16 знаков, A–Z, 0–9, - и _</span><input class="inp" id="mkpc" ${dis} maxlength="16" value="${esc(p.code)}" oninput="this.value=this.value.toUpperCase();mkP.code=this.value" style="font-family:ui-monospace,Menlo,monospace"></label>
         <div class="fld" style="flex:0"><button class="btn" ${dis} onclick="mkP.code=mkRand(8);mkPDraw()">Сгенерировать</button></div></div>
         <div class="note blue">🔗 <span>Автоприменение: ссылка <code>kofeynaya.ru?promocode=${esc(p.code || 'КОД')}</code> — можно поставить в баннер или рассылку, код подставится сам</span></div>`
-    : `<div class="row"><label class="fld"><span class="mk-req">Количество</span>${mkPN('mass.n', p.mass.n, dis)}</label><label class="fld"><span class="mk-req">Префикс · до 8</span><input class="inp" ${dis} maxlength="8" value="${esc(p.mass.prefix)}" oninput="this.value=this.value.toUpperCase()" onchange="mkPSet('mass.prefix',this.value,1)"></label><label class="fld"><span class="mk-req">Длина случайной части</span>${mkPN('mass.len', p.mass.len, dis)}</label></div>
-      <div class="btns" style="margin-bottom:10px"><button class="btn pri" ${dis} onclick="mkPGen()">Сгенерировать ${nf(p.mass.n)}</button><button class="btn" ${dis} onclick="mkPImport()">Импортировать</button>${p.mass.codes.length ? `<a class="btn ghost" href="#/masscodes" onclick="closeModal()">Все коды ›</a>` : ''}</div>
+    : `<div class="row"><label class="fld"><span class="mk-req">Количество</span>${mkPN('mass.n', p.mass.n, dis)}</label><label class="fld"><span class="mk-req">Префикс · до 8</span><input class="inp" ${dis} maxlength="8" value="${esc(p.mass.prefix)}" oninput="this.value=this.value.toUpperCase()" onchange="mkPSet('mass.prefix',this.value,0)"></label><label class="fld"><span class="mk-req">Длина случайной части</span>${mkPN('mass.len', p.mass.len, dis)}</label></div>
+      <div class="btns" style="margin-bottom:10px"><button class="btn pri" ${dis} onclick="mkPGen()">Сгенерировать</button><button class="btn" ${dis} onclick="mkPImport()">Импортировать</button>${p.mass.codes.length ? `<a class="btn ghost" href="#/masscodes" onclick="closeModal()">Все коды ›</a>` : ''}</div>
       ${p.mass.codes.length ? `<div class="fld"><span>Сейчас ${nf(p.mass.codes.length)} ${plural(p.mass.codes.length, 'код', 'кода', 'кодов')}, использовано ${p.mass.codes.filter(c => c.st === 'used').length}. Примеры</span><div class="mk-codes">${p.mass.codes.slice(0, 8).map(c => `<span>${esc(c.c)}</span>`).join('')}</div></div>`
         : `<div class="fld"><span>Примеры кодов</span><div class="mk-codes">${[0, 1, 2].map(i => `<span>${esc((p.mass.prefix || 'PREFIX'))}${mkRand(Math.min(12, Math.max(3, p.mass.len || 6)), 'ex' + i)}</span>`).join('')}</div></div>`}`}` : ''}
     <dl class="kv" style="margin-top:12px"><dt>Тип</dt><dd>${MK_KIND[p.kind]}</dd>${p.isNew ? '' : `<dt>Создана</dt><dd>${mkDT(p.created)}</dd><dt>Использований</dt><dd>${nf(p.uses)}</dd>`}</dl></div>`,
@@ -663,7 +663,7 @@ const MK_PSEC = {
   goal: (p, dis) => `<div class="card"><h3>Отображать как цель</h3>
     ${p.type !== 'free' ? `<div class="note">ℹ️ <span>Виджет цели работает только для типа «Бесплатное блюдо». Сейчас тип — «${MK_TYPE[p.type]}». Поменять — в «Настройках»</span></div>` : ''}
     <div class="mk-opt" style="margin-top:10px">${mkPChk('goal.on', p.goal.on, 'Показывать виджет цели', p.type === 'free' ? dis : 'disabled', 'Гость видит, сколько покупок осталось до подарка. Похоже на наш «Каждый 6-й»')}</div>
-    ${p.goal.on && p.type === 'free' ? `<div class="row" style="margin-top:12px"><label class="fld"><span>Заголовок цели</span>${mkPI('goal.t', p.goal.t, dis, 'placeholder="Шестой круассан — в подарок"')}</label><label class="fld"><span>Покупок до подарка</span>${mkPN('goal.n', p.goal.n, dis)}</label></div>
+    ${p.goal.on && p.type === 'free' ? `<div class="row" style="margin-top:12px"><label class="fld"><span>Заголовок цели</span>${mkPI('goal.t', p.goal.t, dis, 'placeholder="Шестой круассан — в подарок"')}</label><label class="fld"><span>Покупок до подарка</span>${mkPN('goal.n', p.goal.n, dis, '', 1)}</label></div>
       <div class="note ok" style="display:block"><b>${esc(p.goal.t || 'Цель')}</b><div class="mk-goal">${Array.from({length:Math.min(12, p.goal.n || 1)}, (_, i) => `<i class="${i < 2 ? 'on' : ''}">${i === Math.min(12, p.goal.n || 1) - 1 ? '🎁' : i < 2 ? '✓' : ''}</i>`).join('')}</div><small class="muted">Так увидит гость: 2 из ${p.goal.n}</small></div>` : ''}</div>`,
   hist: p => `<div class="card"><h3>История</h3>${p.hist.length ? `<div class="log">${p.hist.map(h => `<div class="e"><div class="w">${mkDT(h.at)}<br>${esc(h.by)}</div><div><b>${esc(h.ev)}</b><div class="small">${h.ch || ''}</div></div></div>`).join('')}</div>` : '<div class="empty">Изменений ещё не было</div>'}</div>`,
 };
@@ -708,4 +708,263 @@ function mkPromoSave() {
     if (!ch.length) { closeModal(); toast('Изменений нет'); return; }
     mkPHist(p, a['Статус'] !== b['Статус'] && ch.length === 1 ? (p.on ? 'Включена' : 'Выключена') : 'Изменена', ch.join('<br>')); }
   save(); closeModal(); render(); toast(isNew ? `«${esc(p.n)}» создана${p.on ? '' : ' — пока выключена, включите в списке'}` : 'Сохранено');
+}
+
+/* ═════════ 4. МАССОВЫЕ ПРОМОКОДЫ ═════════ */
+let mkCT = 'active', mkCQ = '', mkCA = '';
+PAGES.masscodes = () => {
+  const D = mkD(), ok = mkPOk(), acts = D.promos.filter(p => p.kind === 'code' && p.codeType === 'mass');
+  const all = acts.flatMap(p => p.mass.codes.map((c, i) => ({p, c, i, st: c.st === 'used' ? 'used' : (c.st === 'off' || !p.on || p.arch) ? 'off' : 'active'})));
+  if (!acts.length) return ph('Массовые промокоды') + `<div class="card empty">Сначала создайте акцию с массовыми промокодами${ok ? `<div style="margin-top:12px"><button class="btn pri" onclick="location.hash='#/promos/code';setTimeout(()=>mkOpenPromo('','code','mass'),50)">Создать акцию ↗</button></div>` : ''}</div>`;
+  const q = mkCQ.toUpperCase(), base = all.filter(x => (!mkCA || x.p.id === mkCA) && (!q || x.c.c.includes(q)));
+  const L = base.filter(x => mkCT === 'all' || x.st === mkCT), ST = {active:'<span class="pill ok">Активный</span>', used:'<span class="pill blue">Использован</span>', off:'<span class="pill red">Отключён</span>'};
+  return ph(`Массовые промокоды <span class="muted" style="font-size:16px">${nf(all.length)}</span>`, 'Уникальные коды — у каждого гостя свой. В Starter это единственный способ дать гостю персональную цену. Коды создаются в карточке акции',
+    `<button class="btn" onclick="mkCSV('promokody',['Промокод','Акция','Статус','Лимит на гостя','Лимит на всех','Уже использовано'],mkCodesRows())">⤓ Экспортировать</button>${ok ? `<button class="btn pri" onclick="location.hash='#/promos/code';setTimeout(()=>mkOpenPromo('','code','mass'),50)">＋ Создать акцию ↗</button>` : ''}`)
+  + (ok ? '' : noPerm('offers.edit') + '<div style="height:12px"></div>')
+  + mkTabs([['active', 'Активные', base.filter(x => x.st === 'active').length], ['used', 'Использованные', base.filter(x => x.st === 'used').length], ['off', 'Отключённые', base.filter(x => x.st === 'off').length], ['all', 'Все', base.length]], mkCT, 'mkCTab')
+  + `<div class="filters">${mkSearch('mkq-codes', mkCQ, 'mkCQ', 'Найти промокод')}<select class="inp" style="width:auto" onchange="mkCA=this.value;render()"><option value="">Все акции</option>${acts.map(p => `<option value="${p.id}" ${mkCA === p.id ? 'selected' : ''}>${esc(p.n)}</option>`).join('')}</select></div>
+  <div class="tw"><table><thead><tr><th>Промокод</th><th>Акция</th><th>Статус</th><th class="r">Лимит на гостя</th><th class="r">Лимит на всех</th><th class="r">Уже использовано</th><th></th></tr></thead><tbody>
+  ${L.slice(0, 400).map(x => `<tr><td class="nowrap"><code>${esc(x.c.c)}</code> <button class="x" title="Скопировать" onclick="mkCopy('${esc(x.c.c)}')">⧉</button></td><td><a href="javascript:void 0" onclick="mkOpenPromo('${x.p.id}')">${esc(x.p.n)}</a>${x.p.on && !x.p.arch ? '' : ' <span class="small muted">· акция выключена</span>'}</td>
+    <td>${ST[x.st]}</td><td class="r">${x.p.lim.guestOn ? x.p.lim.guestN : '—'}</td><td class="r">${x.p.lim.perCodeN || '—'}</td><td class="r">${x.c.used || 0}</td>
+    <td>${x.st === 'used' ? '' : `<button class="btn sm" ${mkDis(ok && x.p.on && !x.p.arch)} onclick="mkCodeTog('${x.p.id}',${x.i})">${x.c.st === 'off' ? 'Включить' : 'Отключить'}</button>`}</td></tr>`).join('')}
+  </tbody></table>${L.length ? '' : '<div class="empty">Кодов нет</div>'}${L.length > 400 ? `<div class="small muted" style="padding:10px 12px">Показаны первые 400 из ${nf(L.length)} — уточните поиск</div>` : ''}</div>`;
+};
+function mkCTab(k) { mkCT = k; render(); }
+function mkCodesRows() { const S = {active:'Активный', used:'Использован', off:'Отключён'}; return mkD().promos.filter(p => p.kind === 'code' && p.codeType === 'mass').flatMap(p => p.mass.codes.map(c => [c.c, p.n, S[c.st === 'used' ? 'used' : (c.st === 'off' || !p.on || p.arch) ? 'off' : 'active'], p.lim.guestOn ? p.lim.guestN : '', p.lim.perCodeN || '', c.used || 0])); }
+function mkCodeTog(pid, i) { const p = mkPr(pid), c = p.mass.codes[i], w = c.st; c.st = c.st === 'off' ? 'active' : 'off'; mkPHist(p, 'Промокод ' + c.c, mkDiff(w === 'off' ? 'отключён' : 'активный', c.st === 'off' ? 'отключён' : 'активный')); save(); render(); }
+
+/* ═════════ 5. РЕФЕРАЛЬНАЯ ПРОГРАММА ═════════ */
+let mkRefT = 'cond';
+const MK_RVARS = ['{{ favorite_dish }}', '{{ referral_promocode }}', '{{ referral_bonuses }}', '{{ referrer_bonuses }}', '{{ referral_link }}', '{{ referral_promotion }}'];
+PAGES.referral = () => {
+  const D = mkD(), R = D.ref, ok = mkPOk(), dis = mkDis(ok), S = SCHEMA.find(s => s.id === 'ref'), cfg = DB.cfg.ref || {};
+  const fv = f => { const v = cfg[f.k]; return f.t === 'bool' ? (v ? 'да' : 'нет') : f.t === 'money' ? rub(v) : f.t === 'days' ? `${v} ${plural(v, 'день', 'дня', 'дней')}` : `${typeof v === 'number' ? nf(v) : esc(v)}${f.u ? ' ' + f.u : ''}`; };
+  const refPromos = D.promos.filter(p => p.special.ref && !p.arch);
+  return ph('Реферальная программа', 'Гость зовёт друга — оба получают бонусы. Условия Starter и наши правила защиты от обмана в одном месте',
+    `<span class="small muted">${R.on ? 'Включена' : 'Выключена'}</span>${sw('mkrefon', R.on, (ok ? '' : 'disabled ') + 'onchange="mkRefOn(this.checked)"')}`)
+  + (ok ? '' : noPerm('offers.edit') + '<div style="height:12px"></div>')
+  + `<div class="note" style="margin-bottom:14px">⚖️ <span><b>Сейчас в Starter:</b> выключена, 250 / 250 баллов от 500 ₽ — <b>у нас</b> ${nf(cfg.reward)} / ${nf(cfg.reward)} бонусов после ${cfg.days} ${plural(cfg.days, 'дня', 'дней', 'дней')} с покупкой</span></div>`
+  + mkTabs([['cond', 'Условия'], ['rules', 'Правила', R.rules.length]], mkRefT, 'mkRefTab')
+  + (mkRefT === 'cond' ? `<div class="grid g-side"><div class="card"><h2>Условия Starter</h2><p class="small muted">Так программа настроена в Starter. Для нашего приложения работают наши правила справа</p>
+      <div class="row" style="margin-top:12px"><label class="fld"><span class="mk-req">Получит клиент — тот, кто пригласил</span><div class="u-wrap"><input class="inp" id="mkr-cli" ${dis} inputmode="numeric" value="${R.cli}"><i>баллов</i></div></label>
+      <label class="fld"><span class="mk-req">Получит реферал — приглашённый</span><div class="u-wrap"><input class="inp" id="mkr-refl" ${dis} inputmode="numeric" value="${R.refl}"><i>баллов</i></div></label></div>
+      <label class="fld"><span class="mk-req">Минимальная сумма заказа</span><div class="u-wrap" style="max-width:260px"><input class="inp" id="mkr-min" ${dis} inputmode="numeric" value="${R.min}"><i>₽</i></div></label>
+      <label class="fld"><span>Акция на первый заказ — из «реферальных» акций</span><select class="inp" id="mkr-pr" ${dis}><option value="">Без акции</option>${refPromos.map(p => `<option value="${p.id}" ${R.firstPromo === p.id ? 'selected' : ''}>${esc(p.n)}${p.on ? '' : ' · неактивна'}</option>`).join('')}</select>
+        <small>Акция становится «реферальной» галочкой в её настройках — <a href="#/promos/disc">Акции ›</a></small></label>
+      <div class="tog" style="margin-bottom:12px"><span><b style="font-weight:500">Показывать кнопку «Баллы за друга»</b><small class="muted" style="display:block">На главном экране, гостям с 2+ заказами</small></span>${sw('mkr-btn', R.btn, dis)}</div>
+      <label class="fld"><span class="mk-req">Текст реферального сообщения</span><textarea class="inp" id="mkr-msg" ${dis} oninput="document.getElementById('mkr-w').innerHTML=pzWarn(textCheck('',this.value))">${esc(R.msg)}</textarea></label>
+      <div class="mk-vars">${MK_RVARS.map(v => `<button type="button" ${dis} onclick="mkRefVar('${v}')">${v}</button>`).join('')}</div>
+      <div id="mkr-w">${pzWarn(textCheck('', R.msg))}</div>
+      <p class="small muted">Ссылка выглядит так: <code>kofeynaya.ru?promocode=ANNA7Q</code></p>
+      ${ok ? '<div class="btns" style="margin-top:12px"><button class="btn pri" onclick="mkRefSave()">Сохранить</button></div>' : ''}</div>
+    <div class="card"><div class="card-h"><h2>Наши правила</h2><span class="sp"></span><a class="btn sm" href="#/m/ref">Изменить ›</a></div>
+      <p class="small muted" style="margin:0 0 10px">${esc(S ? S.d : '')}. Защита от обмана — только у нас, в Starter её нет</p>
+      <dl class="kv">${(S ? S.fields : []).map(f => `<dt>${esc(f.l)}</dt><dd>${fv(f)}</dd>`).join('')}</dl></div></div>`
+  : `${R.rules.map((x, i) => `<div class="mk-qa"><div class="row" style="align-items:flex-start"><label class="fld" style="flex:1"><span class="mk-req">Вопрос</span><input class="inp" ${dis} value="${esc(x.q)}" onchange="mkRefRule(${i},'q',this.value)"></label>
+      <button class="x" style="flex:0;margin-top:24px" ${dis} title="Удалить блок" onclick="mkRefRuleDel(${i})">✕</button></div>
+      <label class="fld" style="margin:0"><span class="mk-req">Ответ</span><textarea class="inp" ${dis} onchange="mkRefRule(${i},'a',this.value)">${esc(x.a)}</textarea></label></div>`).join('')}
+    ${ok ? '<button class="btn" onclick="mkRefRuleAdd()">＋ Добавить блок</button>' : ''}<p class="small muted">Гость видит эти блоки на экране «Пригласить друга» по кнопке «Как это работает». Сохраняется сразу</p>`);
+};
+function mkRefTab(k) { mkRefT = k; render(); }
+function mkRefOn(on) {
+  const R = mkD().ref;
+  modal({t: on ? 'Включить реферальную программу?' : 'Выключить реферальную программу?', body:`<p style="margin-top:0">${on ? 'Гости увидят «Пригласить друга», а приглашённые получат бонусы по нашим правилам' : 'Новые приглашения перестанут работать. Друзья, которые уже в пути, получат бонусы по старым условиям'}</p>`,
+    ok: on ? 'Включить' : 'Выключить', cls: on ? 'pri' : 'red', onOk:() => { R.on = on; audit('Реферальная программа', mkDiff(on ? 'выключена' : 'включена', on ? 'включена' : 'выключена')); save(); render(); }});
+  const c = document.getElementById('mkrefon'); if (c) c.checked = R.on;
+}
+function mkRefVar(v) { const e = document.getElementById('mkr-msg'), a = e.selectionStart ?? e.value.length; e.value = e.value.slice(0, a) + v + e.value.slice(e.selectionEnd ?? a); e.focus(); e.setSelectionRange(a + v.length, a + v.length); }
+function mkRefSave() {
+  const R = mkD().ref, n = id => parseInt(val(id).replace(/\D/g, ''), 10);
+  const nv = {cli:n('mkr-cli'), refl:n('mkr-refl'), min:n('mkr-min'), firstPromo:val('mkr-pr'), btn:val('mkr-btn'), msg:nbspFix(val('mkr-msg'))};
+  if (![nv.cli, nv.refl, nv.min].every(x => Number.isInteger(x) && x >= 0)) { toast('Баллы и сумма — целые числа от 0'); return; }
+  if (nv.msg.length < 10) { toast('Напишите текст сообщения'); return; }
+  if (!nv.msg.includes('{{ referral_link }}') && !nv.msg.includes('{{ referral_promocode }}')) { toast('В тексте нужна ссылка {{ referral_link }} или промокод {{ referral_promocode }} — иначе друг не сможет прийти'); return; }
+  const L = {cli:'Получит клиент', refl:'Получит реферал', min:'Мин. сумма', firstPromo:'Акция на первый заказ', btn:'Кнопка «Баллы за друга»', msg:'Текст'};
+  const show = (k, v) => k === 'firstPromo' ? ((mkPr(v) || {}).n || 'без акции') : k === 'btn' ? (v ? 'да' : 'нет') : String(v);
+  const ch = Object.keys(nv).filter(k => R[k] !== nv[k]).map(k => `${L[k]}: ${mkDiff(show(k, R[k]), show(k, nv[k]))}`);
+  if (!ch.length) { toast('Изменений нет'); return; }
+  Object.assign(R, nv); audit('Реферальная программа: условия', ch.join('; ')); save(); render(); toast('Условия сохранены');
+}
+function mkRefRule(i, k, v) { const x = mkD().ref.rules[i], w = x[k]; if (w === v.trim()) return; x[k] = nbspFix(v.trim()); audit('Реферальная программа: правила', `${k === 'q' ? 'Вопрос' : 'Ответ'}: ${mkDiff(w, x[k])}`); save(); toast('Сохранено'); }
+function mkRefRuleAdd() { mkD().ref.rules.push({q:'Новый вопрос', a:''}); audit('Реферальная программа: правила', '＋ блок'); save(); render(); }
+function mkRefRuleDel(i) { const R = mkD().ref, x = R.rules[i]; modal({t:'Удалить блок?', body:`<p style="margin-top:0">«${esc(x.q)}»</p>`, ok:'Удалить', cls:'red', onOk:() => { R.rules.splice(i, 1); audit('Реферальная программа: правила', `удалён блок «${esc(x.q)}»`); save(); render(); }}); }
+
+/* ═════════ 6. СТОРИС ═════════ */
+let mkST = 'pub';
+const MK_SPLACE = ['Сайт и приложение', 'Только приложение', 'Только сайт'];
+function mkStStat(s) {
+  if (s.st === 'draft') return {o:0, i:0, ip:0, sh:0, dp:0, dn:0};
+  const h = mkH('st' + s.id), o = 400 + h % 2600, ip = 6 + (h >>> 5) % 22, n = s.slides.length, dp = n > 1 ? 45 + (h >>> 9) % 50 : 100;
+  return {o, i:Math.round(o * ip / 100), ip, sh:(h >>> 13) % 40, dp, dn:Math.max(1, Math.round(n * dp / 100))};
+}
+PAGES.stories = () => {
+  const D = mkD(), ok = can('content.edit'), cnt = k => D.stories.filter(s => s.st === k).length, L = D.stories.filter(s => s.st === mkST);
+  const pub = s => s.st === 'pub' ? `<span class="pill ok">${s.place === 'Сайт и приложение' ? 'На сайте, в приложении' : s.place === 'Только сайт' ? 'На сайте' : 'В приложении'}</span>` : s.st === 'arch' ? '<span class="pill">В архиве</span>' : '<span class="pill amb">Не опубликована</span>';
+  return ph('Сторис', 'Кружки сверху экрана «Турбо» и на сайте. До 10 слайдов 9:16, на слайде — кнопка, которая ведёт в нужный экран', ok ? '<button class="btn pri" onclick="mkStEdit()">＋ Создать сторис</button>' : '')
+  + (ok ? '' : noPerm('content.edit') + '<div style="height:12px"></div>')
+  + mkTabs([['pub', 'Опубликованные', cnt('pub')], ['draft', 'Неопубликованные', cnt('draft')], ['arch', 'Архив', cnt('arch')]], mkST, 'mkSTab')
+  + `<div class="tw"><table><thead><tr><th>Название</th><th class="r">Открытия</th><th class="r">Взаимодействия</th><th class="r">Поделились</th><th class="r">Глубина просмотра</th><th>Публикация</th><th>Дата создания</th><th></th></tr></thead><tbody>
+  ${L.map(s => { const x = mkStStat(s); return `<tr class="click" onclick="mkStEdit('${s.id}')"><td><div class="cell-n">${s.slides[0] && s.slides[0].img ? `<img class="mk-sthumb" src="${esc(s.slides[0].img)}" alt="">` : '<span class="mk-sthumb"></span>'}<div><b>${esc(s.t)}</b><span class="small muted">${s.slides.length} ${plural(s.slides.length, 'слайд', 'слайда', 'слайдов')}</span></div></div></td>
+    <td class="r">${nf(x.o)}</td><td class="r">${nf(x.i)} <span class="small muted">${x.ip}%</span></td><td class="r">${nf(x.sh)}</td><td class="r nowrap">${x.dp}% <span class="small muted">${x.dn} из ${s.slides.length}</span></td>
+    <td>${pub(s)}</td><td class="nowrap small">${mkDT(s.at)}</td>
+    <td class="nowrap" onclick="event.stopPropagation()"><button class="x" title="Скопировать ссылку" onclick="mkCopy('https://kofeynaya.ru/stories/${esc(s.seo.slug)}')">🔗</button>
+      <details class="mk-dd r" style="display:inline-block"><summary class="mk-dots">…</summary><div class="mk-pop" style="min-width:180px">
+        <button class="it" onclick="mkStEdit('${s.id}')">✏️ Редактировать</button>
+        ${ok ? (s.st === 'arch' ? `<button class="it" onclick="mkStMove('${s.id}','draft')">↩︎ Вернуть из архива</button>` : `<button class="it" onclick="mkStMove('${s.id}','arch')">🗄 Архивировать</button>`) + (s.st === 'pub' ? `<button class="it" onclick="mkStMove('${s.id}','draft')">⏸ Снять с публикации</button>` : '') : ''}
+        <button class="it" onclick="mkCopy('https://kofeynaya.ru/stories/${esc(s.seo.slug)}')">🔗 Копировать ссылку</button></div></details></td></tr>`; }).join('')}
+  </tbody></table>${L.length ? '' : `<div class="empty">${mkST === 'arch' ? 'Архив пуст' : mkST === 'draft' ? 'Черновиков нет' : 'Опубликованных сторис нет'}</div>`}</div>`;
+};
+function mkSTab(k) { mkST = k; render(); }
+function mkStMove(id, st) { const s = mkD().stories.find(x => x.id === id), T = {pub:'опубликована', draft:'не опубликована', arch:'в архиве'}, w = s.st; s.st = st; audit(`Сторис «${s.t}»`, mkDiff(T[w], T[st])); save(); render(); toast(`«${esc(s.t)}» — ${T[st]}`); }
+let mkSE = null, mkSEi = 0;
+function mkStEdit(id) {
+  const s = id ? mkD().stories.find(x => x.id === id) : null;
+  mkSE = s ? clone(s) : {id:'st' + Date.now().toString(36), t:'', place:MK_SPLACE[0], st:'draft', at:mkNow(), slides:[], seo:{slug:'', title:'', d:''}, isNew:1};
+  mkSEi = 0; mkStDraw();
+}
+function mkStDraw() {
+  const s = mkSE, ok = can('content.edit'), dis = mkDis(ok), cur = s.slides[mkSEi];
+  const html = `${ok ? '' : noPerm('content.edit')}
+  <div class="row"><label class="fld" style="flex:2"><span class="mk-req">Название — видно под кружком</span><input class="inp" ${dis} maxlength="40" value="${esc(s.t)}" oninput="mkSE.t=this.value"></label>
+    <label class="fld"><span>Где показывать</span><select class="inp" ${dis} onchange="mkSE.place=this.value">${MK_SPLACE.map(p => `<option ${p === s.place ? 'selected' : ''}>${p}</option>`).join('')}</select></label></div>
+  <div class="card-h" style="margin:4px 0 8px"><h3>Слайды · ${s.slides.length}/10</h3><span class="sp"></span>${ok && s.slides.length < 10 ? `<label class="btn sm">📷 Загрузить<input type="file" accept="image/*" hidden onchange="mkStUp(this,-1)"></label><button class="btn sm" onclick="mkSE.slides.push({img:'',btn:null});mkSEi=mkSE.slides.length-1;mkStDraw()">＋ По адресу</button>` : ''}</div>
+  ${s.slides.length ? `<div class="mk-slides">${s.slides.map((x, i) => `<div class="mk-slide ${i === mkSEi ? 'on' : ''}" onclick="mkSEi=${i};mkStDraw()"><div class="pic" style="background-image:url('${esc(x.img)}')"><span class="n">${i + 1}</span>${x.btn ? `<em>${esc(x.btn.t)}</em>` : ''}</div>
+      <div class="btns" onclick="event.stopPropagation()"><button class="btn sm" ${ok && i ? '' : 'disabled'} title="Раньше" onclick="mkStMv(${i},-1)">←</button><button class="btn sm" ${ok && i < s.slides.length - 1 ? '' : 'disabled'} title="Позже" onclick="mkStMv(${i},1)">→</button><button class="btn sm" ${dis} title="Удалить" onclick="mkSE.slides.splice(${i},1);mkSEi=Math.max(0,Math.min(mkSEi,mkSE.slides.length-1));mkStDraw()">🗑</button></div></div>`).join('')}</div>`
+    : '<div class="card empty">Слайдов пока нет. Картинка 9:16 — PNG или JPG. Загрузите с компьютера или вставьте адрес</div>'}
+  ${cur ? `<div class="grid g-side" style="margin-top:16px;grid-template-columns:minmax(0,1fr) 230px"><div class="card"><h3>Слайд ${mkSEi + 1}</h3>
+      <label class="fld"><span>Адрес картинки</span><input class="inp" ${dis} value="${esc(cur.img.startsWith('data:') ? '' : cur.img)}" placeholder="${cur.img.startsWith('data:') ? 'Загружена с компьютера' : 'img/bn1.jpg или https://…'}" onchange="mkSE.slides[mkSEi].img=this.value.trim();setTimeout(mkStDraw,250)"></label>
+      ${ok ? `<label class="btn sm" style="margin-bottom:12px">🔁 Заменить файлом<input type="file" accept="image/*" hidden onchange="mkStUp(this,mkSEi)"></label>` : ''}
+      <div class="tog" style="margin-bottom:10px"><b style="font-weight:500">Кнопка на слайде</b>${sw('mkse-btn', !!cur.btn, dis + ' onchange="mkSE.slides[mkSEi].btn=this.checked?{t:\'Смотреть\',link:LINKS[1]}:null;mkStDraw()"')}</div>
+      ${cur.btn ? `<div class="row"><label class="fld"><span>Текст кнопки</span><input class="inp" ${dis} maxlength="24" value="${esc(cur.btn.t)}" oninput="mkSE.slides[mkSEi].btn.t=this.value.trim()"></label>
+        <label class="fld"><span>Куда ведёт</span><select class="inp" ${dis} onchange="mkSE.slides[mkSEi].btn.link=this.value">${LINKS.map(l => `<option ${l === cur.btn.link ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>` : ''}</div>
+    <div><div class="mk-ph9" style="background-image:url('${esc(cur.img)}')"><div class="bars">${s.slides.map((_, i) => `<i class="${i <= mkSEi ? 'on' : ''}"></i>`).join('')}</div>${cur.btn ? `<div class="cta">${esc(cur.btn.t)}</div>` : ''}</div><p class="small muted">Так увидит гость</p></div></div>` : ''}
+  <div class="card" style="margin-top:16px"><div class="card-h"><h3>SEO настройки</h3><span class="sp"></span><button class="btn sm" onclick="mkStSeo()">Изменить</button></div>
+    <dl class="kv"><dt>Ссылка</dt><dd>kofeynaya.ru/stories/${esc(s.seo.slug || mkTrans(s.t || 'story'))}</dd><dt>Title</dt><dd>${esc(s.seo.title || s.t) || '—'}</dd><dt>Description</dt><dd>${esc(s.seo.d) || '—'}</dd></dl></div>
+  ${ok ? `<div class="btns" style="margin-top:16px"><button class="btn pri" onclick="mkStSave('pub')">${s.st === 'pub' ? 'Опубликовать изменения' : 'Опубликовать'}</button><button class="btn" onclick="mkStSave(${s.st === 'pub' ? "'pub'" : "'draft'"},1)">${s.st === 'pub' ? 'Сохранить' : 'Сохранить черновик'}</button>${s.isNew ? '' : `<button class="btn ghost" onclick="mkStSave('arch')">🗄 В архив</button>`}</div>` : ''}`;
+  const d = $('#drw');
+  if (d && d.dataset.mkst === s.id) { const b = $('#drb'), y = d.querySelector('.dr').scrollTop; b.innerHTML = html; d.querySelector('.dr').scrollTop = y; return; }
+  drawer(s.isNew ? 'Новая сторис' : esc(s.t), html, s.isNew ? 'До 10 картинок 9:16' : `создана ${mkDT(s.at)}`); $('#drw').dataset.mkst = s.id;
+}
+function mkStMv(i, d) { const a = mkSE.slides, j = i + d; [a[i], a[j]] = [a[j], a[i]]; mkSEi = j; mkStDraw(); }
+function mkStUp(inp, at) {
+  const f = inp.files[0]; if (!f) return; if (f.size > 10 * 1048576) { toast('Картинка больше 10 МБ'); return; }
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, 900 / im.height, 520 / im.width), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); const url = c.toDataURL('image/jpeg', .78);
+    if (at < 0) { mkSE.slides.push({img:url, btn:null}); mkSEi = mkSE.slides.length - 1; } else mkSE.slides[at].img = url;
+    mkStDraw(); toast(Math.abs(im.width / im.height - 9 / 16) > .08 ? 'Загрузил. Картинка не 9:16 — края обрежутся' : 'Загрузил'); }; im.src = r.result; };
+  r.readAsDataURL(f);
+}
+function mkStSeo() {
+  const s = mkSE, slug = s.seo.slug || mkTrans(s.t || 'story');
+  modal({t:'SEO настройки', body:`<label class="fld"><span>Ссылка — kofeynaya.ru/stories/…</span><input class="inp" id="mks-slug" value="${esc(slug)}"><small>Если поменять, старая ссылка перестанет работать</small></label>
+    <label class="fld"><span id="mks-tl">Title · для поиска и соцсетей · ${(s.seo.title || s.t).length}/60</span><input class="inp" id="mks-t" maxlength="60" value="${esc(s.seo.title || s.t)}" oninput="document.getElementById('mks-tl').textContent='Title · для поиска и соцсетей · '+this.value.length+'/60'"></label>
+    <label class="fld"><span id="mks-dl">Description · ${s.seo.d.length}/155</span><textarea class="inp" id="mks-d" maxlength="155" oninput="document.getElementById('mks-dl').textContent='Description · '+this.value.length+'/155'">${esc(s.seo.d)}</textarea></label>`,
+    ok:'Готово', onOk:() => { const sl = val('mks-slug').toLowerCase(); if (!/^[a-z0-9-]{2,60}$/.test(sl)) { toast('Ссылка: латиница, цифры и дефис, от 2 знаков'); return false; }
+      if (mkD().stories.some(x => x.id !== s.id && x.seo.slug === sl)) { toast('Такая ссылка уже у другой сторис'); return false; }
+      s.seo = {slug:sl, title:val('mks-t'), d:val('mks-d')}; setTimeout(mkStDraw, 0); }});
+}
+function mkStSave(st, stay) {
+  const s = mkSE, D = mkD();
+  if (s.t.trim().length < 2) { toast('Назовите сторис'); return; }
+  if (st === 'pub' && !s.slides.length) { toast('Добавьте хотя бы один слайд'); return; }
+  if (s.slides.some(x => !x.img)) { toast('У каждого слайда должна быть картинка'); return; }
+  if (s.slides.some(x => x.btn && !x.btn.t)) { toast('Напишите текст кнопки'); return; }
+  s.t = s.t.trim(); if (!s.seo.slug) s.seo.slug = mkTrans(s.t); if (!s.seo.title) s.seo.title = s.t;
+  if (D.stories.some(x => x.id !== s.id && x.seo.slug === s.seo.slug)) s.seo.slug += '-' + s.id.slice(-3);
+  const isNew = s.isNew; delete s.isNew; const i = D.stories.findIndex(x => x.id === s.id), old = i >= 0 ? D.stories[i] : null, T = {pub:'опубликована', draft:'черновик', arch:'в архиве'};
+  const ch = []; if (old) { if (old.t !== s.t) ch.push('название: ' + mkDiff(old.t, s.t)); if (old.slides.length !== s.slides.length) ch.push('слайдов: ' + mkDiff(old.slides.length, s.slides.length)); else if (JSON.stringify(old.slides) !== JSON.stringify(s.slides)) ch.push('слайды изменены');
+    if (old.st !== st) ch.push(mkDiff(T[old.st], T[st])); if (old.place !== s.place) ch.push('место: ' + mkDiff(old.place, s.place)); if (JSON.stringify(old.seo) !== JSON.stringify(s.seo)) ch.push('SEO изменено'); }
+  s.st = st; if (i >= 0) D.stories[i] = clone(s); else D.stories.unshift(clone(s));
+  if (!save()) return;
+  audit(isNew ? 'Новая сторис' : 'Сторис изменена', `«${esc(s.t)}» · ${isNew ? T[st] + ' · ' + s.slides.length + ' сл.' : ch.join('; ') || 'без изменений'}`);
+  save(); mkST = st; closeDrawer(); render(); toast(st === 'pub' ? `«${esc(s.t)}» опубликована` : st === 'arch' ? 'Сторис в архиве' : 'Черновик сохранён');
+}
+
+/* ═════════ 7. ВНЕШНИЙ МАРКЕТИНГ ═════════ */
+const MK_EXT = [['none', 'Нет', 'Starter работает сам, события никуда не уходят'], ['mindbox', 'Mindbox', 'События, пуши и in-app по событиям, аналитика'], ['remarked', 'ReMarked', 'События корзины и заказа, пуши по событиям, аналитика'], ['own', 'Свой сервис лояльности', 'Наш backend: события Starter → наши механики']];
+let mkEX = null;
+PAGES.external = () => {
+  const E = mkD().ext, ok = can('system'), dis = mkDis(ok); if (!mkEX) mkEX = E.k;
+  const key = l => `<label class="fld"><span>${l}</span><input class="inp" disabled value="•••••••• хранится на сервере"><small>Ключи в бэк-офис не вводятся и в браузер не попадают — их кладёт разработчик в секреты сервера</small></label>`;
+  const k = mkEX;
+  return ph('Внешний маркетинг', 'Маркетинговая платформа, которой Starter отдаёт события приложения и сайта: вход, корзина, заказ. Это штатная точка, через которую можно подключить наши механики к Starter')
+  + (ok ? '' : noPerm('system') + '<div style="height:12px"></div>')
+  + `<div class="card"><h2>Маркетинговая платформа</h2><div class="mk-pick" style="margin-top:12px">${MK_EXT.map(([v, t, d]) => `<label class="${k === v ? 'on' : ''}"><input type="radio" name="mkext" ${k === v ? 'checked' : ''} ${dis} onchange="mkEX='${v}';render()"><span><b>${t}${E.k === v ? ' <span class="pill ok">сейчас</span>' : ''}</b><small>${d}</small></span></label>`).join('')}</div></div>
+  ${k === 'mindbox' ? `<div class="card"><h3>Mindbox</h3><p class="small muted">Отслеживание событий (вход, авторизация…), push и in-app в ответ на события, сбор данных для аналитики</p>
+    <label class="fld" style="max-width:340px"><span>Адрес API</span><select class="inp" id="mkx-api" ${dis}>${['api.mindbox.ru', 'api.s.mindbox.ru'].map(a => `<option ${E.mbApi === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
+    <div class="tw"><table><thead><tr><th>Точка интеграции</th><th>Системное имя</th><th>Ключ</th></tr></thead><tbody>${[['web', 'Сайт'], ['ios', 'iOS'], ['android', 'Android'], ['back', 'Операции Backend']].map(([kk, t]) => `<tr><td>${t}</td><td><input class="inp" id="mkx-${kk}" ${dis} value="${esc(E.mb[kk])}"></td><td class="small muted nowrap">🔒 хранится на сервере</td></tr>`).join('')}</tbody></table></div></div>`
+  : k === 'remarked' ? `<div class="card"><h3>ReMarked</h3><p class="small muted">События: вход, изменение корзины, оформление заказа, нажатие на контакт ресторана. Пуши по событиям и аналитика</p>${key('Ключ интеграции')}</div>`
+  : k === 'own' ? `<div class="card"><h3>Свой сервис лояльности — наш backend</h3>
+    <div class="note blue" style="margin:8px 0 12px">💡 <span><b>Это и есть путь подключить наши механики к Starter.</b> Персональные цены, предложение дня, бонусы за ритм и «каждый 6-й» должны посчитаться <b>до оплаты</b>. В публичном POS-Gateway такого интерфейса нет — просим Starter подключить нас как внешнюю платформу (как Mindbox) с синхронным ответом на событие корзины</span></div>
+    <ol class="small" style="margin:0 0 12px;padding-left:18px;line-height:1.7"><li>Гость меняет корзину в Starter → событие уходит к нам</li><li>Наш движок считает выгоду (Quote): маржа, бюджет, лимиты, одна лучшая выгода на строку</li><li>Starter показывает цену и проводит оплату → мы фиксируем (Commit), бонусы — в одном балансе</li><li>Возврат → Refund, экономия и бонусы пересчитываются</li></ol>
+    <label class="fld"><span>Адрес нашего сервиса</span><input class="inp" id="mkx-url" ${dis} value="${esc(E.own.url)}"></label>
+    <div class="fld"><span>Какие события принимать</span><div class="mk-opt">${[['login', 'Вход и авторизация'], ['cart', 'Изменение корзины — нужен ответ с ценой до оплаты'], ['order', 'Оформление и оплата заказа'], ['contact', 'Нажатие на контакт кофейни']].map(([kk, t]) => `<label><input type="checkbox" id="mkx-ev-${kk}" ${E.own.ev[kk] ? 'checked' : ''} ${dis}><span>${t}</span></label>`).join('')}</div></div>
+    ${key('Ключ подписи событий')}
+    <p class="small muted" style="margin:0">Не заменяем действующий webhook Starter → iiko и не отправляем заказы в iiko второй раз. Вопросы к Starter — раздел 15 документа передачи</p></div>`
+  : `<div class="card empty">Платформа не подключена — события Starter никуда не уходят</div>`}
+  ${ok ? `<div class="btns" style="margin-top:16px"><button class="btn pri" onclick="mkExtSave()">Сохранить</button>${mkEX !== E.k ? `<button class="btn" onclick="mkEX=null;render()">Отменить выбор</button>` : ''}</div>` : ''}`;
+};
+function mkExtSave() {
+  const E = mkD().ext, T = Object.fromEntries(MK_EXT.map(x => [x[0], x[1]])), ch = [];
+  if (E.k !== mkEX) ch.push('платформа: ' + mkDiff(T[E.k], T[mkEX]));
+  if (mkEX === 'mindbox') { const a = val('mkx-api'); if (a !== E.mbApi) { ch.push('API: ' + mkDiff(E.mbApi, a)); E.mbApi = a; } ['web', 'ios', 'android', 'back'].forEach(k => { const v = val('mkx-' + k); if (v !== E.mb[k]) { ch.push(`${k}: ${mkDiff(E.mb[k], v)}`); E.mb[k] = v; } }); }
+  if (mkEX === 'own') { const u = val('mkx-url'); if (!/^https:\/\/[^\s/]+\.[^\s]+$/.test(u)) { toast('Адрес сервиса — https://…'); return; } if (u !== E.own.url) { ch.push('адрес: ' + mkDiff(E.own.url, u)); E.own.url = u; }
+    ['login', 'cart', 'order', 'contact'].forEach(k => { const v = val('mkx-ev-' + k); if (v !== E.own.ev[k]) { ch.push(`событие ${k}: ${v ? 'вкл' : 'выкл'}`); E.own.ev[k] = v; } }); }
+  if (!ch.length) { toast('Изменений нет'); return; }
+  E.k = mkEX; audit('Внешний маркетинг', ch.join('; ')); save(); render(); toast('Сохранено');
+}
+
+/* ═════════ 8. МАРКЕТИНГОВЫЕ ИСТОЧНИКИ ═════════ */
+const MK_SRC = [
+  ['SEO', 'yandex', 'organic', '(not set)', 9], ['SEO', 'google', 'organic', '(not set)', 4], ['SEO', 'yandex.maps', 'referral', 'kartochka', 3],
+  ['SMM', 'vk', 'social', 'osen_menu', 2], ['SMM', 'telegram', 'social', 'kanal_kofeynaya', 2], ['SMM', 'vk', 'social', 'konkurs_noyabr', 1],
+  ['Таргетированная реклама', 'vk_ads', 'cpc', 'dostavka_centr', 1], ['Таргетированная реклама', 'yandex_direct', 'cpc', 'zavtraki', 1],
+];
+let mkSrcPer = '30', mkSrcCmp = false, mkSrcShop = '', mkSrcSplit = false, mkSrcOpen = {}, mkSrcFrom = '', mkSrcTo = '';
+let _mkSrcData = null;
+function mkSrcData() {
+  if (_mkSrcData) return _mkSrcData;
+  const out = [], today = new Date(isoDay()).getTime();
+  for (let d = 0; d < 180; d++) MK_SRC.forEach((s, li) => { const h = mkH(`src${d}|${li}`), n = h % 100 < s[4] * 3.2 ? 1 + ((h >>> 8) % 100 < 12) : 0;
+    for (let j = 0; j < n; j++) { const hh = mkH(`o${d}|${li}|${j}`); out.push({day:today - d * 864e5, li, shop:'Кофейная ' + [1, 2, 3, 4, 5, 5, 5, 7][hh % 8], isNew:(hh >>> 4) % 100 < 38, sum:600 + ((hh >>> 9) % 110) * 10, cli:'c' + (hh >>> 12) % 260}); } });
+  return (_mkSrcData = out);
+}
+function mkSrcRange() {
+  const t = new Date(isoDay()).getTime();
+  if (mkSrcPer === 'custom' && mkSrcFrom && mkSrcTo) { const a = new Date(mkSrcFrom).getTime(), b = new Date(mkSrcTo).getTime(); return [Math.min(a, b), Math.max(a, b)]; }
+  const n = +mkSrcPer || 30; return [t - (n - 1) * 864e5, t];
+}
+function mkSrcAgg(a, b) {
+  const rows = mkSrcData().filter(o => o.day >= a && o.day <= b && (!mkSrcShop || o.shop === mkSrcShop)), T = {};
+  rows.forEach(o => { const s = MK_SRC[o.li], keys = [s[0], s[0] + '›' + s[1], s[0] + '›' + s[1] + '›' + s[2], s[0] + '›' + s[1] + '›' + s[2] + '›' + s[3], '∑'];
+    keys.forEach(k => { const x = T[k] || (T[k] = {o:0, c:new Set(), r:0, on:0, oc:0, rn:0, rc:0}); x.o++; x.c.add(o.cli); x.r += o.sum; if (o.isNew) { x.on++; x.rn += o.sum; } else { x.oc++; x.rc += o.sum; } }); });
+  return T;
+}
+PAGES.sources = () => {
+  const [a, b] = mkSrcRange(), len = Math.round((b - a) / 864e5) + 1, T = mkSrcAgg(a, b), P = mkSrcCmp ? mkSrcAgg(a - len * 864e5, a - 864e5) : null;
+  const tree = []; const seen = new Set();
+  MK_SRC.forEach(s => { [s[0], s[0] + '›' + s[1], s[0] + '›' + s[1] + '›' + s[2], s[0] + '›' + s[1] + '›' + s[2] + '›' + s[3]].forEach((k, lv) => { if (!seen.has(k) && T[k]) { seen.add(k); tree.push({k, lv, name: k.split('›')[lv]}); } }); });
+  const vis = r => r.k.split('›').slice(0, r.lv).every((_, i, arr) => mkSrcOpen[r.k.split('›').slice(0, i + 1).join('›')]);
+  const dl = (cur, prev) => { if (!P) return ''; if (!prev) return cur ? ' <span class="mk-dl up">новое</span>' : ''; const p = Math.round((cur - prev) / prev * 100); return ` <span class="mk-dl ${p >= 0 ? 'up' : 'dn'}">${p >= 0 ? '+' : ''}${p}%</span>`; };
+  const cells = (k, x) => { const p = P && P[k]; return mkSrcSplit ? `<td class="r">${nf(x.on)}${dl(x.on, p && p.on)}</td><td class="r">${nf(x.oc)}${dl(x.oc, p && p.oc)}</td><td class="r">${nf(x.c.size)}</td><td class="r nowrap">${rub(x.rn)}</td><td class="r nowrap">${rub(x.rc)}</td>`
+    : `<td class="r">${nf(x.o)}${dl(x.o, p && p.o)}</td><td class="r">${nf(x.c.size)}${dl(x.c.size, p && p.c.size)}</td><td class="r nowrap">${rub(x.r)}${dl(x.r, p && p.r)}</td>`; };
+  const tot = T['∑'] || {o:0, c:new Set(), r:0, on:0, oc:0, rn:0, rc:0};
+  return ph('Маркетинговые источники', 'Только заказы с сайта с UTM-метками — заказы из приложения сюда не попадают. Канал › Источник › Medium › Campaign. Цифры вымышленные',
+    `<button class="btn" onclick="mkSrcExport()">⤓ Экспортировать</button>`)
+  + `<div class="filters"><select class="inp" style="width:auto" onchange="mkSrcPer=this.value;render()">${[['7', '7 дней'], ['30', '30 дней'], ['90', '90 дней'], ['custom', '📅 Свой период']].map(([k, t]) => `<option value="${k}" ${mkSrcPer === k ? 'selected' : ''}>${t}</option>`).join('')}</select>
+    ${mkSrcPer === 'custom' ? `<input class="inp" type="date" style="width:auto" value="${mkSrcFrom}" max="${isoDay()}" onchange="mkSrcFrom=this.value;render()"><input class="inp" type="date" style="width:auto" value="${mkSrcTo}" max="${isoDay()}" onchange="mkSrcTo=this.value;render()">` : ''}
+    <label class="chk"><input type="checkbox" ${mkSrcCmp ? 'checked' : ''} onchange="mkSrcCmp=this.checked;render()"> Сравнивать периоды</label>
+    <select class="inp" style="width:auto" onchange="mkSrcShop=this.value;render()"><option value="">Все точки продаж</option>${DB.shops.map(s => `<option ${mkSrcShop === s.n ? 'selected' : ''}>${esc(s.n)}</option>`).join('')}</select>
+    <label class="chk"><input type="checkbox" ${mkSrcSplit ? 'checked' : ''} onchange="mkSrcSplit=this.checked;render()"> Разделять на новых и текущих</label>
+    ${mkSrcPer !== '30' || mkSrcCmp || mkSrcShop || mkSrcSplit ? `<button class="btn ghost sm" onclick="mkSrcPer='30';mkSrcCmp=false;mkSrcShop='';mkSrcSplit=false;render()">Сбросить фильтры</button>` : ''}</div>
+  <p class="small muted" style="margin:-4px 0 10px">${dLong(isoDay(new Date(a)))} — ${dLong(isoDay(new Date(b)))}${P ? ` · сравниваем с ${len} ${plural(len, 'днём', 'днями', 'днями')} до этого` : ''}</p>
+  <div class="tw"><table class="mk-tree"><thead><tr><th>Канал › Источник › Medium › Campaign</th>${mkSrcSplit ? '<th class="r">Заказы новых</th><th class="r">Заказы текущих</th><th class="r">Клиенты</th><th class="r">Доход новых</th><th class="r">Доход текущих</th>' : '<th class="r">Заказы</th><th class="r">Клиенты</th><th class="r">Доход</th>'}</tr></thead><tbody>
+  ${tree.filter(vis).map(r => { const leaf = r.lv === 3; return `<tr class="lv${r.lv}"><td style="padding-left:${12 + r.lv * 20}px">${leaf ? '<span style="display:inline-block;width:22px"></span>' : `<button class="tg" onclick="mkSrcOpen['${esc(r.k)}']=!mkSrcOpen['${esc(r.k)}'];render()">${mkSrcOpen[r.k] ? '▾' : '▸'}</button>`}${esc(r.name)}</td>${cells(r.k, T[r.k])}</tr>`; }).join('')}
+  <tr class="tot"><td>Итого</td>${cells('∑', tot)}</tr></tbody></table>${tree.length ? '' : '<div class="empty">За этот период заказов с метками нет</div>'}</div>`;
+};
+function mkSrcExport() {
+  const [a, b] = mkSrcRange(), T = mkSrcAgg(a, b), rows = [];
+  MK_SRC.forEach(s => { const k = s.slice(0, 4).join('›'); if (T[k]) rows.push([s[0], s[1], s[2], s[3], T[k].o, T[k].c.size, T[k].r, T[k].on, T[k].oc]); });
+  mkCSV('istochniki', ['Канал', 'Источник', 'Medium', 'Campaign', 'Заказы', 'Клиенты', 'Доход', 'Заказы новых', 'Заказы текущих'], rows);
 }
