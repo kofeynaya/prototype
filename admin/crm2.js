@@ -121,8 +121,10 @@ document.addEventListener('click', e => { const m = $('#gmn.open'); if (m && !e.
 /* ── «Создать рассылку» из фильтра и кластера — без мусорных «Моих сегментов» ── */
 const TMP_SEG = 'tmp-filter';
 function tmpSeg(n, c) { DB.segments = DB.segments.filter(s => s.id !== TMP_SEG); DB.segments.push({id:TMP_SEG, n, c:clone(c), tmp:1}); return TMP_SEG; }
-cfMail = function () { if (cf.seg) mailSeg(cf.seg); else if (cf.c.length) mailSeg(tmpSeg('Текущий фильтр клиентов', cf.c)); else mailSeg(); };
-segMailCl = function (c) { const n = DB.guests.filter(g => GS(g.id).cl === c).length; if (!n) { toast('В этом кластере нет клиентов — рассылать некому'); return; } mailSeg(tmpSeg('RFM: ' + c, [{f:'rfmCl', v:c}])); };
+const mailIds = (ids, label) => { if (location.hash !== '#/mailings') location.hash = '#/mailings'; setTimeout(() => mkMailNew(null, {ids, label}), 60); };
+cfMail = function () { if (cf.seg) mailSeg(cf.seg); else if (cf.c.length || cf.q) mailIds(cfList().filter(g => !g.blocked).map(g => g.id), 'Фильтр клиентов · ' + nf(cfList().length)); else mailSeg(); };
+segMailCl = function (c) { const L = DB.guests.filter(g => GS(g.id).cl === c && !g.blocked); if (!L.length) { toast('В этом кластере нет клиентов — рассылать некому'); return; } mailIds(L.map(g => g.id), 'RFM: ' + c); };
+{ const sc = segCl; segCl = (c, a) => a.length ? sc(c, a) : '<div class="empty" style="padding:14px">В этом кластере пока нет клиентов</div>'; }
 { const sv = save; save = function () { const t = DB.segments.filter(s => s.tmp); DB.segments = DB.segments.filter(s => !s.tmp); const ok = sv(); DB.segments.push(...t); return ok; }; }
 { const pc = PAGES.customers; PAGES.customers = r => pc(r).replace(/<option value="(tmp-filter)"[^>]*>[^<]*<\/option>/, ''); }
 { const ps = PAGES.segments; PAGES.segments = r => ps(r).replace(/<tr class="click" onclick="editSeg\('tmp-filter'\)">[\s\S]*?<\/tr>/, ''); }
