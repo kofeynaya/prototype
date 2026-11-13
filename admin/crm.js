@@ -47,7 +47,7 @@ const hsh2 = s => String(s).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)
 const csv = (name, rows) => { const t = rows.map(r => r.map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(';')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + t], {type:'text/csv'})); a.download = name; a.click(); };
 
 /* ── данные: что есть в Starter, но не было у нас ── */
-DB.guests.forEach(g => { if (!('push' in g)) g.push = g.id === 'G-000001' || hsh2(g.id) % 100 < 31; });
+DB.guests.forEach(g => { if (!('push' in g)) g.push = g.id === 'G-000001' || hsh2(g.id) % 100 < 31; if (!('ads' in g)) g.ads = g.id === 'G-000001' || hsh2(g.id + 'ads') % 100 < 62; });
 const ST_LIST = ['Создан','Принят','Готовится','Готов','Доставляется','Завершен','Отменен'];
 const ST_COL = {'Создан':'#e0e0e0','Принят':'#cfe3ff','Готовится':'#ffe7b3','Готов':'#d4f0dc','Доставляется':'#e3dcff','Завершен':'#e3f1e9','Отменен':'#fdecea'};
 DB.orders.forEach(o => { if (!o.status) { const today = o.at.slice(0, 10) === isoDay(); o.status = o.st === 'Возврат' ? 'Отменен' : today ? ['Принят','Готовится','Готов'][hsh2(o.id) % 3] : 'Завершен'; o.hist = [{s:'Создан', at:o.at, by:'Core'}, ...(o.status !== 'Создан' ? [{s:o.status, at:o.at, by:o.ch === 'Касса' ? 'Pos' : 'Core'}] : [])]; } });
@@ -94,6 +94,7 @@ Object.assign(SEG_F, {
   regDays: ['С нами, дней — не больше', 'n', (g, v) => -daysTo(g.reg) <= v],
   bdMonth: ['ДР в месяце', () => ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'], (g, v) => !!g.bd && +g.bd.slice(5, 7) - 1 === ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'].indexOf(v)],
   pushOk: ['Получает пуши', ['да','нет'], (g, v) => (v === 'да') === !!g.push],
+  adsOk: ['Согласен на акции', ['да','нет'], (g, v) => (v === 'да') === !!g.ads],
 });
 
 /* ───────── Клиенты ───────── */
@@ -123,7 +124,7 @@ PAGES.customers = () => {
     ${cf.open ? `<div class="cr-fp">${sel('shop', DB.shops.map(s => s.n), 'Ресторан')}${sel('rfmCl', CLUSTERS, 'RFM-кластер')}${one('rfmCode', 'RFM-код (например, 311)')}${sel('bdMonth', SEG_F.bdMonth[1](), 'День рождения — месяц')}
       ${one('bd', 'ДР через дней — до')}${one('regDays', 'С нами, дней — до')}${rng('lastMin', 'lastMax', 'Последний заказ: дней')}${rng('cntMin', 'cntMax', 'Всего заказов: шт')}
       ${rng('avgMin', 'avgMax', 'Средний чек: ₽')}${rng('sumMin', 'sumMax', 'Сумма заказов: ₽')}${rng('bon', 'bonMax', 'Всего баллов')}${sel('plus', ['есть','нет'], '★ Кофейная+')}
-      ${one('ser', '🔥 Подряд — от')}${rng('days7', 'days7m', 'Дней с покупкой за 7')}${sel('pushOk', ['да','нет'], 'Получает пуши')}${sel('lvl', C('tiers', 'list').map(t => t.n), 'Уровень')}</div>` : ''}
+      ${one('ser', '🔥 Подряд — от')}${rng('days7', 'days7m', 'Дней с покупкой за 7')}${sel('pushOk', ['да','нет'], 'Получает пуши')}${sel('adsOk', ['да','нет'], 'Согласен на акции')}${sel('lvl', C('tiers', 'list').map(t => t.n), 'Уровень')}</div>` : ''}
     ${nF ? `<div class="cr-chips">${cf.c.map(x => `<span class="cr-chip">${esc(SEG_F[x.f][0])}${SEG_F[x.f][1] === 'n' ? ': ' : ' — '}${esc(x.v)}<button onclick="cfSet('${x.f}','')" aria-label="Убрать">×</button></span>`).join('')}
       <button class="btn sm" onclick="cf.c=[];cf.seg='';render()">Сбросить</button><button class="btn sm" onclick="cfSave()">💾 Сохранить как сегмент</button><span class="small muted" style="align-self:center">Найдено ${nf(L.length)}</span></div>` : ''}
     <div class="tw" style="border:0;border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r)"><table><thead><tr>${CF_COLS.map(([k, t]) => `<th class="srt ${cf.sort === k ? 'on' : ''}" onclick="cf.dir=cf.sort==='${k}'?-cf.dir:1;cf.sort='${k}';render()">${t}${cf.sort === k ? (cf.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('')}</tr></thead><tbody>
@@ -169,7 +170,7 @@ GTAB.main = g => { const s = GS(g.id), top = o => Object.entries(o).sort((a, b) 
       <dt>Всего баллов</dt><dd>${nf(g.bon)} <a href="javascript:gPoints('${g.id}')" class="pill ok" style="text-decoration:none">История и управление</a></dd>${g.gbon ? `<dt>Подарочные бонусы</dt><dd>${nf(g.gbon)}</dd>` : ''}<dt>Депозит</dt><dd>${rub(g.dep)}</dd>
       <dt>RFM</dt><dd><span class="cr-rfm">${s.code}</span> ${esc(RFM_NAME(s.code))}</dd><dt>Кофейная+</dt><dd>${g.plus ? `<span class="pill prem">★ ${esc(g.plus.t)}</span> до ${dLong(g.plus.till)}` : 'нет'}</dd>
       <dt>🔥 Подряд</dt><dd>${g.ser} · 👑 ${g.best} · всего ${g.total} · ${esc(g.lvl)}</dd></dl>
-      <hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><dl class="kv"><dt>Имя</dt><dd>${esc(g.n)}</dd><dt>Фамилия</dt><dd>${esc(g.l) || '—'}</dd><dt>Пол</dt><dd>${g.sex === 'f' ? 'Женский' : 'Мужской'}</dd><dt>День рождения</dt><dd>${g.bd ? dLong(g.bd) : '—'}</dd><dt>Любимая кофейня</dt><dd>${esc(g.shop)}</dd><dt>Язык</dt><dd>RU</dd><dt>Пуши</dt><dd>${g.push ? 'получает' : 'не разрешил'}</dd></dl>
+      <hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><dl class="kv"><dt>Имя</dt><dd>${esc(g.n)}</dd><dt>Фамилия</dt><dd>${esc(g.l) || '—'}</dd><dt>Пол</dt><dd>${g.sex === 'f' ? 'Женский' : 'Мужской'}</dd><dt>День рождения</dt><dd>${g.bd ? dLong(g.bd) : '—'}</dd><dt>Любимая кофейня</dt><dd>${esc(g.shop)}</dd><dt>Язык</dt><dd>RU</dd><dt>Пуши</dt><dd>${g.push ? 'получает' : 'не разрешил'}</dd><dt>Акции и подарки</dt><dd>${g.ads ? 'согласен' : '<span class="pill amb">без согласия — рекламу не шлём</span>'}</dd></dl>
       <dl class="kv" style="margin-top:12px"><dt>iikoCard</dt><dd>${esc(g.iiko) || '—'}</dd><dt>Starter</dt><dd>${esc(g.starter) || '—'}</dd></dl></div>
     <div><div class="cr-fav"><div><h4>Любимые категории</h4>${s.n ? `<ul>${top(s.cats).map(([k, v]) => `<li><span>${esc(k)}</span><b>${v}</b></li>`).join('')}</ul>` : '<p class="muted small">Пока нет данных</p>'}</div><div><h4>Любимые блюда</h4>${s.n ? `<ul>${top(s.dishes).map(([k, v]) => `<li><span>${esc(k)}</span><b>${v}</b></li>`).join('')}</ul>` : '<p class="muted small">Пока нет данных</p>'}</div></div>
       <div class="card" style="margin-top:16px"><h3>История</h3><div class="tw" style="margin-top:8px"><table><thead><tr><th>Время</th><th>Событие</th><th></th></tr></thead><tbody>${ev.map(e => `<tr><td class="nowrap small">${esc(e[0].slice(0, 16))}</td><td class="small">${esc(e[1])}</td><td>${e[2]}</td></tr>`).join('')}</tbody></table></div></div></div></div>

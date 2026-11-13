@@ -139,7 +139,8 @@ const mkH = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charC
 const mkNow = () => Date.now();
 const mkDT = ts => { const d = new Date(ts); return `${dShort(isoDay(d))}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const mkStrip = s => String(s ?? '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
-const mkPush = g => 'push' in g ? g.push !== false : mkH('push' + g.id) % 100 < 31;
+/* реклама — только тем, кто разрешил пуши И включил «Присылать акции и подарки» (владелец 13.11) */
+const mkPush = g => ('push' in g ? g.push !== false : mkH('push' + g.id) % 100 < 31) && g.ads !== false;
 const mkDis = ok => ok ? '' : 'disabled';
 const mkDiff = (a, b) => `<span class="diff"><s>${esc(a)}</s> → <ins>${esc(b)}</ins></span>`;
 const mkStars = n => `<span class="mk-stars" title="${n} из 5">${'★'.repeat(n)}<s>${'★'.repeat(5 - n)}</s></span>`;

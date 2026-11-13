@@ -266,6 +266,7 @@ body:has(.app.has-cart) .toast{bottom:calc(148px + env(safe-area-inset-bottom,0p
 
 /* вход */
 .auth{flex:1;display:flex;flex-direction:column;gap:24px;padding:40px 16px 24px}
+.auth-ok{text-align:center;line-height:1.35}.auth-ok .link{font-size:inherit;padding:0}
 .reg .rg-ph{margin-top:2px}.rg-err{font-size:13px;color:#e53935}.rg-err:empty{display:none}
 .onb-card{margin:-4px 0 0}.onb-later{align-self:center;margin-top:4px;font-size:15px}
 .reg .me-sex{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reg .field{gap:6px}
@@ -3869,6 +3870,8 @@ function me(){ const bd=bdInfo(), b=S.birth;
       ${r('city','Город','Тамбов',"toast('Сейчас работаем в Тамбове')")}
     </div>
     <label class="toggle" for="me-lb">Показывать меня в рейтинге<input type="checkbox" id="me-lb" ${S.lbHide?'':'checked'} onchange="S.lbHide=!this.checked;save()"></label>
+    <label class="toggle" for="me-ads">Присылать акции и подарки<input type="checkbox" class="sw" id="me-ads" ${S.ads?'checked':''} onchange="S.ads=this.checked;save()"></label>
+    <button class="link" style="align-self:center" onclick="openTerms()">Условия и обработка данных</button>
   </section>`; }
 // пол сохраняется сразу, без «Сохранить»: переключаем кнопки на месте, страницу не перерисовываем (ничего не прыгает)
 function setSex(x,el){ S.sex=x; save(); el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('me-last'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; toast(x==='f'?'Будем обращаться к тебе в женском роде':'Будем обращаться к тебе в мужском роде'); }
@@ -4976,6 +4979,7 @@ function auth(){
     ${authStep==='me' ? regForm() : authStep==='phone' ? `<form class="stack"${F(24)} style="gap:16px" onsubmit="event.preventDefault();sendCode()">
         <div class="field"><label class="label" for="phone">Номер телефона</label>${phField('phone',S.phone?ph9(S.phone):'')}</div>
         <button class="btn block" type="submit">Получить код по СМС</button>
+        <span class="small muted auth-ok">Продолжая, соглашаешься<br>с <button type="button" class="link" onclick="openTerms()">условиями и обработкой данных</button></span>
         ${S.regDone&&S.name?`<button type="button" class="link" style="align-self:center" onclick="const e=document.getElementById('phone');e.value='';e.dataset.v='';e.focus()">Не ${esc(S.name)}? Войти с другим номером</button>`:''}</form>`
     : `<form class="stack" style="gap:16px" onsubmit="event.preventDefault();checkCode()">
         <div class="stack" style="gap:4px"><span class="label">Код из СМС</span><span class="muted small">Отправили на ${S.phone}. <button type="button" class="link" onclick="authStep='phone';render()">Изменить</button></span></div>
@@ -4983,6 +4987,14 @@ function auth(){
         <button class="btn block" type="submit">Войти</button></form>`}
   </div>`;
 }
+/* 13.11 (владелец, с критиком): согласие — строкой «Продолжая, соглашаешься…» со ссылкой на документ, без обязательных галочек;
+   реклама — отдельная необязательная галочка «Присылать акции и подарки» (при знакомстве и в «Мой профиль»). Текст документа готовит юрист */
+function openTerms(){ sheet(`<h2>Условия и обработка данных</h2>
+    <p style="margin:0">Чтобы приложение работало, мы храним твой номер телефона, имя, фамилию, пол, день рождения (если укажешь) и покупки в кофейнях</p>
+    <p style="margin:0">Это нужно, чтобы считать бонусы, скидки и посещения, принимать заказы и отвечать в поддержке</p>
+    <p style="margin:0">Мы не передаём твои данные чужим компаниям для рекламы. Акции и подарки присылаем, только если ты разрешил</p>
+    <p style="margin:0">Удалить профиль и данные — через поддержку</p>
+    <button class="btn block" onclick="closeSheet()">Понятно</button>`); }
 function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.length<9){ toast('Проверь номер — не хватает цифр'); return; }
   const ph=phFull(d);
   if(S.phone&&S.phone!==ph&&(S.regDone||accAll()[ph])){ accStash(); return accSwitch(ph); }
@@ -4990,7 +5002,7 @@ function sendCode(){ const el=$('#phone'), d=el.dataset.v||ph9(el.value); if(d.l
 function codeIn(el){ el.value=el.value.replace(/\D/g,'').slice(0,4); if(el.value.length===4) checkCode(); }
 /* 5.11 (владелец): при регистрации обязательны имя, фамилия и пол («25 Ань и 30 Кать — не круто, в системе надо различать»);
    день рождения — по желанию, но рядом объясняем выгоду: скидка = возраст. Шаг после кода из СМС, один раз (S.regDone) */
-let rg={n:'',l:'',sex:'',bd:''};
+let rg={n:'',l:'',sex:'',bd:'',ads:false};
 function regForm(){ const mx=dateOf(S.day), y=mx.getFullYear()-14, maxD=`${y}-${String(mx.getMonth()+1).padStart(2,'0')}-${String(mx.getDate()).padStart(2,'0')}`;
   return `<form class="stack reg" style="gap:14px" onsubmit="event.preventDefault();regDone()">
     <div class="stack" style="gap:4px"><h2 style="margin:0">Давай познакомимся</h2><span class="muted small">Так бариста и друзья узнают, что это ты</span><span class="small muted rg-ph">Твой номер <span class="nowrap">${S.phone}</span> ✓</span></div>
@@ -5001,6 +5013,7 @@ function regForm(){ const mx=dateOf(S.day), y=mx.getFullYear()-14, maxD=`${y}-${
       <label class="label" for="rg-bd">День рождения <span class="muted" style="text-transform:none;letter-spacing:0">· по желанию</span></label>
       <input id="rg-bd" type="date" class="cp-in" max="${maxD}" value="${rg.bd}" oninput="rg.bd=this.value">
       <span class="small muted">Дату можно указать один раз — потом только через поддержку</span></div>
+    <label class="toggle" for="rg-ads">Присылать акции и подарки<input type="checkbox" class="sw" id="rg-ads" ${rg.ads?'checked':''} onchange="rg.ads=this.checked"></label>
     <button class="btn block" id="rg-go" type="submit" ${regOk()?'':'disabled'}>Готово</button>
     <span class="small muted" id="rg-tip" style="text-align:center">${regOk()?'':'Заполни имя, фамилию и пол'}</span>
   </form>`; }
@@ -5014,9 +5027,9 @@ function regDirty(){ const b=document.getElementById('rg-go'), t=document.getEle
   [['n','rg-n-e'],['l','rg-l-e']].forEach(([k,id])=>{ const e=document.getElementById(id); if(e) e.textContent=nmBad(rg[k])?'Только буквы — без цифр и знаков':''; }); }
 function regSex(x,el){ rg.sex=x; el.parentNode.querySelectorAll('.optbtn').forEach(b=>b.classList.toggle('on',b===el)); const l=document.getElementById('rg-l'); if(l) l.placeholder=x==='f'?'Например, Иванова':'Например, Иванов'; regDirty(); }
 function regDone(){ if(!regOk()) return regDirty();
-  S.name=nmCap(rg.n); S.last=nmCap(rg.l); S.sex=rg.sex; S.regDone=1; S.cards=[]; S.plus=false; S.tariff='m'; syncCard();   // новый гость: карты и подписки ещё нет — их предложим в конце знакомства
+  S.name=nmCap(rg.n); S.last=nmCap(rg.l); S.sex=rg.sex; S.ads=!!rg.ads; S.regDone=1; S.cards=[]; S.plus=false; S.tariff='m'; syncCard();   // новый гость: карты и подписки ещё нет — их предложим в конце знакомства
   if(rg.bd){ const [y,m,d]=rg.bd.split('-').map(Number); S.birth={y,m:m-1,d,verified:false,setDay:S.day}; } else S.birth={};
-  rg={n:'',l:'',sex:'',bd:''}; authStep='phone'; enterApp(); }
+  rg={n:'',l:'',sex:'',bd:'',ads:false}; authStep='phone'; enterApp(); }
 function enterApp(){ S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(`Добро пожаловать, ${S.name}! 👋`); }
 function checkCode(){ const c=$('#code').value; if(c.length<4){ toast('Введи все 4 цифры кода'); return; } if(!S.regDone){ authStep='me'; save(); render(); setTimeout(()=>document.getElementById('rg-n')?.focus(),50); return; } S.authed=true; save(); tab='home'; setRoot('home'); render(false); if(!S.onb) setTimeout(openOnb,300); toast(S.name?`С возвращением, ${esc(S.name)}! 👋<br>Всё на месте`:'Добро пожаловать! 👋'); }
 
