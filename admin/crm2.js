@@ -3,12 +3,16 @@
    статистика без противоречий, «Сохранить изменения?» при уходе, рассылка без мусорных сегментов, мелочи */
 'use strict';
 document.head.insertAdjacentHTML('beforeend', `<style>
-tr.late td{background:#fde8ec!important}
-:root[data-theme="dark"] tr.late td{background:#3a1f25!important}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) tr.late td{background:#3a1f25!important}}
+tr.late td{background:#fff1e0!important}
+.cr-st{color:#fff!important;font-weight:600;border-radius:8px;padding:4px 10px;display:inline-block;white-space:nowrap;letter-spacing:.01em}
+.cr-sts{appearance:none;-webkit-appearance:none;border:0;border-radius:8px;color:#fff;font:600 12.5px var(--f-body);padding:6px 26px 6px 10px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='white' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;min-width:118px}
+.cr-sts option{background:var(--surface);color:var(--ink)}
+.cr-sts:focus{outline:2px solid color-mix(in srgb,var(--ink) 30%,transparent);outline-offset:1px}
+:root[data-theme="dark"] tr.late td{background:#3a2a17!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) tr.late td{background:#3a2a17!important}}
 .oc-list{display:none}
 .oc{display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;text-decoration:none;color:inherit}
-.oc.late{border-color:#e57373;background:#fde8ec}
+.oc.late{border-color:#f57c00;background:#fff1e0}
 .oc .r1{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .oc .r2{display:flex;gap:8px;justify-content:space-between;font-size:13px;margin-top:6px;color:var(--muted)}
 @media (max-width:860px){.oc-list{display:block}.oc-tw{display:none}}
@@ -18,6 +22,10 @@ tr.late td{background:#fde8ec!important}
 .st-g b{font-family:var(--f-head);font-size:15px}
 .ax{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
 </style>`);
+
+/* ── цвета статусов заказа: сплошные, с белым текстом; «Готов» — фиолетовый, чтобы не путать с красным «Отменён» ── */
+Object.assign(ST_COL, {'Создан':'#78909c','Принят':'#1e88e5','Готовится':'#f57c00','Готов':'#8e24aa','Доставляется':'#3949ab','Завершен':'#2e7d32','Отменен':'#d32f2f'});
+const stSel = o => can('orders.refund') ? `<select class="cr-sts" style="background-color:${ST_COL[o.status]}" aria-label="Статус заказа" onclick="event.stopPropagation()" onchange="ordSt('${o.id}',this.value)">${ST_LIST.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` : stPill2(o);
 
 /* ── «Дней с покупкой за 7 дней» — из настоящих заказов, а не отдельной цифрой (иначе Статистика спорит сама с собой) ── */
 function syncDays7() { const t = isoDay(), m = {}; DB.orders.forEach(o => { if (o.st === 'Возврат') return; const a = -daysTo(o.at.slice(0, 10)); if (a >= 0 && a < 7) (m[o.g] = m[o.g] || new Set()).add(o.at.slice(0, 10)); }); DB.guests.forEach(g => g.days7 = m[g.id] ? m[g.id].size : 0); }
@@ -42,8 +50,8 @@ refund = function (id) {
 };
 ordSt = function (id, s) { if (!s) return; const o = DB.orders.find(x => x.id === id);
   const go = () => { const w = o.status; o.status = s; (o.hist = o.hist || []).push({s, at:new Date().toISOString(), by:ME().n}); audit('Статус заказа', `${o.id}: <span class="diff"><s>${w}</s> → <ins>${s}</ins></span>`, {g:o.g}); save(); render(); };
-  if (s === 'Отменен' && o.st !== 'Возврат' && paidMoney(o) > 0 && o.pay !== 'Наличные') { refund(id); return; }
-  modal({t:`Перевести в «${s}»?`, body:`<p style="margin-top:0">Гость получит пуш о статусе, если он включён в «Триггерных рассылках»</p>`, ok:'Перевести', onOk:go}); render(); };
+  if (s === 'Отменен' && o.st !== 'Возврат' && paidMoney(o) > 0 && o.pay !== 'Наличные') { render(); refund(id); return; }
+  if (s === o.status) return; go(); toast(`${o.id}: ${s}`); };
 
 /* ── карточка заказа — страница, как в Starter (/admin/order?code=…) ── */
 openOrder = function (id) { location.hash = '#/order/' + id; };
@@ -54,7 +62,7 @@ PAGES.order = r => {
   if (!(o.id in ordNote)) ordNote[o.id] = o.note || '';
   const T = [['main','Общие'],['utm','UTM'],['an','Analytics ID'],['dev','Device ID']];
   return backLink('#/orders', 'Заказы') + `<div class="cr-gh"><div class="t"><h1>Заказ ${o.id} · ${o.at.slice(11, 16)}, ${dLong(o.at)}</h1><div class="small muted" style="margin-top:4px">${esc(o.ch)} · ${esc(o.shop)} · ${esc(o.src || '')}</div></div>
-    <div class="btns"><button class="btn" onclick="ordHist('${o.id}')">🕘 История изменений заказа</button>${stPill2(o)}${can('orders.refund') ? `<select class="inp" style="width:auto" onchange="ordSt('${o.id}',this.value)"><option value="">Сменить статус…</option>${ST_LIST.filter(s => s !== o.status).map(s => `<option>${s}</option>`).join('')}</select>` : ''}</div></div>
+    <div class="btns"><button class="btn" onclick="ordHist('${o.id}')">🕘 История изменений заказа</button>${stSel(o)}</div></div>
   <div class="tabs">${T.map(([k, t]) => `<button class="${ordTab2 === k ? 'on' : ''}" onclick="ordTab2='${k}';render()">${t}</button>`).join('')}</div>
   ${ordTab2 === 'utm' ? '<div class="card muted">Для этого заказа нет UTM-меток</div>' : ordTab2 === 'an' ? `<div class="card"><dl class="kv"><dt>user_id</dt><dd class="small">${hsh2(o.g + 'u').toString(16)}${hsh2(o.id).toString(16)}</dd></dl></div>` : ordTab2 === 'dev' ? '<div class="card muted">IP и рекламный ID устройства — персональные данные. Показываем только владельцу по запросу</div>' : `
   <div class="grid g2"><div class="op-blk"><h3>Общие</h3><dl class="kv"><dt>Клиент</dt><dd>${g ? `<a href="#/guest/${g.id}">${esc(gName(g))}</a> · ${esc(g.ph)}` : 'удалён'}</dd><dt>Тип</dt><dd>${esc(o.ch)}</dd><dt>Приготовят здесь</dt><dd>${esc(o.shop)}</dd><dt>Готово к</dt><dd>${readyAt(o)}${isLate(o) ? ' <span class="pill red">опаздывает</span>' : ''}</dd><dt>Источник</dt><dd>${esc(o.src || '—')}</dd><dt>Промокод</dt><dd>${esc(o.promo || '—')}</dd></dl></div>
@@ -100,7 +108,7 @@ PAGES.orders = () => {
     <label class="fld"><span>Промокод</span><select class="inp" onchange="of_.promo=this.value;render()"><option value="">Все</option>${promos.map(s => `<option ${of_.promo === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></label></div>
     ${nF ? '<button class="btn sm" onclick="Object.assign(of_,{st:[],date:\'\',shop:\'\',ch:\'\',src:\'\',promo:\'\'});render()">Сбросить</button>' : ''}</div>` : ''}
   <div class="tw oc-tw" style="border:0;border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r)"><table><thead><tr><th>Статус</th><th class="srt ${of_.sort === 'at' ? 'on' : ''}" onclick="of_.dir=of_.sort==='at'?-of_.dir:-1;of_.sort='at';render()">№ / время${of_.sort === 'at' ? (of_.dir > 0 ? ' ↑' : ' ↓') : ''}</th><th>Тип</th><th>Адрес</th><th>Кухня</th><th>Клиент</th><th>Курьер</th>${th('sum', 'Сумма')}${th('bon', 'Баллами')}<th>Оплата</th><th>Промокоды</th><th>Источник</th><th>Заметка</th></tr></thead><tbody>
-  ${V.map(o => { const g = G(o.g), late = isLate(o); return `<tr class="click ${late ? 'late' : ''}" onclick="openOrder('${o.id}')"><td>${stPill2(o)}</td><td class="nowrap"><b>${o.id}</b><div class="small muted">${fmtTs(o.at)}</div></td><td class="small">${o.ch === 'За столик' ? 'Зал' : o.ch}</td><td class="small nowrap">${o.ch === 'За столик' ? `Стол № ${hsh2(o.id) % 12 + 1}<br>` : ''}<span class="muted">${esc(o.shop)}</span></td>
+  ${V.map(o => { const g = G(o.g), late = isLate(o); return `<tr class="click ${late ? 'late' : ''}" onclick="openOrder('${o.id}')"><td>${stSel(o)}</td><td class="nowrap"><b>${o.id}</b><div class="small muted">${fmtTs(o.at)}</div></td><td class="small">${o.ch === 'За столик' ? 'Зал' : o.ch}</td><td class="small nowrap">${o.ch === 'За столик' ? `Стол № ${hsh2(o.id) % 12 + 1}<br>` : ''}<span class="muted">${esc(o.shop)}</span></td>
     <td class="small nowrap" style="${late ? 'color:var(--red);font-weight:600' : ''}">${late ? '⏰ ' : ''}${readyAt(o)}</td><td class="small">${g ? `${esc(gName(g))}<div class="muted">${esc(g.ph)}</div>` : '<span class="muted">удалён</span>'}</td><td class="small">${o.ch === 'Доставка' ? 'Яндекс.Доставка' : '—'}</td><td class="r nowrap">${rub(o.sum)}</td><td class="r">${o.bonUse ? nf(o.bonUse) : '—'}</td><td class="small">${esc(o.pay)}</td><td class="small">${esc(o.promo || '—')}</td><td class="small">${esc(o.src || '—')}</td><td class="small muted">${esc(o.note || '')}</td></tr>`; }).join('')}
   </tbody></table>${L.length ? '' : '<div class="empty">Заказов не нашлось — измените фильтры</div>'}</div>
   <div class="oc-list" style="padding:10px">${V.map(o => { const g = G(o.g), late = isLate(o); return `<a class="oc ${late ? 'late' : ''}" href="#/order/${o.id}"><div class="r1"><b>${o.id}</b>${stPill2(o)}</div><div class="r2"><span>${fmtTs(o.at)} · ${o.ch} · ${esc(o.shop)}</span><b style="color:var(--ink)">${rub(o.sum)}</b></div><div class="r2"><span>${g ? esc(gName(g)) : 'удалён'}</span><span>${late ? '⏰ опаздывает' : 'готово к ' + readyAt(o)}</span></div></a>`; }).join('')}${L.length ? '' : '<div class="empty">Заказов не нашлось</div>'}</div>
