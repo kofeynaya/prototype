@@ -26,7 +26,9 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .mk-vars{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}
 .mk-vars button{border:1px dashed var(--line2);background:var(--surface2);border-radius:7px;padding:3px 8px;font:12px ui-monospace,Menlo,monospace;cursor:pointer;color:var(--ink)}
 .mk-stars{color:#f2a900;letter-spacing:1px;white-space:nowrap}
-.mk-stars s{color:var(--line2);text-decoration:none}
+.mk-stars s{color:#c9cdc8;text-decoration:none}
+:root[data-theme="dark"] .mk-stars s{color:#5a605b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mk-stars s{color:#5a605b}}
 .mk-tag{display:inline-block;font-size:11.5px;border-radius:12px;padding:1px 8px;margin:1px 2px 1px 0;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
 .mk-tag.neg{background:var(--red-soft);border-color:transparent;color:var(--red)}
 .mk-tag.pos{background:var(--acc-soft);border-color:transparent;color:var(--acc)}

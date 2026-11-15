@@ -449,7 +449,7 @@ function refund(id) {
 }
 
 /* ───────── Поддержка ───────── */
-const stPill = s => s === 'new' ? '<span class="pill red">новое</span>' : s === 'wait' ? '<span class="pill amb">ждём гостя</span>' : '<span class="pill ok">решено</span>';
+const stPill = (s, t) => s === 'new' ? `<span class="pill red">новое${t && t.at ? ` · ждёт ${(() => { const m = Math.max(1, Math.round((Date.now() - new Date(t.at)) / 6e4)); return m < 60 ? m + ' мин' : Math.round(m / 60) + ' ч'; })()}` : ''}</span>` : s === 'wait' ? '<span class="pill amb">ждём гостя</span>' : '<span class="pill ok">решено</span>';
 const SUP_TPL = ['Здравствуйте! Уже разбираюсь — напишу в течение 5 минут', 'Извините за неудобство! Начислили бонусы — проверьте в приложении', 'Пришлите, пожалуйста, фото документа — поменяем дату', 'Передала разработчикам — когда исправим, напишу здесь', 'Спасибо, что написали! Рады помочь 😊'];
 PAGES.support = r => {
   if (!can('guests.view') && !can('support.reply')) return ph('Поддержка') + noPerm('support.reply');
@@ -458,7 +458,7 @@ PAGES.support = r => {
   return ph('Поддержка', `Чат с гостями. Обещаем ответить за ${C('support', 'sla')} мин, работаем с ${C('support', 'from')} до ${C('support', 'to')}. Настройки — в <a href="#/m/support">правилах</a>`)
   + `<div class="grid g-list">
   <div class="tw" style="align-self:start">${list.map(t => { const g = G(t.g); return `<a href="#/support/${t.id}" style="display:block;padding:11px 14px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;${cur && cur.id === t.id ? 'background:var(--acc-soft)' : ''}">
-    <div style="display:flex;gap:8px;align-items:center"><b style="flex:1">${esc(gName(g))}</b>${stPill(t.st)}</div><div class="small muted">${esc(t.topic)} · ${dShort(t.at)} ${t.at.slice(11, 16)}</div>
+    <div style="display:flex;gap:8px;align-items:center"><b style="flex:1">${esc(gName(g))}</b>${stPill(t.st, t)}</div><div class="small muted">${esc(t.topic)} · ${dShort(t.at)} ${t.at.slice(11, 16)}</div>
     <div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc((t.msgs[t.msgs.length - 1] || {}).t || 'Пока пусто')}</div></a>`; }).join('')}</div>
   <div>${cur ? ticketView(cur) : '<div class="card empty">Выберите обращение слева</div>'}</div></div>`;
 };
