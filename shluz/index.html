@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Шлюз подписок</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Одна колонка как телефон (≤440px), плавающая нижняя навигация, шторки снизу */
+:root{
+  --bg:#eceee9; --surface:#ffffff; --surface2:#f4f5f1; --ink:#11151b; --muted:#5b636c; --line:#dcdfd8;
+  --accent:#2445c9; --accent-ink:#ffffff; --accent-soft:#e3e8fb;
+  --ok:#17784f; --ok-soft:#dff1e8; --stop:#c43328; --stop-soft:#f9e1de; --warn:#9a5c00; --warn-soft:#fbeed6; --pause:#2f6db5; --pause-soft:#e1ecf8;
+  --shadow:0 1px 2px rgba(17,21,27,.06),0 8px 24px rgba(17,21,27,.06);
+  --f-disp:"Unbounded","Onest",system-ui,sans-serif; --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0e1115; --surface:#171b21; --surface2:#1e232b; --ink:#edf0f3; --muted:#97a0aa; --line:#29303a;
+  --accent:#7d95ff; --accent-ink:#0c1020; --accent-soft:#1f2747;
+  --ok:#41c98c; --ok-soft:#14301f; --stop:#ff6b5d; --stop-soft:#3a1714; --warn:#f0a73a; --warn-soft:#33240c; --pause:#79b0f2; --pause-soft:#16263a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:env(safe-area-inset-top,0px) 110px;overflow-x:clip}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:440px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;padding-block:14px 10px}
+.word{font-family:var(--f-disp);font-weight:700;font-size:20px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.word i{width:22px;height:22px;border-radius:7px;background:var(--ink);display:inline-grid;place-items:center}
+.word i::after{content:"";width:8px;height:12px;border:2.5px solid var(--bg);border-radius:2px}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-size:20px}
+.muted{color:var(--muted)}
+.wallet{background:var(--ink);color:var(--bg);border-radius:22px;padding:18px;display:grid;gap:12px}
+.wallet small{opacity:.72;font-size:13px}
+.wallet .big{font-family:var(--f-disp);font-weight:700;font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.wallet .r{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.wallet .top-up{background:var(--bg);color:var(--ink);padding:10px 16px;border-radius:99px;font-weight:600;white-space:nowrap}
+.wallet .auto{font-size:13px;opacity:.85;border-top:1px solid rgba(127,127,127,.3);padding-top:10px}
+.banner{display:grid;gap:10px;background:var(--stop-soft);border-radius:16px;padding:13px 14px;margin-top:12px;text-align:left;width:100%}
+.banner.warn{background:var(--warn-soft)}
+.banner .h{display:flex;gap:10px;align-items:flex-start}
+.banner .ic{font-size:20px;line-height:1.2}
+.banner b{display:block}
+.banner .btns{display:flex;gap:8px}
+.banner .btns button{flex:1;padding:10px;border-radius:12px;font-weight:600;font-size:14px;background:var(--surface)}
+.banner .btns button.pri{background:var(--ink);color:var(--bg)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:22px 2px 10px;gap:10px}
+.sec h3{font-size:16px}
+.list{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;width:100%;text-align:left;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:0}
+.row .txt{flex:1;min-width:0}
+.row .nm{font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row .sub{font-size:13px;color:var(--muted)}
+.row.off .nm,.row.off .logo{opacity:.5}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none;color:#fff;letter-spacing:-.02em}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
+.tag.blue{background:var(--pause-soft);color:var(--pause)}
+.tag.grey{background:var(--surface2);color:var(--muted)}
+.sw{width:51px;height:31px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.sw.on{background:var(--ok)}
+.sw.on::after{transform:translateX(20px)}
+.sw.pause{background:var(--pause-soft)}
+.add{margin-top:12px;width:100%;padding:15px;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:16px}
+.btn{width:100%;padding:14px;border-radius:14px;font-weight:600;font-size:16px;background:var(--accent);color:var(--accent-ink);text-align:center}
+.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn.red{background:var(--stop);color:#fff}
+.btn.green{background:var(--ok);color:#fff}
+.btn.blue{background:var(--pause);color:#fff}
+.btn small{display:block;font-weight:400;opacity:.8;font-size:13px}
+.stack{display:grid;gap:10px}
+.tabs{position:fixed;left:0;right:0;bottom:0;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:center;pointer-events:none;z-index:20}
+.tabs nav{pointer-events:auto;display:flex;gap:4px;background:var(--surface);box-shadow:var(--shadow),0 0 0 1px var(--line);border-radius:99px;padding:5px;width:100%;max-width:440px}
+.tabs button{flex:1;padding:9px 6px;border-radius:99px;font-size:13px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tabs button.on{background:var(--accent-soft);color:var(--accent)}
+.tabs .dot{position:absolute;top:4px;right:calc(50% - 22px);min-width:16px;height:16px;border-radius:9px;background:var(--stop);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 4px}
+.back{display:inline-flex;gap:6px;align-items:center;padding:8px 14px 8px 10px;border-radius:99px;background:var(--surface);box-shadow:var(--shadow);font-weight:600;margin-block:14px 6px}
+.dhead{display:flex;gap:14px;align-items:center;margin-block:14px}
+.dhead .logo{width:56px;height:56px;border-radius:16px;font-size:18px}
+.dhead h2{font-size:24px}
+.panel{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:14px 16px;margin-top:12px}
+.trow{display:flex;align-items:center;gap:12px}
+.trow .txt{flex:1;min-width:0}
+.trow b{display:block;font-size:16px}
+.vcard{margin-top:12px;border-radius:20px;padding:18px;color:#fff;aspect-ratio:1.586;width:100%;max-width:100%;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.vcard::before{content:"";position:absolute;right:-30%;top:-40%;width:90%;height:120%;border-radius:50%;background:rgba(255,255,255,.12)}
+.vcard.off{filter:grayscale(1) brightness(.75)}
+.vcard .r1{display:flex;justify-content:space-between;align-items:center;position:relative;gap:8px}
+.vcard .brand{font-family:var(--f-disp);font-weight:700;font-size:14px;letter-spacing:.08em}
+.vcard .svc{font-size:12.5px;opacity:.9;font-weight:600;text-align:right}
+.vcard .num{font-family:var(--f-mono);font-size:clamp(15px,5.2vw,21px);letter-spacing:.05em;position:relative}
+.vcard .r3{display:flex;justify-content:space-between;align-items:flex-end;font-size:12px;position:relative}
+.vcard .r3 b{font-family:var(--f-mono);font-size:14px;display:block}
+.vcard .lock{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:15px;background:rgba(0,0,0,.35)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.kv:first-child{border-top:0;padding-top:2px}
+.kv>span:first-child{color:var(--muted)}
+.kv b,.kv .lnk{text-align:right}
+.lnk{color:var(--accent);font-weight:600}
+.copy{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:12px;font-family:var(--f-mono);font-size:15px}
+.copy small{font-family:var(--f-body);color:var(--muted);display:block;font-size:12px}
+.copy button{font-family:var(--f-body);font-size:13px;font-weight:600;color:var(--accent);padding:6px 10px;border-radius:99px;background:var(--accent-soft)}
+.demo{border:1.5px dashed var(--line);border-radius:18px;padding:14px;margin-top:18px;display:grid;gap:8px}
+.demo p{margin:0;font-size:13px;color:var(--muted)}
+.demo button{padding:11px 12px;border-radius:12px;background:var(--surface);box-shadow:var(--shadow);font-weight:600;font-size:14px;text-align:left}
+.danger{display:block;margin:20px auto 0;color:var(--stop);font-weight:600;padding:10px}
+.ev{display:flex;gap:12px;padding:12px 14px;border-top:1px solid var(--line);align-items:flex-start;width:100%;text-align:left}
+.ev:first-child{border-top:0}
+.ev .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;font-size:15px}
+.ic.ok{background:var(--ok-soft);color:var(--ok)}
+.ic.block{background:var(--stop-soft);color:var(--stop)}
+.ic.info{background:var(--surface2);color:var(--muted)}
+.ic.pause{background:var(--pause-soft);color:var(--pause)}
+.ev .txt{flex:1;min-width:0}
+.ev .t{font-weight:600}
+.ev .d{font-size:13px;color:var(--muted)}
+.ev .amt{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.amt.cut{color:var(--stop);text-decoration:line-through}
+.amt.plus{color:var(--ok)}
+.ev .more{display:block;font-size:13px;color:var(--accent);font-weight:600;margin-top:4px}
+.day{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 4px 8px}
+.saved{background:var(--ok-soft);color:var(--ok);border-radius:22px;padding:18px}
+.saved .big{font-family:var(--f-disp);font-size:30px;font-weight:700;line-height:1.05;margin-block:4px}
+.empty{padding:26px 16px;text-align:center;color:var(--muted)}
+.steps{display:grid;gap:14px}
+.step{display:flex;gap:12px}
+.step>b{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:13px}
+.step p{margin:3px 0 0}
+.plan{background:linear-gradient(135deg,var(--accent),#5a2bb8);color:#fff;border-radius:22px;padding:18px;margin-top:12px;display:grid;gap:10px}
+.plan .big{font-family:var(--f-disp);font-size:22px;font-weight:700}
+.plan .bar{height:8px;border-radius:9px;background:rgba(255,255,255,.25);overflow:hidden}
+.plan .bar i{display:block;height:100%;background:#fff;border-radius:9px}
+.plan button{justify-self:start;background:#fff;color:#2b2b93;padding:9px 16px;border-radius:99px;font-weight:600}
+.minicard{width:44px;height:30px;border-radius:6px;background:linear-gradient(135deg,#ffdd2d,#f5b800);flex:none;position:relative}
+.minicard::after{content:"";position:absolute;left:6px;top:9px;width:9px;height:7px;border-radius:2px;background:rgba(0,0,0,.25)}
+.scrim{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:480px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:0 max(18px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.6}}
+.sh-hd{position:sticky;top:0;background:var(--surface);display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:18px 10px;z-index:2}
+.sh-hd h2{font-size:19px}
+.x{width:34px;height:34px;border-radius:50%;background:var(--surface2);flex:none;font-size:16px}
+.sheet p{margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid button{background:var(--surface2);border-radius:16px;padding:12px 6px;display:grid;justify-items:center;gap:6px;font-size:13px;font-weight:600;text-align:center}
+.grid button:disabled{opacity:.4;cursor:default}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;color:var(--muted)}
+.field input{font:inherit;font-size:17px;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);width:100%}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chips button{padding:8px 12px;border-radius:99px;background:var(--surface2);font-weight:600;font-size:14px}
+.chips button.on{background:var(--ink);color:var(--bg)}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;padding:14px;border-radius:16px;background:var(--surface2);border:2px solid transparent}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt .e{font-size:24px;line-height:1}
+.opt b{display:block}
+.opt span.muted{font-size:13.5px}
+.dots{display:flex;gap:6px;justify-content:center;margin:2px 0 14px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent);width:20px;border-radius:4px}
+.howto{counter-reset:s;display:grid;gap:8px;margin:14px 0}
+.howto div{display:flex;gap:10px;align-items:baseline}
+.howto div::before{counter-increment:s;content:counter(s);flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;display:grid;place-items:center}
+.onb-pic{height:140px;border-radius:20px;background:var(--surface2);display:grid;place-items:center;margin:4px 0 16px;font-size:52px}
+.tariff{display:grid;gap:4px;text-align:left;width:100%;padding:14px;border-radius:16px;background:var(--surface2);border:2px solid transparent}
+.tariff.on{border-color:var(--accent);background:var(--accent-soft)}
+.tariff .p{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.tariff .p b{font-size:17px}
+.tariff ul{margin:4px 0 0;padding-left:18px;color:var(--muted);font-size:13.5px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.faceid{display:grid;place-items:center;gap:8px;padding:10px 0 16px}
+.faceid i{width:72px;height:72px;border-radius:20px;border:3px solid var(--accent);display:grid;place-items:center;font-style:normal;font-size:30px}
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:16px;z-index:60;font-weight:600;max-width:min(400px,calc(100% - 32px));box-shadow:0 10px 30px rgba(0,0,0,.25);animation:tin .25s ease-out;cursor:pointer}
+.toast small{display:block;font-weight:400;opacity:.78}
+@keyframes tin{from{transform:translate(-50%,-14px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="tabs"><nav id="tabs"></nav></div>
+
+<script>
+/* Шлюз — прототип хаба подписок. Данные вымышленные, состояние в памяти браузера. */
+const NB=' ';
+const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const SVC={
+  yplus:{name:'Яндекс Плюс',price:449,c:'linear-gradient(135deg,#ff5a36,#c3171f)',ab:'Я+'},
+  ivi:{name:'Иви',price:399,c:'linear-gradient(135deg,#ef2d7a,#9e0b4c)',ab:'ив'},
+  okko:{name:'Okko',price:399,c:'linear-gradient(135deg,#7b4dff,#3a17a8)',ab:'Ok'},
+  start:{name:'START',price:299,c:'linear-gradient(135deg,#3b3f47,#111317)',ab:'ST'},
+  vkm:{name:'VK Музыка',price:199,c:'linear-gradient(135deg,#2d8cff,#0a4fc2)',ab:'VK'},
+  litres:{name:'Литрес',price:399,c:'linear-gradient(135deg,#ff8a1f,#d0520a)',ab:'Лр'},
+  kion:{name:'KION',price:249,c:'linear-gradient(135deg,#9a2bd8,#4d0f7c)',ab:'KN'},
+  wink:{name:'Wink',price:349,c:'linear-gradient(135deg,#ff6f3c,#a8340f)',ab:'W'},
+  premier:{name:'PREMIER',price:299,c:'linear-gradient(135deg,#25b07a,#0d6646)',ab:'PR'},
+  zvuk:{name:'Звук',price:199,c:'linear-gradient(135deg,#00a7c4,#005f86)',ab:'Зв'},
+  amedia:{name:'Амедиатека',price:599,c:'linear-gradient(135deg,#5c6670,#1d2228)',ab:'Ам'},
+  bookmate:{name:'Букмейт',price:299,c:'linear-gradient(135deg,#f2b705,#b27b00)',ab:'Бм'},
+};
+const OTHER_C='linear-gradient(135deg,#6b7480,#2c323a)';
+const TARIFFS={
+  free:{name:'Бесплатный',price:0,subs:3,once:2,list:['До 3 подписок','2 одноразовые карты в месяц','Включить и выключить, предел в месяц','Пополнение по СБП без комиссии']},
+  base:{name:'Шлюз',price:149,year:1290,subs:15,once:10,list:['До 15 подписок','10 одноразовых карт в месяц','«Пропустить один раз» и пауза до даты','Автопополнение под списание','Пополнение картой без комиссии','Помощь со спорными списаниями']},
+  family:{name:'Семья',price:249,subs:30,once:20,list:['Всё из тарифа «Шлюз»','До 30 подписок на 4 человек','Общие подписки, например семейный Яндекс Плюс','У ребёнка свой остаток']},
+};
+const KEY='shluz-demo-v2';
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const rub=n=>Math.round(n).toLocaleString('ru-RU').replace(/\s/g,NB)+NB+'₽';
+const fdate=d=>(d=new Date(d),d.getDate()+NB+MON[d.getMonth()]);
+const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return (m==1&&h!=11)?a:(m>=2&&m<=4&&(h<12||h>14))?b:c};
+const rel=d=>{const n=Math.round((new Date(d)-today())/864e5);return n==0?'сегодня':n==1?'завтра':n<0?fdate(d):'через'+NB+n+NB+plural(n,'день','дня','дней')};
+const r4=()=>String(1000+Math.floor(Math.random()*9000));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function nextCharge(s){if(!s.day)return null;const t=today();let d=new Date(t.getFullYear(),t.getMonth(),s.day);if(d<t)d=new Date(t.getFullYear(),t.getMonth()+1,s.day);return d}
+function mkCard(){const l=r4();return{num:'2200 7'+r4().slice(1)+' '+r4()+' '+l,last4:l,exp:String(1+Math.floor(Math.random()*12)).padStart(2,'0')+'/'+String((today().getFullYear()+3)%100),cvc:String(100+Math.floor(Math.random()*900))}}
+function pauseOver(s){if(s.state=='pause'&&s.pauseUntil&&s.pauseUntil<=today().getTime()){s.state='on';delete s.pauseUntil}}
+
+function seed(){
+  const t=today(),day=n=>addDays(t,n).getDate();
+  const mk=(id,svc,o)=>Object.assign({id,svc,name:SVC[svc].name,price:SVC[svc].price,kind:'sub',state:'on',perMonth:SVC[svc].price,perTx:SVC[svc].price,total:0,once:false},mkCard(),o);
+  const subs=[
+    mk('s1','yplus',{day:day(3)}),
+    mk('s2','ivi',{day:day(8),state:'off'}),
+    mk('s3','okko',{day:day(-1)}),
+    mk('s4','litres',{kind:'once',day:null,trial:addDays(t,5).getTime(),perMonth:399,perTx:399}),
+    mk('s5','vkm',{day:day(12),state:'pause',pauseUntil:addDays(t,15).getTime()}),
+    mk('s6','start',{day:day(22)}),
+  ];
+  const ts=(d,h,m)=>{const x=addDays(t,d);x.setHours(h,m);return x.getTime()};
+  const ev=[
+    {t:ts(0,7,42),sub:'s2',k:'block',amt:399,why:'Иви выключена'},
+    {t:ts(0,9,10),sub:'s2',k:'block',amt:399,why:'Иви выключена'},
+    {t:ts(0,12,5),sub:'s2',k:'block',amt:399,why:'Иви выключена'},
+    {t:ts(-1,10,5),sub:'s3',k:'limit',amt:599,lim:399,open:true},
+    {t:ts(-2,9,30),sub:'s2',k:'off'},
+    {t:ts(-3,14,0),sub:'s5',k:'pause',until:addDays(t,15).getTime()},
+    {t:ts(-4,12,0),sub:'s5',k:'ok',amt:199},
+    {t:ts(-5,18,20),sub:'s4',k:'issue'},
+    {t:ts(-5,18,21),sub:'s4',k:'check'},
+    {t:ts(-6,11,0),k:'topup',amt:1000,how:'по СБП'},
+    {t:ts(-8,16,40),sub:'s6',k:'refund',amt:299},
+    {t:ts(-12,8,15),sub:'s6',k:'ok',amt:299},
+    {t:ts(-27,8,0),sub:'s1',k:'ok',amt:449},
+    {t:ts(-30,11,40),sub:'s2',k:'ok',amt:399},
+  ];
+  return{onb:false,seenEv:ts(-1,0,0),wallet:650,auto:true,source:{bank:'Т-Банк',last4:'1234'},plan:'base',onceUsed:1,subs,ev};
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.subs)S=seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let view={tab:'home',sub:null,reveal:false};
+const sub=id=>S.subs.find(s=>s.id==id);
+const svcC=s=>SVC[s.svc]?SVC[s.svc].c:(s.c||OTHER_C);
+const logo=s=>`<span class="logo" style="background:${svcC(s)}">${esc(SVC[s.svc]?SVC[s.svc].ab:s.name.slice(0,2))}</span>`;
+const sw=s=>`<button class="sw ${s.state=='on'?'on':s.state=='pause'?'pause':''}" role="switch" aria-checked="${s.state=='on'}" aria-label="${esc(s.name)}: ${s.state=='on'?'включена':s.state=='pause'?'на паузе':'выключена'}" data-tog="${s.id}"></button>`;
+const trialOn=s=>s.trial&&s.trial>=today().getTime();
+const tariff=()=>TARIFFS[S.plan];
+
+function subLine(s){
+  if(s.state=='off')return 'Выключена — не пускаем ни одного списания';
+  if(s.state=='pause')return 'На паузе до '+fdate(s.pauseUntil)+' — потом включится сама';
+  if(trialOn(s))return 'Пробный период до '+fdate(s.trial)+'<br>Одноразовая карта — после первой оплаты закроется';
+  const d=nextCharge(s);
+  if(!d)return 'Ждём первое списание — по нему узнаем дату';
+  return fdate(d)+' спишет '+rub(s.price);
+}
+function spent30(){const from=addDays(today(),-30).getTime();return S.ev.filter(e=>e.k=='ok'&&e.t>=from).reduce((a,e)=>a+e.amt,0)}
+const blocked=()=>S.ev.filter(e=>e.k=='block'||e.k=='limit');
+function upcoming(){return S.subs.filter(s=>s.state=='on'&&nextCharge(s)).map(s=>({s,d:nextCharge(s)})).sort((a,b)=>a.d-b.d)}
+
+/* ---------- экраны ---------- */
+function home(){
+  S.subs.forEach(pauseOver);
+  const up=upcoming()[0];
+  const ask=S.ev.filter(e=>e.k=='limit'&&e.open).sort((a,b)=>b.t-a.t)[0];
+  const tb=S.ev.filter(e=>e.k=='block'&&e.t>=today().getTime());
+  const trial=S.subs.find(s=>s.state=='on'&&trialOn(s));
+  let h=`<div class="top"><div class="word"><i></i>Шлюз</div><button class="ava" data-go="profile" aria-label="Профиль">А</button></div>
+  <div class="wallet"><div class="r"><div><small>На Шлюзе</small><div class="big">${rub(S.wallet)}</div></div><button class="top-up" data-act="topup">Пополнить</button></div>
+    <div class="auto">${S.auto&&up?`${fdate(addDays(up.d,-1))} пополним на ${rub(up.s.price)} с ${esc(S.source.bank)} •• ${S.source.last4}<br>Под списание ${esc(up.s.name)} ${fdate(up.d)}`:S.auto?'Автопополнение включено — пополним перед каждым списанием':'Автопополнение выключено — следи, чтобы денег хватало'}</div>
+  </div>`;
+  if(ask){const s=sub(ask.sub);if(s)h+=`<div class="banner warn"><div class="h"><span class="ic">✋</span><span><b>${esc(s.name)} хочет ${rub(ask.amt)}</b><span class="muted">Твой предел — ${rub(ask.lim)} в месяц. Мы не пустили</span></span></div><div class="btns"><button data-once="${s.id}">Пропустить один раз</button><button class="pri" data-keep="${s.id}">Не пускать</button></div></div>`}
+  if(tb.length){const s=sub(tb[0].sub);h+=`<button class="banner" data-go="events"><span class="h"><span class="ic">🛡</span><span><b>${esc(s?s.name:'Сервис')} сегодня ${tb.length>1?'пытался '+tb.length+NB+'раза':'пытался'} списать ${rub(tb[0].amt)}</b><span class="muted">Не пустили ни разу. Посмотреть ›</span></span></span></button>`}
+  if(trial)h+=`<button class="banner warn" data-sub="${trial.id}"><span class="h"><span class="ic">⏳</span><span><b>${esc(trial.name)}: пробный период до ${fdate(trial.trial)}</b><span class="muted">Карта одноразовая: заплатишь один раз — и она закроется. Нравится — сделай постоянную</span></span></span></button>`;
+  h+=`<div class="sec"><h3>Мои подписки</h3><span class="muted">За 30 дней списали ${rub(spent30())}</span></div>`;
+  if(!S.subs.length)h+=`<div class="list"><div class="empty">Подписок пока нет<br>Подключи первую — выпустим для неё карту</div></div>`;
+  else h+=`<div class="list">`+S.subs.map(s=>`<div class="row ${s.state=='on'?'':'off'}" data-sub="${s.id}" role="button" tabindex="0">${logo(s)}<div class="txt"><div class="nm">${esc(s.name)}${s.kind=='once'?'<span class="tag">одноразовая</span>':''}${s.state=='pause'?'<span class="tag blue">пауза</span>':''}</div><div class="sub">${subLine(s)}</div></div>${sw(s)}</div>`).join('')+`</div>`;
+  h+=`<button class="add" data-act="add">＋ Подключить подписку</button>`;
+  return h;
+}
+
+function detail(s){
+  pauseOver(s);
+  const evs=S.ev.filter(e=>e.sub==s.id).sort((a,b)=>b.t-a.t);
+  const d=nextCharge(s);
+  const num=view.reveal?s.num:'•••• •••• •••• '+s.last4;
+  const st={on:'Включена',off:'Выключена',pause:'На паузе до '+(s.pauseUntil?fdate(s.pauseUntil):'')}[s.state];
+  let h=`<button class="back" data-go="home">‹ Назад</button>
+  <div class="dhead">${logo(s)}<div><h2>${esc(s.name)}</h2><div class="muted">${st}</div></div></div>
+  <div class="panel"><div class="trow"><div class="txt"><b>${s.state=='on'?'Списания разрешены':'Списания не пускаем'}</b><span class="muted">${s.state=='on'?'Выключи или поставь на паузу — и '+esc(s.name)+' не сможет списать':s.state=='pause'?'Включится сама '+fdate(s.pauseUntil)+'. Можно включить раньше':'Пока не включишь — ни одного рубля'}</span></div>${sw(s)}</div></div>
+  <div class="vcard ${s.state=='on'?'':'off'}" style="background:${svcC(s)}">
+    <div class="r1"><span class="brand">ШЛЮЗ</span><span class="svc">${s.kind=='once'?'на один раз':'только для '+esc(s.name)}</span></div>
+    <div class="num">${num}</div>
+    <div class="r3"><span>Срок<b>${view.reveal?s.exp:'••/••'}</b></span><span>CVC<b>${view.reveal?s.cvc:'•••'}</b></span><span style="font-weight:700;font-size:14px">МИР</span></div>
+    ${s.state=='on'?'':`<div class="lock">${s.state=='pause'?'⏸ На паузе':'⏻ Выключена'}</div>`}
+  </div>
+  <div class="panel">
+    <div class="kv"><span>Номер и код карты</span><button class="lnk" data-act="${view.reveal?'hide':'reveal'}">${view.reveal?'Скрыть':'Показать'}</button></div>
+    ${view.reveal?`<div class="stack" style="padding-bottom:12px">${copyRow('Номер',s.num)}${copyRow('Срок',s.exp)}${copyRow('CVC',s.cvc)}</div>`:''}
+    <div class="kv"><span>Какая карта</span><b>${s.kind=='once'?'Одноразовая<br><span class="muted" style="font-weight:400;font-size:13px">закроется после первой оплаты</span>':'Только для '+esc(s.name)+'<br><span class="muted" style="font-weight:400;font-size:13px">в других местах не сработает</span>'}</b></div>
+    <div class="kv"><span>Следующее списание</span><b>${s.state!='on'?'не пустим':trialOn(s)?'после '+fdate(s.trial):d?fdate(d)+' · '+rub(s.price):'ждём первое'}</b></div>
+  </div>
+  <div class="sec"><h3>Сколько можно списывать</h3></div>
+  <div class="panel">
+    <div class="kv"><span>За один раз</span><button class="lnk" data-lim="perTx">${s.perTx?'до '+rub(s.perTx):'без предела'} ›</button></div>
+    <div class="kv"><span>За месяц</span><button class="lnk" data-lim="perMonth">${s.perMonth?'до '+rub(s.perMonth):'без предела'} ›</button></div>
+    <div class="kv"><span>Всего, за всё время</span><button class="lnk" data-lim="total">${s.total?'до '+rub(s.total):'без предела'} ›</button></div>
+  </div>
+  <div class="sec"><h3>Что было</h3></div>
+  <div class="list">${evs.length?evs.map(evRow).join(''):'<div class="empty">Списаний ещё не было</div>'}</div>
+  <div class="demo"><p>Кнопки для показа: что будет, если сервис попробует списать деньги</p>
+    <button data-sim="${s.id}" data-amt="${s.price}">▶ ${esc(s.name)} списывает ${rub(s.price)}</button>
+    <button data-sim="${s.id}" data-amt="${Math.round(s.price*1.5/10)*10-1}">▶ ${esc(s.name)} хочет ${rub(Math.round(s.price*1.5/10)*10-1)}</button>
+    <button data-refund="${s.id}">▶ ${esc(s.name)} вернул ${rub(s.price)}</button>
+  </div>
+  <button class="danger" data-act="remove">Удалить подписку и закрыть карту</button>`;
+  return h;
+}
+const copyRow=(l,v)=>`<div class="copy"><span><small>${l}</small>${v}</span><button data-copy="${v.replace(/\s/g,'')}">Копировать</button></div>`;
+
+function evMeta(e){
+  const s=sub(e.sub)||{name:e.name||'Сервис'};const n=esc(s.name);
+  return {
+    ok:['ok','✓',`${n} списал`,'Всё по плану',`<span class="amt">−${rub(e.amt)}</span>`],
+    check:['info','1',`${n} проверил карту`,'Взял 1'+NB+'₽ и сразу вернул — так сервисы проверяют карту',''],
+    block:['block','✕',`${n} пытался списать — не пустили`,e.why||'Подписка выключена',`<span class="amt cut">${rub(e.amt)}</span>`],
+    limit:['block','✋',`${n} хотел ${rub(e.amt)} — не пустили`,`Твой предел — ${rub(e.lim)}`+(e.open?'':e.allowed?' · пропущено один раз':''),`<span class="amt cut">${rub(e.amt)}</span>`],
+    refund:['ok','↩',`${n} вернул деньги`,'Лежат на Шлюзе — даже если карта уже закрыта',`<span class="amt plus">+${rub(e.amt)}</span>`],
+    topup:['info','＋','Пополнили Шлюз',e.how||'',`<span class="amt plus">+${rub(e.amt)}</span>`],
+    off:['info','⏻',`${n}: выключена`,'Ни одного списания, пока не включишь',''],
+    on:['ok','⏻',`${n}: включена`,'Карта снова работает',''],
+    pause:['pause','⏸',`${n}: на паузе`,'До '+(e.until?fdate(e.until):'')+' — потом включится сама',''],
+    issue:['info','▭',`Выпустили карту для ${n}`,'Карта •• '+(s.last4||''),''],
+    close:['info','✕',`Карта ${n} закрыта`,'По ней больше никто не спишет',''],
+    dispute:['pause','?',`Спорное списание ${n}`,e.why||'Разбираемся',`<span class="amt">${rub(e.amt)}</span>`],
+  }[e.k];
+}
+function evRow(e,cnt){
+  const M=evMeta(e);const tm=new Date(e.t),time=String(tm.getHours()).padStart(2,'0')+':'+String(tm.getMinutes()).padStart(2,'0');
+  const dis=e.k=='ok'&&!e.disputed;
+  return `<div class="ev"><span class="ic ${M[0]}">${M[1]}</span><div class="txt"><div class="t">${M[2]}${cnt>1?` · ${cnt}${NB}${plural(cnt,'раз','раза','раз')}`:''}</div><div class="d">${M[3]} · ${time}</div>${dis?`<button class="more" data-dispute="${e.t}">Не узнаю это списание ›</button>`:''}${e.k=='limit'&&e.open?`<button class="more" data-once="${e.sub}">Пропустить один раз ›</button>`:''}</div>${M[4]}</div>`;
+}
+
+function events(){
+  const b=blocked(),saved=b.reduce((a,e)=>a+e.amt,0);
+  S.seenEv=Date.now();save();
+  let h=`<div class="top"><div class="word"><i></i>Шлюз</div></div>
+  <div class="saved"><div>Не пустили списаний на</div><div class="big">${rub(saved)}</div><div>${b.length} ${plural(b.length,'попытка','попытки','попыток')} — сервисы хотели, Шлюз не пустил</div></div>`;
+  const ev=[...S.ev].sort((a,b)=>b.t-a.t);
+  if(!ev.length)return h+`<div class="empty">Пока тихо</div>`;
+  let cur='',open=false;
+  for(let i=0;i<ev.length;i++){
+    const e=ev[i];const d=new Date(e.t);d.setHours(0,0,0,0);
+    const lbl=d.getTime()==today().getTime()?'Сегодня':d.getTime()==addDays(today(),-1).getTime()?'Вчера':fdate(d);
+    const key=x=>x.k=='block'?x.sub+'|'+new Date(x.t).toDateString():null;
+    if(key(e)&&ev.slice(0,i).some(x=>key(x)==key(e)))continue;
+    if(lbl!=cur){if(open)h+='</div>';h+=`<div class="day">${lbl}</div><div class="list">`;cur=lbl;open=true}
+    h+=evRow(e,key(e)?ev.filter(x=>key(x)==key(e)).length:1);
+  }
+  if(open)h+='</div>';
+  return h;
+}
+
+function profile(){
+  const T=tariff(),used=S.subs.length;
+  return `<div class="top"><div class="word"><i></i>Шлюз</div></div>
+  <div class="dhead"><span class="ava" style="width:56px;height:56px;font-size:22px">А</span><div><h2>Аня</h2><div class="muted">+7 (911) 177-07-77 · проверена через Госуслуги ✓</div></div></div>
+  <div class="panel"><div class="trow"><span class="minicard"></span><div class="txt"><b>${esc(S.source.bank)} •• ${S.source.last4}</b><span class="muted">С этой карты пополняем Шлюз</span></div><button class="lnk" data-act="source">Сменить</button></div>
+    <div class="kv" style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px"><span style="color:var(--ink)"><b style="font-size:15px">Автопополнение</b><span class="muted" style="font-size:13px;display:block">За день до списания кладём на Шлюз ровно его сумму</span></span><button class="sw ${S.auto?'on':''}" role="switch" aria-checked="${S.auto}" aria-label="Автопополнение" data-act="auto"></button></div>
+  </div>
+  <div class="plan"><div style="opacity:.85">Твой тариф</div><div class="big">${T.name} · ${T.price?T.price+NB+'₽ в месяц':'бесплатно'}</div>
+    <div>Подписок ${used} из ${T.subs}</div><div class="bar"><i style="width:${Math.min(100,used/T.subs*100)}%"></i></div>
+    <div>Одноразовых карт в этом месяце ${S.onceUsed} из ${T.once}</div>
+    <button data-act="tariffs">Все тарифы</button></div>
+  <div class="sec"><h3>Как это работает</h3></div>
+  <div class="panel steps">
+    <div class="step"><b>1</b><div><strong>Пополняешь Шлюз</strong><p class="muted">Со своей карты любого банка или по СБП. Можно сразу, можно автоматически перед каждым списанием</p></div></div>
+    <div class="step"><b>2</b><div><strong>Под каждый сервис — своя карта</strong><p class="muted">Её ты вставляешь в Иви, Okko и другие вместо своей. Работает только там</p></div></div>
+    <div class="step"><b>3</b><div><strong>Сервис списывает — Шлюз решает</strong><p class="muted">Включено и не дороже твоего предела — пропускаем. Выключено, на паузе или дороже — не пускаем и пишем тебе</p></div></div>
+  </div>
+  <div class="stack" style="margin-top:16px"><button class="btn ghost" data-act="onb">Показать знакомство ещё раз</button><button class="btn ghost" data-act="reset">Начать демо заново</button></div>`;
+}
+
+/* ---------- отрисовка ---------- */
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML=view.sub&&sub(view.sub)?detail(sub(view.sub)):view.tab=='events'?events():view.tab=='profile'?profile():home();
+  const unseen=blocked().filter(e=>e.t>S.seenEv).length;
+  const T=[['home','Подписки','▤'],['events','Что было','🛡'],['profile','Профиль','◉']];
+  document.getElementById('tabs').innerHTML=T.map(([k,l,i])=>`<button class="${view.tab==k?'on':''}" data-tab="${k}"><span aria-hidden="true">${i}</span>${l}${k=='events'&&unseen&&view.tab!='events'?`<span class="dot">${unseen}</span>`:''}</button>`).join('');
+}
+function go(tab){view={tab,sub:null,reveal:false};render();scrollTo(0,0)}
+function openSub(id){view={tab:'home',sub:id,reveal:false};render();scrollTo(0,0)}
+
+/* ---------- шторки и сообщения ---------- */
+let scrimEl=null;
+function sheet(title,body){
+  if(!scrimEl){scrimEl=document.createElement('div');scrimEl.className='scrim';
+    scrimEl.innerHTML=`<div class="sheet" role="dialog"><div class="sh-hd"><h2></h2><button class="x" data-act="close" aria-label="Закрыть">✕</button></div><div id="shb"></div></div>`;
+    scrimEl.addEventListener('click',e=>{if(e.target==scrimEl)close()});document.body.appendChild(scrimEl)}
+  scrimEl.querySelector('.sh-hd h2').innerHTML=title;scrimEl.querySelector('#shb').innerHTML=body;scrimEl.querySelector('.sheet').scrollTop=0;
+}
+function close(){if(scrimEl){scrimEl.remove();scrimEl=null}}
+let toastT;
+function toast(t,s){document.querySelectorAll('.toast').forEach(x=>x.remove());const el=document.createElement('div');el.className='toast';el.innerHTML=t+(s?`<small>${s}</small>`:'');document.body.appendChild(el);clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),5000);el.onclick=()=>el.remove()}
+
+/* выключить / пауза / включить */
+function askToggle(id){
+  const s=sub(id);
+  if(s.state=='on'){
+    const week=addDays(today(),7),first=new Date(today().getFullYear(),today().getMonth()+1,1);
+    sheet(`Что сделать с ${esc(s.name)}?`,`<div class="stack">
+      <button class="opt" data-pause="${id}" data-until="${week.getTime()}"><span class="e">⏸</span><span><b>Пауза на неделю</b><span class="muted">До ${fdate(week)}, потом включится сама</span></span></button>
+      <button class="opt" data-pause="${id}" data-until="${first.getTime()}"><span class="e">⏸</span><span><b>Пауза до ${fdate(first)}</b><span class="muted">Удобно, если уезжаешь или не смотришь этот месяц</span></span></button>
+      <button class="opt" data-do-off="${id}"><span class="e">⏻</span><span><b>Выключить</b><span class="muted">Пока не включишь — ни одного списания</span></span></button>
+    </div><p class="note">Что будет с подпиской в самом ${esc(s.name)}, решает сервис: может сразу закрыть доступ или пробовать списать снова. Мы каждый раз не пустим и напишем тебе</p>`);
+  }else{
+    sheet(`Включить ${esc(s.name)}?`,`<p>Карта •• ${s.last4} снова заработает. ${esc(s.name)} сможет списывать до ${rub(s.perMonth||s.price)} в месяц</p><p class="muted">Если подписка в сервисе уже закончилась — продли её в самом ${esc(s.name)}, карта Шлюза там уже есть</p><div class="stack"><button class="btn green" data-do-on="${id}">Включить</button><button class="btn ghost" data-act="close">Не надо</button></div>`);
+  }
+}
+function setState(id,st,until){const s=sub(id);s.state=st;if(until)s.pauseUntil=until;else delete s.pauseUntil;
+  S.ev.push({t:Date.now(),sub:id,k:st=='pause'?'pause':st,until});save();close();render();
+  toast(st=='on'?`${s.name} включена ✓`:st=='pause'?`${s.name} на паузе`:`${s.name} выключена`,st=='on'?'Карта снова работает':st=='pause'?'До '+fdate(until)+', потом включится сама':'Ни одного списания без твоего разрешения')}
+
+/* подключение подписки */
+let add={};
+function addDraw(){
+  const T=tariff();
+  const dots=`<div class="dots">${[1,2,3,4].map(i=>`<i class="${add.step==i?'on':''}"></i>`).join('')}</div>`;
+  if(add.step==1){
+    if(S.subs.length>=T.subs)return sheet('Подписок уже '+S.subs.length+' из '+T.subs,`<p>На тарифе «${T.name}» можно до ${T.subs} подписок. Удали ненужную или перейди на тариф больше</p><button class="btn" data-act="tariffs">Посмотреть тарифы</button>`);
+    const used=new Set(S.subs.map(s=>s.svc));
+    sheet('Какую подписку подключаем?',dots+`<div class="grid">${Object.entries(SVC).map(([k,v])=>`<button data-pick="${k}" ${used.has(k)?'disabled':''}>${logo({svc:k,name:v.name})}${esc(v.name)}</button>`).join('')}</div>
+    <div class="field" style="margin-top:16px"><label for="own">Нет в списке? Напиши название</label><input id="own" placeholder="Например, Кинопоиск" autocomplete="off"></div><button class="btn" data-act="own">Дальше</button>`);
+  }else if(add.step==2){
+    const left=T.once-S.onceUsed;
+    sheet('Какая карта нужна?',dots+`<div class="stack">
+      <button class="opt ${add.kind=='sub'?'on':''}" data-kind="sub"><span class="e">🔁</span><span><b>Для подписки</b><span class="muted">Работает только в ${esc(add.name)}. Каждый месяц, пока не выключишь</span></span></button>
+      <button class="opt ${add.kind=='once'?'on':''}" data-kind="once" ${left<=0?'disabled':''}><span class="e">🎟</span><span><b>Одноразовая — для пробного периода</b><span class="muted">Сервис проверит карту и даст бесплатный период. Первая оплата — и карта закроется сама. ${left>0?'Осталось '+left+' в этом месяце':'В этом месяце закончились'}</span></span></button>
+    </div>
+    ${add.kind=='once'?`<p style="margin-top:14px">Когда кончается бесплатный период? Напомним за день</p><div class="chips">${[7,14,30].map(n=>`<button class="${add.trialDays==n?'on':''}" data-trial="${n}">${n} ${plural(n,'день','дня','дней')}</button>`).join('')}<button class="${add.trialDays==0?'on':''}" data-trial="0">Не знаю</button></div>`:''}
+    <button class="btn" style="margin-top:14px" data-act="step3">Дальше</button>`);
+  }else if(add.step==3){
+    const p=add.price;
+    sheet('Сколько можно списывать?',dots+`<p>Попробует больше — не пустим и спросим тебя. Можно будет пропустить один раз</p>
+    <div class="field"><label for="lim">Не больше в месяц, ₽</label><input id="lim" type="number" inputmode="numeric" value="${p}" min="1"></div>
+    <div class="chips">${[p,Math.round(p*1.2/10)*10,p+100].map(v=>`<button data-limchip="${v}">${rub(v)}</button>`).join('')}</div>
+    <button class="btn" data-act="issue">Выпустить карту</button>`);
+  }else{
+    const c=add.card;
+    sheet('Карта готова ✓',dots+`<div class="vcard" style="background:${add.c};margin-top:0"><div class="r1"><span class="brand">ШЛЮЗ</span><span class="svc">${add.kind=='once'?'на один раз':'только для '+esc(add.name)}</span></div><div class="num">${c.num}</div><div class="r3"><span>Срок<b>${c.exp}</b></span><span>CVC<b>${c.cvc}</b></span><span style="font-weight:700;font-size:14px">МИР</span></div></div>
+    <div class="stack" style="margin-top:12px">${copyRow('Номер',c.num)}${copyRow('Срок',c.exp)}${copyRow('CVC',c.cvc)}</div>
+    <div class="howto"><div>Открой ${esc(add.name)} → профиль → способы оплаты</div><div>Добавь эту карту и сделай её основной</div><div>Проверь, что там осталась только карта Шлюза — иначе сервис может списать с другой</div></div>
+    <p class="note" style="margin-top:0">Как только ${esc(add.name)} что-нибудь спишет или проверит карту — увидим здесь и напишем тебе</p>
+    <button class="btn green" data-act="done">Готово, карта вставлена</button>`);
+  }
+}
+
+/* попытка списания (для показа) */
+function charge(s,amt){
+  let k='ok',why='';
+  if(s.state=='off'){k='block';why=s.name+' выключена'}
+  else if(s.state=='pause'){k='block';why='На паузе до '+fdate(s.pauseUntil)}
+  else if(s.closed){k='block';why='Карта закрыта'}
+  else{
+    const lim=Math.min(s.perTx||Infinity,s.perMonth||Infinity,s.total||Infinity);
+    if(amt>lim&&!s.allowOnce){S.ev.forEach(e=>{if(e.sub==s.id&&e.k=='limit')e.open=false});S.ev.push({t:Date.now(),sub:s.id,k:'limit',amt,lim,open:true});save();render();toast(`✋ ${s.name} хочет ${rub(amt)}`,'Это больше твоего предела '+rub(lim)+'. Не пустили — можешь пропустить один раз');return}
+    if(S.wallet<amt){if(S.auto){const need=amt-S.wallet;S.wallet+=need;S.ev.push({t:Date.now()-1,k:'topup',amt:need,how:'Автопополнение с '+S.source.bank+' •• '+S.source.last4})}else{k='block';why='На Шлюзе не хватило денег'}}
+  }
+  if(k=='ok'){S.wallet-=amt;s.price=amt;if(!s.day)s.day=Math.min(28,today().getDate());if(s.allowOnce){delete s.allowOnce}
+    if(s.kind=='once'){S.ev.push({t:Date.now(),sub:s.id,k:'ok',amt});s.state='off';s.closed=true;S.ev.push({t:Date.now()+1,sub:s.id,k:'close'});save();render();toast(`${s.name} списал ${rub(amt)}`,'Одноразовая карта закрылась. Нравится сервис — подключи постоянную');return}}
+  S.ev.push({t:Date.now(),sub:s.id,k,amt,why});save();render();
+  k=='ok'?toast(`${s.name} списал ${rub(amt)} ✓`,'Осталось на Шлюзе '+rub(S.wallet)):toast(`🛡 ${s.name} пытался списать ${rub(amt)}`,'Не пустили: '+why.charAt(0).toLowerCase()+why.slice(1));
+}
+
+/* ---------- клики ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,[data-sub]');if(!t||t.disabled)return;
+  const D=t.dataset;
+  if(D.tog){e.stopPropagation();return askToggle(D.tog)}
+  if(D.doOff)return setState(D.doOff,'off');
+  if(D.doOn)return setState(D.doOn,'on');
+  if(D.pause)return setState(D.pause,'pause',+D.until);
+  if(D.tab)return go(D.tab);
+  if(D.go)return go(D.go);
+  if(D.sub&&!D.tog)return openSub(D.sub);
+  if(D.copy){const ok=()=>toast('Скопировано ✓'),bad=()=>toast('Не получилось скопировать','Выдели цифры пальцем и скопируй');try{navigator.clipboard.writeText(D.copy).then(ok,bad)}catch(_){bad()}return}
+  if(D.once){const s=sub(D.once);s.allowOnce=true;S.ev.forEach(x=>{if(x.sub==s.id&&x.k=='limit'&&x.open){x.open=false;x.allowed=true}});save();render();toast(`Пропустим ${s.name} один раз`,'Следующая попытка пройдёт. Потом снова твой предел');return}
+  if(D.keep){const s=sub(D.keep);S.ev.forEach(x=>{if(x.sub==s.id&&x.k=='limit')x.open=false});save();render();toast(`${s.name} не пускаем`,'Сервис может пробовать ещё — каждый раз не пустим');return}
+  if(D.pick){const v=SVC[D.pick];add={step:2,svc:D.pick,name:v.name,price:v.price,c:v.c,kind:'sub'};return addDraw()}
+  if(D.kind){add.kind=D.kind;if(D.kind=='once'&&add.trialDays==null)add.trialDays=7;return addDraw()}
+  if(D.trial!=null){add.trialDays=+D.trial;return addDraw()}
+  if(D.limchip){document.getElementById('lim').value=D.limchip;return}
+  if(D.sim)return charge(sub(D.sim),+D.amt);
+  if(D.refund){const s=sub(D.refund);S.wallet+=s.price;S.ev.push({t:Date.now(),sub:s.id,k:'refund',amt:s.price});save();render();toast(`${s.name} вернул ${rub(s.price)}`,'Деньги на Шлюзе');return}
+  if(D.lim){const s=sub(view.sub),f=D.lim;const L={perTx:'За один раз',perMonth:'За месяц',total:'Всего, за всё время'}[f];
+    sheet(L,`<p>${f=='total'?'Когда сервис наберёт эту сумму — карта перестанет пускать списания':'Попробует списать больше — не пустим и спросим тебя'}</p><div class="field"><label for="lim2">Не больше, ₽</label><input id="lim2" type="number" inputmode="numeric" value="${s[f]||''}" placeholder="Без предела"></div><div class="stack"><button class="btn" data-limsave="${f}">Сохранить</button>${s[f]?`<button class="btn ghost" data-limsave="${f}" data-zero="1">Без предела</button>`:''}</div>`);return}
+  if(D.limsave){const s=sub(view.sub),v=D.zero?0:+document.getElementById('lim2').value;if(!D.zero&&!(v>0)){toast('Напиши сумму больше нуля');return}s[D.limsave]=v;save();close();render();toast(v?'Предел '+rub(v)+' ✓':'Без предела');return}
+  if(D.dispute){const ev=S.ev.find(x=>x.t==+D.dispute);const s=sub(ev.sub)||{name:'Сервис'};
+    sheet(`Что не так со списанием ${rub(ev.amt)}?`,`<div class="stack">${['Не знаю, что это за списание','Списали больше, чем должны','Подписку уже отменили, а деньги взяли'].map(r=>`<button class="opt" data-disp="${ev.t}" data-why="${r}"><span class="e">•</span><span><b>${r}</b></span></button>`).join('')}</div><p class="note">${esc(s.name)} · ${fdate(ev.t)}</p>`);return}
+  if(D.disp){const ev=S.ev.find(x=>x.t==+D.disp);ev.disputed=true;const s=sub(ev.sub);S.ev.push({t:Date.now(),sub:ev.sub,k:'dispute',amt:ev.amt,why:D.why});if(s&&s.state=='on'){s.state='pause';s.pauseUntil=addDays(today(),30).getTime()}save();
+    sheet('Заявка принята ✓',`<p>Сначала напишем в ${esc(s?s.name:'сервис')} — часто этого хватает. Не вернут — оспорим через банк. Обычно до 30 дней</p><p class="muted">Пока разбираемся, карта на паузе — новых списаний не будет. Деньги вернутся на Шлюз</p><button class="btn" data-act="close">Понятно</button>`);render();return}
+  if(D.src){const[b,l]=D.src.split('|');S.source={bank:b,last4:l};save();close();render();toast('Пополняем с '+b+' •• '+l);return}
+  if(D.plan){S.plan=D.plan;save();close();render();toast('Тариф «'+TARIFFS[D.plan].name+'» ✓');return}
+  if(D.topchip){document.getElementById('tsum').value=D.topchip;return}
+  if(D.how){const v=+document.getElementById('tsum').value;if(!(v>0)){toast('Напиши сумму');return}S.wallet+=v;S.ev.push({t:Date.now(),k:'topup',amt:v,how:D.how=='sbp'?'По СБП':'С '+S.source.bank+' •• '+S.source.last4});save();close();render();toast('Шлюз пополнен на '+rub(v)+' ✓','Теперь на нём '+rub(S.wallet));return}
+  switch(D.act){
+    case 'close':return close();
+    case 'add':add={step:1};return addDraw();
+    case 'own':{const v=(document.getElementById('own').value||'').trim();if(v.length<2){toast('Выбери сервис или напиши название');return}add={step:2,svc:'',name:v,price:299,c:OTHER_C,kind:'sub'};return addDraw()}
+    case 'step3':add.step=3;return addDraw();
+    case 'issue':{const lim=+document.getElementById('lim').value;if(!(lim>0)){toast('Напиши сумму больше нуля');return}add.limit=lim;add.card=mkCard();add.step=4;return addDraw()}
+    case 'done':{const id='s'+Date.now();const o={id,svc:add.svc,name:add.name,price:add.limit,kind:add.kind,state:'on',perMonth:add.limit,perTx:add.limit,total:0,day:null};
+      if(!add.svc)o.c=add.c;if(add.kind=='once'){S.onceUsed++;if(add.trialDays)o.trial=addDays(today(),add.trialDays).getTime()}
+      S.subs.push(Object.assign(o,add.card));S.ev.push({t:Date.now(),sub:id,k:'issue'});save();close();openSub(id);toast(`${add.name} подключена ✓`,'Ждём первое списание — напишем, когда оно будет');return}
+    case 'reveal':sheet('Покажем номер и код','<div class="faceid"><i>☺</i><span class="muted">Подтверди, что это ты</span></div><button class="btn" data-act="revealok">Подтвердить по лицу</button>');return;
+    case 'revealok':close();view.reveal=true;render();return;
+    case 'hide':view.reveal=false;return render();
+    case 'remove':{const s=sub(view.sub);sheet(`Удалить ${esc(s.name)}?`,`<p>Карта •• ${s.last4} закроется навсегда. ${esc(s.name)} больше не сможет по ней списать</p><p class="muted">Если сервис потом вернёт деньги — они придут на Шлюз</p><div class="stack"><button class="btn red" data-act="rmok">Удалить и закрыть карту</button><button class="btn ghost" data-act="close">Оставить</button></div>`);return}
+    case 'rmok':{const s=sub(view.sub);S.ev.push({t:Date.now(),sub:s.id,k:'close',name:s.name});S.subs=S.subs.filter(x=>x!=s);save();close();go('home');toast(`${s.name} удалена`,'Карта закрыта');return}
+    case 'topup':sheet('Пополнить Шлюз',`<div class="field"><label for="tsum">Сколько, ₽</label><input id="tsum" type="number" inputmode="numeric" value="1000"></div><div class="chips">${[500,1000,2000].map(v=>`<button data-topchip="${v}">${rub(v)}</button>`).join('')}</div><div class="stack"><button class="btn" data-how="sbp">По СБП<small>Без комиссии, из приложения своего банка</small></button><button class="btn ghost" data-how="card">С карты ${esc(S.source.bank)} •• ${S.source.last4}<small>${S.plan=='free'?'Комиссия 1,5%':'Без комиссии на твоём тарифе'}</small></button></div>`);return;
+    case 'auto':S.auto=!S.auto;save();render();toast(S.auto?'Автопополнение включено ✓':'Автопополнение выключено',S.auto?'Перед каждым списанием положим ровно нужную сумму':'Следи, чтобы на Шлюзе хватало денег');return;
+    case 'source':sheet('Откуда пополнять',`<p>С этой карты пополняем Шлюз. Можно карту любого банка</p><div class="stack">${[['Т-Банк','1234'],['Сбер','5521'],['Альфа-Банк','0087']].map(([b,l])=>`<button class="btn ${S.source.last4==l?'':'ghost'}" data-src="${b}|${l}">${b} •• ${l}${S.source.last4==l?' ✓':''}</button>`).join('')}</div>`);return;
+    case 'tariffs':sheet('Тарифы',`<div class="stack">${Object.entries(TARIFFS).map(([k,T])=>`<button class="tariff ${S.plan==k?'on':''}" data-plan="${k}"><span class="p"><b>${T.name}</b><b>${T.price?T.price+NB+'₽ в месяц':'0'+NB+'₽'}</b></span>${T.year?`<span class="muted" style="font-size:13px">или ${rub(T.year)} в год</span>`:''}<ul>${T.list.map(x=>`<li>${x}</li>`).join('')}</ul></button>`).join('')}</div><p class="note">Одна забытая подписка за 399${NB}₽ окупает почти три месяца тарифа «Шлюз»</p>`);return;
+    case 'onb':return onb(0);
+    case 'onbnext':return onb(+D.n);
+    case 'onbdone':return close();
+    case 'reset':S=seed();S.onb=true;save();close();go('home');toast('Демо началось заново');return;
+  }
+});
+document.addEventListener('keydown',e=>{if(e.key=='Escape')close();if((e.key=='Enter'||e.key==' ')&&e.target.matches('.row[data-sub]')){e.preventDefault();openSub(e.target.dataset.sub)}});
+
+/* знакомство */
+const ONB=[
+  ['🗂️','Все подписки — в одном месте','Видишь, кто, сколько и когда спишет. Из любых банков'],
+  ['💳','У каждой подписки своя карта','Шлюз выпускает карту под каждый сервис. Она работает только там — утечёт номер, никто больше не спишет'],
+  ['🛡️','Выключил — и больше не спишут','Один переключатель или пауза до даты. Не надо искать, где в сервисе спрятана кнопка «Отменить»'],
+  ['✋','Дороже — спросим тебя','Сервис поднял цену — не пустим и спросим. Пропустишь один раз или нет — решаешь ты'],
+];
+function onb(i){const[p,h,t]=ONB[i];sheet('Знакомство',`<div class="dots">${ONB.map((_,j)=>`<i class="${i==j?'on':''}"></i>`).join('')}</div><div class="onb-pic">${p}</div><h2 style="margin-bottom:8px">${h}</h2><p class="muted">${t}</p>${i<ONB.length-1?`<button class="btn" data-act="onbnext" data-n="${i+1}">Дальше</button>`:`<button class="btn" data-act="onbdone">Начать</button>`}`)}
+
+render();
+if(!S.onb){S.onb=true;save();onb(0)}
+</script>
+</body>
+</html>
